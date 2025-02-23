@@ -5,62 +5,111 @@ namespace App\Http\Controllers;
 use App\Models\Platform;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 class PlatformController extends Controller
 {
     public function index()
     {
-        $platforms = Platform::withCount('tasks')->get();
-        return response()->json($platforms);
+        return Inertia::render('Platforms/Index', [
+            'platforms' => Platform::withCount('tasks')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(fn ($platform) => [
+                    'id' => $platform->id,
+                    'name' => $platform->name,
+                    'slug' => $platform->slug,
+                    'icon' => $platform->icon,
+                    'description' => $platform->description,
+                    'settings' => $platform->settings,
+                    'is_active' => $platform->is_active,
+                    'tasks_count' => $platform->tasks_count,
+                    'created_at' => $platform->created_at->format('d M Y')
+                ])
+        ]);
+    }
+
+    public function create()
+    {
+        return Inertia::render('Platforms/Create');
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:platforms',
-            'description' => 'nullable|string',
             'icon' => 'required|string|max:50',
-            'requirements' => 'nullable|json'
+            'description' => 'nullable|string',
+            'settings' => 'nullable|array'
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return back()->withErrors($validator->errors());
         }
 
-        $platform = Platform::create($request->all());
-        return response()->json($platform, 201);
+        Platform::create([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+            'icon' => $request->icon,
+            'description' => $request->description,
+            'settings' => $request->settings,
+            'is_active' => true
+        ]);
+
+        return redirect()->route('platforms.index')
+            ->with('message', 'Platform berhasil dibuat');
     }
 
-    public function show(Platform $platform)
+    public function edit(Platform $platform)
     {
-        $platform->load('tasks');
-        return response()->json($platform);
+        return Inertia::render('Platforms/Edit', [
+            'platform' => [
+                'id' => $platform->id,
+                'name' => $platform->name,
+                'icon' => $platform->icon,
+                'description' => $platform->description,
+                'settings' => $platform->settings,
+                'is_active' => $platform->is_active
+            ]
+        ]);
     }
 
     public function update(Request $request, Platform $platform)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'string|max:255|unique:platforms,name,' . $platform->id,
+            'name' => 'required|string|max:255|unique:platforms,name,' . $platform->id,
+            'icon' => 'required|string|max:50',
             'description' => 'nullable|string',
-            'icon' => 'string|max:50',
-            'requirements' => 'nullable|json'
+            'settings' => 'nullable|array',
+            'is_active' => 'boolean'
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return back()->withErrors($validator->errors());
         }
 
-        $platform->update($request->all());
-        return response()->json($platform);
+        $platform->update([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+            'icon' => $request->icon,
+            'description' => $request->description,
+            'settings' => $request->settings,
+            'is_active' => $request->is_active
+        ]);
+
+        return redirect()->route('platforms.index')
+            ->with('message', 'Platform berhasil diperbarui');
     }
 
     public function destroy(Platform $platform)
     {
         if ($platform->tasks()->count() > 0) {
-            return response()->json(['error' => 'Cannot delete platform with associated tasks'], 422);
+            return back()->with('error', 'Tidak dapat menghapus platform yang memiliki task');
         }
         
         $platform->delete();
-        return response()->json(null, 204);
+        return redirect()->route('platforms.index')
+            ->with('message', 'Platform berhasil dihapus');
     }
 } 

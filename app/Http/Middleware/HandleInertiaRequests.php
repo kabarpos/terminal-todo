@@ -41,10 +41,12 @@ class HandleInertiaRequests extends Middleware
                     'phone' => $request->user()->phone,
                     'avatar_url' => $request->user()->avatar_url,
                     'roles' => $request->user()->roles->pluck('name')->toArray(),
-                    'permissions' => $request->user()->getAllPermissions()->pluck('name'),
+                    'permissions' => $request->user()->getAllPermissions()->pluck('name')->toArray(),
                     'status' => $request->user()->status,
                     'email_verified_at' => $request->user()->email_verified_at,
                     'last_login_at' => $request->user()->last_login_at?->diffForHumans(),
+                    'is_admin' => $request->user()->hasRole('Super Admin'),
+                    'is_content_manager' => $request->user()->hasRole('Content Manager')
                 ] : null
             ],
             'flash' => [

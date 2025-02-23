@@ -5,60 +5,111 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::withCount('tasks')->get();
-        return response()->json($categories);
+        return Inertia::render('Categories/Index', [
+            'categories' => Category::withCount('tasks')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(fn ($category) => [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'slug' => $category->slug,
+                    'type' => $category->type,
+                    'color' => $category->color,
+                    'description' => $category->description,
+                    'is_active' => $category->is_active,
+                    'tasks_count' => $category->tasks_count,
+                    'created_at' => $category->created_at->format('d M Y')
+                ])
+        ]);
+    }
+
+    public function create()
+    {
+        return Inertia::render('Categories/Create');
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255|unique:categories',
+            'type' => 'required|string|in:content,task',
             'description' => 'nullable|string',
             'color' => 'required|string|max:7'
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return back()->withErrors($validator->errors());
         }
 
-        $category = Category::create($request->all());
-        return response()->json($category, 201);
+        Category::create([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+            'type' => $request->type,
+            'description' => $request->description,
+            'color' => $request->color,
+            'is_active' => true
+        ]);
+
+        return redirect()->route('categories.index')
+            ->with('message', 'Kategori berhasil dibuat');
     }
 
-    public function show(Category $category)
+    public function edit(Category $category)
     {
-        $category->load('tasks');
-        return response()->json($category);
+        return Inertia::render('Categories/Edit', [
+            'category' => [
+                'id' => $category->id,
+                'name' => $category->name,
+                'type' => $category->type,
+                'description' => $category->description,
+                'color' => $category->color,
+                'is_active' => $category->is_active
+            ]
+        ]);
     }
 
     public function update(Request $request, Category $category)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'string|max:255|unique:categories,name,' . $category->id,
+            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+            'type' => 'required|string|in:content,task',
             'description' => 'nullable|string',
-            'color' => 'string|max:7'
+            'color' => 'required|string|max:7',
+            'is_active' => 'boolean'
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+            return back()->withErrors($validator->errors());
         }
 
-        $category->update($request->all());
-        return response()->json($category);
+        $category->update([
+            'name' => $request->name,
+            'slug' => Str::slug($request->name),
+            'type' => $request->type,
+            'description' => $request->description,
+            'color' => $request->color,
+            'is_active' => $request->is_active
+        ]);
+
+        return redirect()->route('categories.index')
+            ->with('message', 'Kategori berhasil diperbarui');
     }
 
     public function destroy(Category $category)
     {
         if ($category->tasks()->count() > 0) {
-            return response()->json(['error' => 'Cannot delete category with associated tasks'], 422);
+            return back()->with('error', 'Tidak dapat menghapus kategori yang memiliki task');
         }
         
         $category->delete();
-        return response()->json(null, 204);
+        return redirect()->route('categories.index')
+            ->with('message', 'Kategori berhasil dihapus');
     }
 } 

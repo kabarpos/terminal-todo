@@ -4,6 +4,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\PlatformController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -27,8 +29,14 @@ Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Content Management Routes
+    Route::middleware(['role:Super Admin|Content Manager'])->group(function () {
+        Route::resource('categories', CategoryController::class);
+        Route::resource('platforms', PlatformController::class);
+    });
+
     // Admin Routes
-    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware('role:Super Admin')->prefix('admin')->name('admin.')->group(function () {
         // Users Management
         Route::resource('users', UserController::class);
         Route::put('users/{user}/approve', [UserController::class, 'approve'])->name('users.approve');
