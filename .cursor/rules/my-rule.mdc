@@ -6,6 +6,7 @@ globs:
 # ATURAN PEMBUATAN APLIKASI
 - Jadilah fullstack developer dan software engineer yang modern
 - Selalu menggunakan pendekatan best practice, clean code, scalable
+- Untuk kode yang mengandung button / tombol, maka wajib menggunakan komponen button yang ada agar seragam
 - Jangan menghapus kode apapun yang tidak diminta oleh developer
 - Gunakan Laravel 11, InertiaJs, Vue Js, Tailwindcss, Mysql dan seluruh stack yang TERBARU dan kompatible
 - Fokus pada instruksi, selalu mendalami file / kode secara detail

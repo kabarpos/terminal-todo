@@ -18,74 +18,71 @@ class PlatformSeeder extends Seeder
             [
                 'name' => 'Instagram',
                 'icon' => 'instagram',
-                'description' => 'Platform social media Instagram',
-                'settings' => [
-                    'post_types' => ['feed', 'story', 'reels'],
+                'description' => 'Platform media sosial untuk berbagi foto dan video',
+                'settings' => json_encode([
+                    'post_types' => ['image', 'video', 'carousel', 'reels', 'story'],
                     'image_dimensions' => [
-                        'feed' => '1080x1080',
-                        'story' => '1080x1920',
-                        'reels' => '1080x1920'
+                        'square' => '1080x1080',
+                        'portrait' => '1080x1350',
+                        'landscape' => '1080x608'
                     ],
                     'video_duration' => [
-                        'feed' => 60,
-                        'story' => 15,
-                        'reels' => 90
+                        'feed' => '60',
+                        'reels' => '90',
+                        'story' => '15'
                     ]
-                ]
+                ])
             ],
             [
                 'name' => 'TikTok',
                 'icon' => 'tiktok',
-                'description' => 'Platform video pendek TikTok',
-                'settings' => [
-                    'post_types' => ['video'],
-                    'video_dimensions' => '1080x1920',
-                    'max_duration' => 180
-                ]
+                'description' => 'Platform media sosial untuk berbagi video pendek',
+                'settings' => json_encode([
+                    'video_dimensions' => [
+                        'vertical' => '1080x1920'
+                    ],
+                    'max_duration' => '180'
+                ])
             ],
             [
                 'name' => 'YouTube',
                 'icon' => 'youtube',
-                'description' => 'Platform video YouTube',
-                'settings' => [
+                'description' => 'Platform berbagi video',
+                'settings' => json_encode([
                     'post_types' => ['video', 'shorts'],
                     'video_dimensions' => [
-                        'landscape' => '1920x1080',
+                        'standard' => '1920x1080',
                         'shorts' => '1080x1920'
                     ],
                     'max_duration' => [
-                        'video' => 43200, // 12 hours
-                        'shorts' => 60
+                        'video' => '43200', // 12 jam
+                        'shorts' => '60'
                     ]
-                ]
+                ])
             ],
             [
                 'name' => 'Facebook',
                 'icon' => 'facebook',
-                'description' => 'Platform social media Facebook',
-                'settings' => [
-                    'post_types' => ['post', 'story', 'reels'],
+                'description' => 'Platform media sosial untuk berbagi konten',
+                'settings' => json_encode([
+                    'post_types' => ['text', 'image', 'video', 'link'],
                     'image_dimensions' => [
-                        'post' => '1200x630',
+                        'timeline' => '1200x630',
                         'story' => '1080x1920'
                     ],
-                    'video_duration' => [
-                        'post' => 240,
-                        'story' => 20,
-                        'reels' => 90
-                    ]
-                ]
+                    'video_duration' => '14400' // 4 jam
+                ])
             ],
             [
                 'name' => 'Twitter/X',
                 'icon' => 'twitter',
-                'description' => 'Platform microblogging Twitter/X',
-                'settings' => [
-                    'post_types' => ['tweet'],
-                    'character_limit' => 280,
-                    'image_limit' => 4,
-                    'video_duration' => 140
-                ]
+                'description' => 'Platform media sosial untuk berbagi tweet',
+                'settings' => json_encode([
+                    'post_types' => ['text', 'image', 'video', 'link'],
+                    'character_limit' => '280',
+                    'image_limit' => '4',
+                    'video_duration' => '140'
+                ])
             ]
         ];
 

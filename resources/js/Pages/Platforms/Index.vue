@@ -9,9 +9,14 @@
                 </h2>
                 <Link
                     :href="route('platforms.create')"
-                    class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                    class="inline-flex items-center px-3 py-2 md:px-4 md:py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
                 >
-                    Tambah Platform
+                    <span class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="hidden md:inline ml-2">Tambah Platform</span>
+                    </span>
                 </Link>
             </div>
         </template>
@@ -26,7 +31,7 @@
                                 v-model="search"
                                 type="text"
                                 placeholder="Cari platform..."
-                                class="w-full px-4 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                                class="w-full px-4 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
                             >
                         </div>
 
@@ -56,8 +61,8 @@
                                     <tr v-for="platform in filteredPlatforms" :key="platform.id">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
-                                                <div class="flex-shrink-0 h-10 w-10">
-                                                    <i :class="['text-2xl', platform.icon]"></i>
+                                                <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                                                    <i :class="['text-2xl fa-brands', `fa-${platform.icon}`]"></i>
                                                 </div>
                                                 <div class="ml-4">
                                                     <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -87,13 +92,13 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <Link
                                                 :href="route('platforms.edit', platform.id)"
-                                                class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 mr-4"
+                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200"
                                             >
                                                 Edit
                                             </Link>
                                             <button
                                                 @click="confirmPlatformDeletion(platform)"
-                                                class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200"
                                             >
                                                 Hapus
                                             </button>
@@ -119,18 +124,24 @@
                 </p>
 
                 <div class="mt-6 flex justify-end">
-                    <SecondaryButton @click="closeModal">
+                    <SecondaryButton 
+                        @click="closeModal"
+                        variant="outline"
+                        type="button"
+                        class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                    >
                         Batal
                     </SecondaryButton>
 
-                    <DangerButton
-                        class="ml-3"
+                    <PrimaryButton
+                        variant="danger"
                         :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
                         @click="deletePlatform"
+                        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-25"
                     >
-                        Hapus Platform
-                    </DangerButton>
+                        {{ form.processing ? 'Menghapus...' : 'Hapus Platform' }}
+                    </PrimaryButton>
                 </div>
             </div>
         </Modal>
@@ -143,7 +154,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
-import DangerButton from '@/Components/DangerButton.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 
 const props = defineProps({
     platforms: {

@@ -6,6 +6,8 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PlatformController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TaskCommentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -23,6 +25,14 @@ Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard/Index');
     })->name('dashboard');
+
+    // Tasks Routes
+    Route::resource('tasks', TaskController::class);
+    
+    // Task Comments Routes
+    Route::post('tasks/{task}/comments', [TaskCommentController::class, 'store'])->name('tasks.comments.store');
+    Route::put('tasks/comments/{comment}', [TaskCommentController::class, 'update'])->name('tasks.comments.update');
+    Route::delete('tasks/comments/{comment}', [TaskCommentController::class, 'destroy'])->name('tasks.comments.destroy');
 
     // Profile Routes (from Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

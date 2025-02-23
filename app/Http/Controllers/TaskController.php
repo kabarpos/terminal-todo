@@ -3,82 +3,211 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use App\Models\User;
 use App\Models\Category;
 use App\Models\Platform;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
 
 class TaskController extends Controller
 {
     public function index()
     {
-        $tasks = Task::with(['category', 'platform', 'assignedTo', 'createdBy'])->paginate(10);
-        return response()->json($tasks);
+        $tasks = Task::with(['category', 'platform', 'assignees', 'creator'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn ($task) => [
+                'id' => $task->id,
+                'title' => $task->title,
+                'description' => $task->description,
+                'category' => [
+                    'id' => $task->category->id,
+                    'name' => $task->category->name,
+                    'color' => $task->category->color
+                ],
+                'platform' => $task->platform ? [
+                    'id' => $task->platform->id,
+                    'name' => $task->platform->name,
+                    'icon' => $task->platform->icon
+                ] : null,
+                'priority' => $task->priority,
+                'status' => $task->status,
+                'start_date' => $task->start_date?->format('Y-m-d\TH:i'),
+                'due_date' => $task->due_date?->format('Y-m-d\TH:i'),
+                'completed_at' => $task->completed_at?->format('Y-m-d\TH:i'),
+                'assignees' => $task->assignees->map(fn ($user) => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'avatar_url' => $user->avatar_url
+                ]),
+                'creator' => [
+                    'id' => $task->creator->id,
+                    'name' => $task->creator->name
+                ],
+                'created_at' => $task->created_at->format('d M Y H:i')
+            ]);
+
+        return Inertia::render('Tasks/Index', [
+            'tasks' => $tasks
+        ]);
+    }
+
+    public function create()
+    {
+        return Inertia::render('Tasks/Create', [
+            'categories' => Category::where('type', 'task')->where('is_active', true)->get(),
+            'platforms' => Platform::where('is_active', true)->get(),
+            'users' => User::where('status', 'active')->get()
+        ]);
     }
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'due_date' => 'required|date',
+            'description' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
-            'platform_id' => 'required|exists:platforms,id',
-            'assigned_to' => 'required|exists:users,id',
-            'priority' => 'required|in:low,medium,high',
-            'status' => 'required|in:pending,in_progress,review,completed'
+            'platform_id' => 'nullable|exists:platforms,id',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'status' => 'required|in:draft,in_review,approved,in_progress,completed,cancelled',
+            'start_date' => 'nullable|date',
+            'due_date' => 'required|date',
+            'assignees' => 'required|array|min:1',
+            'assignees.*' => 'exists:users,id'
         ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
 
         $task = Task::create([
             'title' => $request->title,
             'description' => $request->description,
-            'due_date' => $request->due_date,
             'category_id' => $request->category_id,
             'platform_id' => $request->platform_id,
-            'assigned_to' => $request->assigned_to,
-            'created_by' => Auth::id(),
             'priority' => $request->priority,
-            'status' => $request->status
+            'status' => $request->status,
+            'start_date' => $request->start_date,
+            'due_date' => $request->due_date,
+            'created_by' => Auth::id()
         ]);
 
-        return response()->json($task, 201);
+        $task->assignees()->attach($request->assignees);
+
+        return redirect()->route('tasks.index')
+            ->with('message', 'Task berhasil dibuat');
     }
 
     public function show(Task $task)
     {
-        $task->load(['category', 'platform', 'assignedTo', 'createdBy', 'comments']);
-        return response()->json($task);
+        $task->load(['category', 'platform', 'assignees', 'creator', 'comments.user']);
+
+        return Inertia::render('Tasks/Show', [
+            'task' => [
+                'id' => $task->id,
+                'title' => $task->title,
+                'description' => $task->description,
+                'category' => [
+                    'id' => $task->category->id,
+                    'name' => $task->category->name,
+                    'color' => $task->category->color
+                ],
+                'platform' => $task->platform ? [
+                    'id' => $task->platform->id,
+                    'name' => $task->platform->name,
+                    'icon' => $task->platform->icon
+                ] : null,
+                'priority' => $task->priority,
+                'status' => $task->status,
+                'start_date' => $task->start_date?->format('Y-m-d\TH:i:s'),
+                'due_date' => $task->due_date?->format('Y-m-d\TH:i:s'),
+                'completed_at' => $task->completed_at?->format('Y-m-d\TH:i:s'),
+                'assignees' => $task->assignees->map(fn ($user) => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'avatar_url' => $user->avatar_url,
+                    'role' => $user->pivot->role
+                ]),
+                'creator' => [
+                    'id' => $task->creator->id,
+                    'name' => $task->creator->name
+                ],
+                'comments' => $task->comments->map(fn ($comment) => [
+                    'id' => $comment->id,
+                    'content' => $comment->content,
+                    'user' => [
+                        'id' => $comment->user->id,
+                        'name' => $comment->user->name,
+                        'avatar_url' => $comment->user->avatar_url
+                    ],
+                    'created_at' => $comment->created_at->format('Y-m-d\TH:i:s')
+                ]),
+                'created_at' => $task->created_at->format('Y-m-d\TH:i:s')
+            ]
+        ]);
+    }
+
+    public function edit(Task $task)
+    {
+        $task->load(['category', 'platform', 'assignees']);
+
+        return Inertia::render('Tasks/Edit', [
+            'task' => [
+                'id' => $task->id,
+                'title' => $task->title,
+                'description' => $task->description,
+                'category_id' => $task->category_id,
+                'platform_id' => $task->platform_id,
+                'priority' => $task->priority,
+                'status' => $task->status,
+                'start_date' => $task->start_date?->format('Y-m-d\TH:i'),
+                'due_date' => $task->due_date?->format('Y-m-d\TH:i'),
+                'assignees' => $task->assignees->map(fn ($user) => [
+                    'id' => $user->id,
+                    'name' => $user->name
+                ])
+            ],
+            'categories' => Category::where('type', 'task')->where('is_active', true)->get(),
+            'platforms' => Platform::where('is_active', true)->get(),
+            'users' => User::where('status', 'active')->get()
+        ]);
     }
 
     public function update(Request $request, Task $task)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'string|max:255',
-            'description' => 'string',
-            'due_date' => 'date',
-            'category_id' => 'exists:categories,id',
-            'platform_id' => 'exists:platforms,id',
-            'assigned_to' => 'exists:users,id',
-            'priority' => 'in:low,medium,high',
-            'status' => 'in:pending,in_progress,review,completed'
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category_id' => 'required|exists:categories,id',
+            'platform_id' => 'nullable|exists:platforms,id',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'status' => 'required|in:draft,in_review,approved,in_progress,completed,cancelled',
+            'start_date' => 'nullable|date',
+            'due_date' => 'required|date',
+            'assignees' => 'required|array|min:1',
+            'assignees.*' => 'exists:users,id'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
+        $task->update([
+            'title' => $request->title,
+            'description' => $request->description,
+            'category_id' => $request->category_id,
+            'platform_id' => $request->platform_id,
+            'priority' => $request->priority,
+            'status' => $request->status,
+            'start_date' => $request->start_date,
+            'due_date' => $request->due_date,
+            'completed_at' => $request->status === 'completed' ? now() : null
+        ]);
 
-        $task->update($request->all());
-        return response()->json($task);
+        $task->assignees()->sync($request->assignees);
+
+        return redirect()->route('tasks.index')
+            ->with('message', 'Task berhasil diperbarui');
     }
 
     public function destroy(Task $task)
     {
         $task->delete();
-        return response()->json(null, 204);
+
+        return redirect()->route('tasks.index')
+            ->with('message', 'Task berhasil dihapus');
     }
 } 
