@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+.sidebar-item {
+    @apply flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors duration-200;
+}
+
+.sidebar-item-active {
+    @apply bg-[#19376D] text-white;
+}
+
+.sidebar-item-inactive {
+    @apply text-gray-300 hover:bg-[#19376D] hover:text-white;
+}
+
+.sidebar-icon {
+    @apply mr-3 flex-shrink-0 h-6 w-6;
+}
+
+.sidebar-icon-active {
+    @apply text-white;
+}
+
+.sidebar-icon-inactive {
+    @apply text-gray-400 group-hover:text-white;
+}
