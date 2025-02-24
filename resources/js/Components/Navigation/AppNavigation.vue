@@ -9,7 +9,8 @@ import {
     HomeIcon,
     ClipboardDocumentListIcon,
     TagIcon,
-    ShareIcon
+    ShareIcon,
+    CalendarIcon
 } from "@heroicons/vue/24/outline";
 
 const props = defineProps({
@@ -65,6 +66,12 @@ const navigationConfig = {
             name: "Platforms",
             href: route('platforms.index'),
             icon: ShareIcon,
+            permission: 'view content'
+        },
+        {
+            name: "Calendar",
+            href: route('calendar.index'),
+            icon: CalendarIcon,
             permission: 'view content'
         }
     ],
@@ -144,14 +151,28 @@ const getNavigationMenus = computed(() => {
             </div>
             <div class="space-y-1">
                 <Link
-                    v-for="item in getNavigationMenus.content"
-                    :key="item.name"
-                    :href="item.href"
+                    :href="route('calendar.index')"
                     class="flex items-center px-3 py-2 text-sm text-light-text dark:text-dark-text hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-colors"
-                    :class="{ 'bg-primary-50 dark:bg-primary-500/10 text-primary-500': route().current(item.href) }"
+                    :class="{ 'bg-primary-50 dark:bg-primary-500/10 text-primary-500': route().current('calendar.*') }"
                 >
-                    <component :is="item.icon" class="h-5 w-5 mr-2" />
-                    {{ item.name }}
+                    <CalendarIcon class="h-5 w-5 mr-2" />
+                    Calendar
+                </Link>
+                <Link
+                    :href="route('categories.index')"
+                    class="flex items-center px-3 py-2 text-sm text-light-text dark:text-dark-text hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-colors"
+                    :class="{ 'bg-primary-50 dark:bg-primary-500/10 text-primary-500': route().current('categories.*') }"
+                >
+                    <TagIcon class="h-5 w-5 mr-2" />
+                    Categories
+                </Link>
+                <Link
+                    :href="route('platforms.index')"
+                    class="flex items-center px-3 py-2 text-sm text-light-text dark:text-dark-text hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-colors"
+                    :class="{ 'bg-primary-50 dark:bg-primary-500/10 text-primary-500': route().current('platforms.*') }"
+                >
+                    <ShareIcon class="h-5 w-5 mr-2" />
+                    Platforms
                 </Link>
             </div>
         </div>

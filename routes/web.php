@@ -8,6 +8,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PlatformController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskCommentController;
+use App\Http\Controllers\EditorialCalendarController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -43,6 +44,7 @@ Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
     Route::middleware(['role:Super Admin|Content Manager'])->group(function () {
         Route::resource('categories', CategoryController::class);
         Route::resource('platforms', PlatformController::class);
+        Route::resource('calendar', EditorialCalendarController::class);
     });
 
     // Admin Routes
