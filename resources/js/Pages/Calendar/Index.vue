@@ -68,11 +68,12 @@
                                 <div
                                     v-for="(day, index) in calendarDays"
                                     :key="index"
-                                    class="min-h-[120px] bg-white dark:bg-gray-800 p-2"
+                                    class="min-h-[120px] bg-white dark:bg-gray-800 p-2 relative group"
                                     :class="{
                                         'opacity-50': !day.isCurrentMonth,
                                         'bg-blue-50 dark:bg-blue-900/20': day.isToday
                                     }"
+                                    @click="day.isCurrentMonth && createEventOnDate(day.date)"
                                 >
                                     <div class="flex items-center justify-between mb-1">
                                         <span
@@ -93,12 +94,24 @@
                                             :href="route('calendar.show', event.id)"
                                             class="block p-1 text-xs rounded-md truncate"
                                             :style="{ backgroundColor: event.category.color + '20' }"
+                                            @click.stop
                                         >
                                             <div class="flex items-center">
                                                 <i :class="['mr-1 fa-brands', `fa-${event.platform.icon}`]"></i>
                                                 {{ event.title }}
                                             </div>
                                         </Link>
+                                    </div>
+                                    
+                                    <!-- Add event button (visible on hover) -->
+                                    <div 
+                                        v-if="day.isCurrentMonth" 
+                                        class="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        @click.stop="createEventOnDate(day.date)"
+                                    >
+                                        <button class="p-1 bg-blue-100 dark:bg-blue-800 rounded-full hover:bg-blue-200 dark:hover:bg-blue-700">
+                                            <PlusIcon class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -108,10 +121,11 @@
                         <div class="mt-8">
                             <h3 class="text-lg font-medium mb-4">Upcoming Events</h3>
                             <div class="space-y-4">
-                                <div
+                                <Link
                                     v-for="event in upcomingEvents"
                                     :key="event.id"
-                                    class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm"
+                                    :href="route('calendar.show', event.id)"
+                                    class="block bg-white dark:bg-gray-700 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
                                 >
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center space-x-3">
@@ -119,12 +133,9 @@
                                                 class="w-2 h-2 rounded-full"
                                                 :style="{ backgroundColor: event.category.color }"
                                             ></div>
-                                            <Link
-                                                :href="route('calendar.show', event.id)"
-                                                class="text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400"
-                                            >
+                                            <span class="text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400">
                                                 {{ event.title }}
-                                            </Link>
+                                            </span>
                                         </div>
                                         <div class="flex items-center space-x-2">
                                             <i :class="['text-lg fa-brands', `fa-${event.platform.icon}`]"></i>
@@ -133,7 +144,7 @@
                                             </span>
                                         </div>
                                     </div>
-                                </div>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -145,7 +156,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {
     PlusIcon,
@@ -250,5 +261,13 @@ const nextMonth = () => {
 
 const today = () => {
     currentDate.value = new Date();
+};
+
+const createEventOnDate = (date) => {
+    // Format the date as required by the create form
+    const formattedDate = format(date, "yyyy-MM-dd'T'HH:mm", { locale: id });
+    
+    // Navigate to create page with the date pre-filled
+    router.visit(route('calendar.create', { date: formattedDate }));
 };
 </script> 

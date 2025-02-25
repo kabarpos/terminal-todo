@@ -48,8 +48,15 @@ class EditorialCalendar extends Model
 
     public function assignees()
     {
-        return $this->belongsToMany(User::class, 'editorial_calendar_assignees')
+        return $this->belongsToMany(User::class, 'editorial_calendar_assignees', 'calendar_id', 'user_id')
             ->withPivot('role')
             ->withTimestamps();
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(CalendarComment::class, 'calendar_id')
+            ->with('user')
+            ->orderBy('created_at', 'desc');
     }
 }

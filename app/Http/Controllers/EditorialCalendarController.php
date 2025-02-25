@@ -53,12 +53,13 @@ class EditorialCalendarController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         return Inertia::render('Calendar/Create', [
             'platforms' => Platform::where('is_active', true)->get(),
             'categories' => Category::where('type', 'content')->where('is_active', true)->get(),
-            'users' => User::where('status', 'active')->get()
+            'users' => User::where('status', 'active')->get(),
+            'prefilledDate' => $request->date ?? null
         ]);
     }
 
@@ -97,7 +98,7 @@ class EditorialCalendarController extends Controller
 
     public function show(EditorialCalendar $calendar)
     {
-        $calendar->load(['platform', 'category', 'creator', 'assignees']);
+        $calendar->load(['platform', 'category', 'creator', 'assignees', 'comments.user']);
 
         return Inertia::render('Calendar/Show', [
             'event' => [
@@ -126,6 +127,22 @@ class EditorialCalendarController extends Controller
                     'name' => $user->name,
                     'avatar_url' => $user->avatar_url,
                     'role' => $user->pivot->role
+                ]),
+                'comments' => $calendar->comments->map(fn ($comment) => [
+                    'id' => $comment->id,
+                    'content' => $comment->content,
+                    'user_id' => $comment->user_id,
+                    'user' => [
+                        'id' => $comment->user->id,
+                        'name' => $comment->user->name,
+                        'avatar_url' => $comment->user->avatar_url ?? null
+                    ],
+                    'attachment_path' => $comment->attachment_path,
+                    'attachment_type' => $comment->attachment_type,
+                    'attachment_name' => $comment->attachment_name,
+                    'attachment_size' => $comment->attachment_size,
+                    'link_url' => $comment->link_url,
+                    'created_at' => $comment->created_at->format('Y-m-d\TH:i:s')
                 ]),
                 'metadata' => $calendar->metadata,
                 'created_at' => $calendar->created_at->format('Y-m-d\TH:i:s')

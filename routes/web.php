@@ -9,6 +9,7 @@ use App\Http\Controllers\PlatformController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskCommentController;
 use App\Http\Controllers\EditorialCalendarController;
+use App\Http\Controllers\CalendarCommentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -45,6 +46,10 @@ Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
         Route::resource('categories', CategoryController::class);
         Route::resource('platforms', PlatformController::class);
         Route::resource('calendar', EditorialCalendarController::class);
+
+        // Calendar Comments Routes
+        Route::post('calendar/{calendar}/comments', [CalendarCommentController::class, 'store'])->name('calendar.comments.store');
+        Route::delete('calendar/{calendar}/comments/{comment}', [CalendarCommentController::class, 'destroy'])->name('calendar.comments.destroy');
     });
 
     // Admin Routes
