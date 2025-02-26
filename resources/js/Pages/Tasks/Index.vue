@@ -57,32 +57,52 @@
                                 </span>
                             </h3>
                             <draggable 
-                                v-model="tasksByStatus[status]"
-                                :group="{ name: 'tasks', pull: true, put: true }"
+                                :list="tasksByStatus[status]"
+                                :group="'tasks'"
                                 item-key="id"
                                 class="min-h-[200px] space-y-3"
                                 @change="(e) => handleChange(e, status)"
                                 :animation="200"
+                                ghost-class="sortable-ghost"
+                                drag-class="sortable-drag"
+                                :force-fallback="true"
+                                handle=".drag-handle"
+                                :delay="0"
+                                :delayOnTouchOnly="true"
+                                :touchStartThreshold="5"
+                                :fallbackClass="'sortable-fallback'"
+                                :fallbackOnBody="true"
+                                :scroll="true"
+                                :scrollSensitivity="100"
+                                :scrollSpeed="20"
                             >
                                 <template #item="{ element: task }">
                                     <div 
                                         v-if="matchesFilters(task)"
-                                        class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-500 cursor-move border border-gray-100 dark:border-gray-700"
+                                        class="task-card draggable-item bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-500 border border-gray-100 dark:border-gray-700"
                                         :class="{
-                                            'animate-highlight': props.highlight === 'new' && task.status === form.status
+                                            'animate-highlight': props.highlight === 'new' && task.status === form.status,
+                                            'opacity-50': updatingTaskId === task.id
                                         }"
                                     >
                                         <div class="flex items-center justify-between mb-2">
-                                            <span class="px-2 py-1 text-xs font-semibold rounded-full"
-                                                :class="{
-                                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': task.priority === 'low',
-                                                    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': task.priority === 'medium',
-                                                    'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200': task.priority === 'high',
-                                                    'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': task.priority === 'urgent'
-                                                }"
-                                            >
-                                                {{ getPriorityLabel(task.priority) }}
-                                            </span>
+                                            <div class="flex items-center space-x-2">
+                                                <div class="drag-handle cursor-move text-gray-400 hover:text-gray-600">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                                                    </svg>
+                                                </div>
+                                                <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                                                    :class="{
+                                                        'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': task.priority === 'low',
+                                                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': task.priority === 'medium',
+                                                        'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200': task.priority === 'high',
+                                                        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': task.priority === 'urgent'
+                                                    }"
+                                                >
+                                                    {{ getPriorityLabel(task.priority) }}
+                                                </span>
+                                            </div>
                                             <div class="flex items-center space-x-2">
                                                 <button
                                                     @click="() => $inertia.visit(route('tasks.edit', task.id))"
@@ -180,6 +200,7 @@ import Modal from '@/Components/Modal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import draggable from 'vuedraggable';
+import axios from 'axios';
 
 const props = defineProps({
     tasks: {
@@ -197,6 +218,7 @@ const priorityFilter = ref('');
 const selectedTask = ref(null);
 const confirmingTaskDeletion = ref(false);
 const form = useForm({});
+const updatingTaskId = ref(null);
 
 const statuses = [
     'draft',
@@ -214,6 +236,8 @@ const tasksByStatus = ref({
 
 // Pindahkan definisi fungsi ke atas sebelum watch
 const initializeTasksByStatus = () => {
+    console.log('Initializing tasksByStatus with tasks:', props.tasks);
+    
     // Reset semua array
     statuses.forEach(status => {
         tasksByStatus.value[status] = [];
@@ -222,17 +246,23 @@ const initializeTasksByStatus = () => {
     // Distribusikan task ke masing-masing status
     if (props.tasks) {
         props.tasks.forEach(task => {
+            console.log('Processing task:', task);
             if (tasksByStatus.value[task.status]) {
-                tasksByStatus.value[task.status].push(task);
+                tasksByStatus.value[task.status].push({...task}); // Clone task object
+            } else {
+                console.warn('Unknown status:', task.status);
             }
         });
     }
+    
+    console.log('Initialized tasksByStatus:', tasksByStatus.value);
 };
 
 // Sekarang watch bisa menggunakan fungsi yang sudah didefinisikan
 watch(() => props.tasks, (newTasks) => {
+    console.log('Tasks changed:', newTasks);
     initializeTasksByStatus();
-}, { immediate: true });
+}, { immediate: true, deep: true });
 
 // Fungsi untuk mendapatkan task berdasarkan status
 const getTasksByStatus = (status) => {
@@ -257,24 +287,50 @@ const matchesFilters = (task) => {
 };
 
 // Fungsi untuk menangani perubahan saat drag and drop
-const handleChange = (event, newStatus) => {
+const handleChange = async (event, newStatus) => {
+    console.log('handleChange called:', { event, newStatus });
+    
     if (event.added) {
         const task = event.added.element;
+        const oldStatus = task.status;
         
-        // Update status task di server
-        form.put(route('tasks.update-status', task.id), {
-            status: newStatus
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                // Task berhasil diupdate
-                task.status = newStatus;
-            },
-            onError: () => {
-                // Jika gagal, kembalikan ke status semula
-                initializeTasksByStatus();
-            }
+        console.log('Updating task status:', {
+            taskId: task.id,
+            oldStatus,
+            newStatus
         });
+
+        updatingTaskId.value = task.id;
+
+        try {
+            // Update status task secara lokal terlebih dahulu
+            task.status = newStatus;
+            
+            // Kirim update ke server
+            const response = await axios.put(route('tasks.update-status', task.id), {
+                status: newStatus
+            });
+            
+            console.log('Status updated successfully:', response.data);
+            
+            // Update task dengan data dari server
+            if (response.data && response.data.task) {
+                Object.assign(task, response.data.task);
+            }
+            
+        } catch (error) {
+            console.error('Failed to update status:', error);
+            // Jika gagal, kembalikan ke status semula
+            task.status = oldStatus;
+            
+            // Reinisialisasi tasksByStatus
+            initializeTasksByStatus();
+            
+            // Tampilkan pesan error
+            alert('Gagal mengubah status task. Silakan coba lagi.');
+        } finally {
+            updatingTaskId.value = null;
+        }
     }
 };
 
@@ -340,7 +396,7 @@ onMounted(() => {
 });
 
 watch(() => tasksByStatus.value, (newValue) => {
-    console.log('tasksByStatus updated:', newValue);
+    console.log('tasksByStatus changed:', newValue);
 }, { deep: true });
 </script>
 
@@ -351,6 +407,36 @@ watch(() => tasksByStatus.value, (newValue) => {
 
 .status-button:hover {
     transform: translateY(-1px);
+}
+
+/* Prevent text selection during drag */
+.drag-handle,
+.draggable-item {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Smooth transition for dragging */
+.sortable-drag {
+    opacity: 0.5;
+    background: #fff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Ghost item styling */
+.sortable-ghost {
+    @apply bg-blue-50 border-2 border-blue-200 dark:bg-blue-900 dark:border-blue-800;
+    opacity: 0.8;
+}
+
+.ghost-class {
+    @apply bg-blue-50 border-2 border-blue-200 dark:bg-blue-900 dark:border-blue-800;
+}
+
+.drag-class {
+    @apply opacity-50 shadow-lg;
 }
 
 @keyframes highlight {
@@ -370,5 +456,15 @@ watch(() => tasksByStatus.value, (newValue) => {
 
 .animate-highlight {
     animation: highlight 2s ease-in-out;
+}
+
+/* Smooth transitions for all cards */
+.task-card {
+    transition: all 0.2s ease;
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style> 

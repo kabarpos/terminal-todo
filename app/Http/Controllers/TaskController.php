@@ -226,11 +226,43 @@ class TaskController extends Controller
 
         $task->update([
             'status' => $request->status,
+            'completed_at' => $request->status === 'completed' ? now() : null
         ]);
+
+        $task->load(['category', 'platform', 'assignees', 'creator']);
 
         return response()->json([
             'message' => 'Task status updated successfully',
-            'task' => $task->load(['category', 'platform', 'assignees', 'creator'])
+            'task' => [
+                'id' => $task->id,
+                'title' => $task->title,
+                'description' => $task->description,
+                'category' => [
+                    'id' => $task->category->id,
+                    'name' => $task->category->name,
+                    'color' => $task->category->color
+                ],
+                'platform' => $task->platform ? [
+                    'id' => $task->platform->id,
+                    'name' => $task->platform->name,
+                    'icon' => $task->platform->icon
+                ] : null,
+                'priority' => $task->priority,
+                'status' => $task->status,
+                'start_date' => $task->start_date?->format('Y-m-d\TH:i'),
+                'due_date' => $task->due_date?->format('Y-m-d\TH:i'),
+                'completed_at' => $task->completed_at?->format('Y-m-d\TH:i'),
+                'assignees' => $task->assignees->map(fn ($user) => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'avatar_url' => $user->avatar_url
+                ]),
+                'creator' => [
+                    'id' => $task->creator->id,
+                    'name' => $task->creator->name
+                ],
+                'created_at' => $task->created_at->format('d M Y H:i')
+            ]
         ]);
     }
 } 

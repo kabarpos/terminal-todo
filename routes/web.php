@@ -30,6 +30,7 @@ Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
 
     // Tasks Routes
     Route::resource('tasks', TaskController::class);
+    Route::put('tasks/{task}/update-status', [TaskController::class, 'updateStatus'])->name('tasks.update-status');
     
     // Task Comments Routes
     Route::post('tasks/{task}/comments', [TaskCommentController::class, 'store'])->name('tasks.comments.store');
@@ -65,7 +66,4 @@ Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
     });
-
-    // Task Status Routes
-    Route::put('/tasks/{task}/update-status', [TaskController::class, 'updateStatus'])->name('tasks.update-status');
 });
