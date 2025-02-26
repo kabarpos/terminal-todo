@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             SettingsSeeder::class,
             CategorySeeder::class,
             PlatformSeeder::class,
+            TaskSeeder::class,
         ]);
     }
 }

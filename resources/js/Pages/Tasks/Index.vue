@@ -5,7 +5,7 @@
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                    Tasks
+                    Tasks Board
                 </h2>
                 <Link
                     :href="route('tasks.create')"
@@ -22,150 +22,58 @@
         </template>
 
         <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
-                    <div class="p-6 text-gray-900 dark:text-gray-100">
-                        <!-- Search and Filter Section -->
-                        <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
-                            <div class="col-span-2">
-                                <input
-                                    v-model="search"
-                                    type="text"
-                                    placeholder="Cari task..."
-                                    class="w-full px-4 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
-                                >
-                            </div>
-                            <div>
-                                <select
-                                    v-model="statusFilter"
-                                    class="w-full px-4 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
-                                >
-                                    <option value="">Semua Status</option>
-                                    <option value="draft">Draft</option>
-                                    <option value="in_review">In Review</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-                            </div>
-                            <div>
-                                <select
-                                    v-model="priorityFilter"
-                                    class="w-full px-4 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
-                                >
-                                    <option value="">Semua Prioritas</option>
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                    <option value="urgent">Urgent</option>
-                                </select>
-                            </div>
-                        </div>
+            <div class="mx-auto max-w-full px-4 sm:px-6 lg:px-8">
+                <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div class="col-span-2">
+                        <input
+                            v-model="search"
+                            type="text"
+                            placeholder="Cari task..."
+                            class="w-full px-4 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
+                        >
+                    </div>
+                    <div>
+                        <select
+                            v-model="priorityFilter"
+                            class="w-full px-4 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
+                        >
+                            <option value="">Semua Prioritas</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                </div>
 
-                        <!-- Tasks Table -->
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                <thead class="bg-gray-50 dark:bg-gray-700">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Task
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Platform
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Kategori
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Status
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Prioritas
-                                        </th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Tenggat
-                                        </th>
-                                        <th scope="col" class="relative px-6 py-3">
-                                            <span class="sr-only">Actions</span>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                                    <tr v-for="task in filteredTasks" :key="task.id">
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center">
-                                                <div>
-                                                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                        {{ task.title }}
-                                                    </div>
-                                                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                        {{ task.description }}
-                                                    </div>
-                                                    <div class="mt-1 flex -space-x-2">
-                                                        <template v-for="assignee in task.assignees.slice(0, 3)" :key="assignee.id">
-                                                            <img
-                                                                v-if="assignee.avatar_url"
-                                                                :src="assignee.avatar_url"
-                                                                :alt="assignee.name"
-                                                                class="h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800"
-                                                                :title="assignee.name"
-                                                            >
-                                                            <div
-                                                                v-else
-                                                                class="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-700 ring-2 ring-white dark:ring-gray-800 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
-                                                                :title="assignee.name"
-                                                            >
-                                                                {{ assignee.name.charAt(0) }}
-                                                            </div>
-                                                        </template>
-                                                        <div
-                                                            v-if="task.assignees.length > 3"
-                                                            class="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-700 ring-2 ring-white dark:ring-gray-800 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
-                                                        >
-                                                            +{{ task.assignees.length - 3 }}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div v-if="task.platform" class="flex items-center">
-                                                <div class="flex-shrink-0 h-8 w-8 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                                                    <i :class="['text-xl fa-brands', `fa-${task.platform.icon}`]"></i>
-                                                </div>
-                                                <div class="ml-2">
-                                                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                        {{ task.platform.name }}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <span v-else class="text-sm text-gray-500 dark:text-gray-400">-</span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="flex items-center">
-                                                <div class="h-3 w-3 rounded-full mr-2" :style="{ backgroundColor: task.category.color }"></div>
-                                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                    {{ task.category.name }}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                                                :class="{
-                                                    'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200': task.status === 'draft',
-                                                    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': task.status === 'in_review',
-                                                    'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200': task.status === 'approved',
-                                                    'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200': task.status === 'in_progress',
-                                                    'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': task.status === 'completed',
-                                                    'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': task.status === 'cancelled'
-                                                }"
-                                            >
-                                                {{ getStatusLabel(task.status) }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                <!-- Kanban Board -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto">
+                    <template v-for="status in statuses" :key="status">
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 ">
+                            <h3 class="font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center justify-between">
+                                {{ getStatusLabel(status) }}
+                                <span class="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded-full">
+                                    {{ getTasksByStatus(status).length }}
+                                </span>
+                            </h3>
+                            <draggable 
+                                v-model="tasksByStatus[status]"
+                                :group="{ name: 'tasks', pull: true, put: true }"
+                                item-key="id"
+                                class="min-h-[200px] space-y-3"
+                                @change="(e) => handleChange(e, status)"
+                                :animation="200"
+                            >
+                                <template #item="{ element: task }">
+                                    <div 
+                                        v-if="matchesFilters(task)"
+                                        class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-500 cursor-move border border-gray-100 dark:border-gray-700"
+                                        :class="{
+                                            'animate-highlight': props.highlight === 'new' && task.status === form.status
+                                        }"
+                                    >
+                                        <div class="flex items-center justify-between mb-2">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full"
                                                 :class="{
                                                     'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': task.priority === 'low',
                                                     'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': task.priority === 'medium',
@@ -175,35 +83,61 @@
                                             >
                                                 {{ getPriorityLabel(task.priority) }}
                                             </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {{ formatDate(task.due_date) }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <Link
-                                                :href="route('tasks.show', task.id)"
-                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200"
-                                            >
-                                                Detail
-                                            </Link>
-                                            <Link
-                                                :href="route('tasks.edit', task.id)"
-                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200"
-                                            >
-                                                Edit
-                                            </Link>
-                                            <button
-                                                @click="confirmTaskDeletion(task)"
-                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200"
-                                            >
-                                                Hapus
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                            <div class="flex items-center space-x-2">
+                                                <button
+                                                    @click="() => $inertia.visit(route('tasks.edit', task.id))"
+                                                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                                >
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    </svg>
+                                                </button>
+                                                <button
+                                                    @click="confirmTaskDeletion(task)"
+                                                    class="text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                                                >
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="font-medium text-gray-900 dark:text-gray-100 mb-1">{{ task.title }}</div>
+                                        <div class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">{{ task.description }}</div>
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex -space-x-2">
+                                                <template v-for="assignee in task.assignees.slice(0, 3)" :key="assignee.id">
+                                                    <img
+                                                        v-if="assignee.avatar_url"
+                                                        :src="assignee.avatar_url"
+                                                        :alt="assignee.name"
+                                                        class="h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800"
+                                                        :title="assignee.name"
+                                                    >
+                                                    <div
+                                                        v-else
+                                                        class="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-700 ring-2 ring-white dark:ring-gray-800 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
+                                                        :title="assignee.name"
+                                                    >
+                                                        {{ assignee.name.charAt(0) }}
+                                                    </div>
+                                                </template>
+                                                <div
+                                                    v-if="task.assignees.length > 3"
+                                                    class="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-700 ring-2 ring-white dark:ring-gray-800 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
+                                                >
+                                                    +{{ task.assignees.length - 3 }}
+                                                </div>
+                                            </div>
+                                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ formatDate(task.due_date) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </draggable>
                         </div>
-                    </div>
+                    </template>
                 </div>
             </div>
         </div>
@@ -219,13 +153,8 @@
                     Apakah Anda yakin ingin menghapus task ini?
                 </p>
 
-                <div class="mt-6 flex justify-end">
-                    <SecondaryButton 
-                        @click="closeModal"
-                        variant="outline"
-                        type="button"
-                        class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-                    >
+                <div class="mt-6 flex justify-end space-x-3">
+                    <SecondaryButton @click="closeModal">
                         Batal
                     </SecondaryButton>
 
@@ -234,7 +163,6 @@
                         :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
                         @click="deleteTask"
-                        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-25"
                     >
                         {{ form.processing ? 'Menghapus...' : 'Hapus Task' }}
                     </PrimaryButton>
@@ -245,55 +173,114 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import draggable from 'vuedraggable';
 
 const props = defineProps({
     tasks: {
         type: Array,
         required: true
+    },
+    highlight: {
+        type: String,
+        default: null
     }
 });
 
 const search = ref('');
-const statusFilter = ref('');
 const priorityFilter = ref('');
 const selectedTask = ref(null);
 const confirmingTaskDeletion = ref(false);
 const form = useForm({});
 
-// Computed property untuk filtered tasks
-const filteredTasks = computed(() => {
-    let filtered = props.tasks;
-    
+const statuses = [
+    'draft',
+    'in_progress',
+    'completed',
+    'cancelled'
+];
+
+const tasksByStatus = ref({
+    draft: [],
+    in_progress: [],
+    completed: [],
+    cancelled: []
+});
+
+// Pindahkan definisi fungsi ke atas sebelum watch
+const initializeTasksByStatus = () => {
+    // Reset semua array
+    statuses.forEach(status => {
+        tasksByStatus.value[status] = [];
+    });
+
+    // Distribusikan task ke masing-masing status
+    if (props.tasks) {
+        props.tasks.forEach(task => {
+            if (tasksByStatus.value[task.status]) {
+                tasksByStatus.value[task.status].push(task);
+            }
+        });
+    }
+};
+
+// Sekarang watch bisa menggunakan fungsi yang sudah didefinisikan
+watch(() => props.tasks, (newTasks) => {
+    initializeTasksByStatus();
+}, { immediate: true });
+
+// Fungsi untuk mendapatkan task berdasarkan status
+const getTasksByStatus = (status) => {
+    return tasksByStatus.value[status] || [];
+};
+
+// Fungsi untuk memeriksa apakah task sesuai dengan filter
+const matchesFilters = (task) => {
     if (search.value) {
         const searchTerm = search.value.toLowerCase();
-        filtered = filtered.filter(task => 
-            task.title.toLowerCase().includes(searchTerm) ||
-            task.description?.toLowerCase().includes(searchTerm)
-        );
+        if (!task.title.toLowerCase().includes(searchTerm) && 
+            !task.description?.toLowerCase().includes(searchTerm)) {
+            return false;
+        }
     }
 
-    if (statusFilter.value) {
-        filtered = filtered.filter(task => task.status === statusFilter.value);
+    if (priorityFilter.value && task.priority !== priorityFilter.value) {
+        return false;
     }
 
-    if (priorityFilter.value) {
-        filtered = filtered.filter(task => task.priority === priorityFilter.value);
-    }
+    return true;
+};
 
-    return filtered;
-});
+// Fungsi untuk menangani perubahan saat drag and drop
+const handleChange = (event, newStatus) => {
+    if (event.added) {
+        const task = event.added.element;
+        
+        // Update status task di server
+        form.put(route('tasks.update-status', task.id), {
+            status: newStatus
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Task berhasil diupdate
+                task.status = newStatus;
+            },
+            onError: () => {
+                // Jika gagal, kembalikan ke status semula
+                initializeTasksByStatus();
+            }
+        });
+    }
+};
 
 const getStatusLabel = (status) => {
     const labels = {
         'draft': 'Draft',
-        'in_review': 'In Review',
-        'approved': 'Approved',
         'in_progress': 'In Progress',
         'completed': 'Completed',
         'cancelled': 'Cancelled'
@@ -336,11 +323,52 @@ const deleteTask = () => {
     if (selectedTask.value) {
         form.delete(route('tasks.destroy', selectedTask.value.id), {
             preserveScroll: true,
-            onSuccess: () => closeModal(),
+            onSuccess: () => {
+                closeModal();
+                initializeTasksByStatus(); // Refresh task list setelah menghapus
+            },
             onError: () => {
                 // Handle error
             }
         });
     }
 };
-</script> 
+
+onMounted(() => {
+    console.log('Tasks received:', props.tasks);
+    console.log('Initial tasksByStatus:', tasksByStatus.value);
+});
+
+watch(() => tasksByStatus.value, (newValue) => {
+    console.log('tasksByStatus updated:', newValue);
+}, { deep: true });
+</script>
+
+<style scoped>
+.status-button {
+    transition: all 0.2s ease;
+}
+
+.status-button:hover {
+    transform: translateY(-1px);
+}
+
+@keyframes highlight {
+    0% {
+        background-color: rgba(59, 130, 246, 0.2);
+        transform: scale(1);
+    }
+    50% {
+        background-color: rgba(59, 130, 246, 0.1);
+        transform: scale(1.02);
+    }
+    100% {
+        background-color: transparent;
+        transform: scale(1);
+    }
+}
+
+.animate-highlight {
+    animation: highlight 2s ease-in-out;
+}
+</style> 

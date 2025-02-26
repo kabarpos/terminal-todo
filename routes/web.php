@@ -65,4 +65,7 @@ Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
     });
+
+    // Task Status Routes
+    Route::put('/tasks/{task}/update-status', [TaskController::class, 'updateStatus'])->name('tasks.update-status');
 });

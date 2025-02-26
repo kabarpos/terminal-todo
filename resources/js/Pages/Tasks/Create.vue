@@ -88,20 +88,26 @@
 
                                 <div>
                                     <InputLabel for="status" value="Status" />
-                                    <SelectInput
-                                        id="status"
-                                        v-model="form.status"
-                                        class="mt-1 block w-full"
-                                        required
-                                    >
-                                        <option value="">Pilih Status</option>
-                                        <option value="draft">Draft</option>
-                                        <option value="in_review">In Review</option>
-                                        <option value="approved">Approved</option>
-                                        <option value="in_progress">In Progress</option>
-                                        <option value="completed">Completed</option>
-                                        <option value="cancelled">Cancelled</option>
-                                    </SelectInput>
+                                    <div class="mt-1 grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        <button
+                                            type="button"
+                                            v-for="status in statuses"
+                                            :key="status.value"
+                                            @click="form.status = status.value"
+                                            class="p-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                                            :class="[
+                                                form.status === status.value
+                                                    ? status.activeClass
+                                                    : status.inactiveClass,
+                                                'hover:shadow-md'
+                                            ]"
+                                        >
+                                            <span :class="status.iconClass" v-if="status.icon">
+                                                <i :class="status.icon"></i>
+                                            </span>
+                                            {{ status.label }}
+                                        </button>
+                                    </div>
                                     <InputError :message="form.errors.status" class="mt-2" />
                                 </div>
 
@@ -174,6 +180,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputError from '@/Components/InputError.vue';
@@ -199,6 +206,51 @@ const props = defineProps({
     }
 });
 
+const statuses = [
+    {
+        value: 'draft',
+        label: 'Draft',
+        activeClass: 'bg-gray-600 text-white',
+        inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+        icon: 'fas fa-file-alt'
+    },
+    {
+        value: 'in_review',
+        label: 'In Review',
+        activeClass: 'bg-yellow-500 text-white',
+        inactiveClass: 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200',
+        icon: 'fas fa-search'
+    },
+    {
+        value: 'approved',
+        label: 'Approved',
+        activeClass: 'bg-blue-500 text-white',
+        inactiveClass: 'bg-blue-100 text-blue-600 hover:bg-blue-200',
+        icon: 'fas fa-check-circle'
+    },
+    {
+        value: 'in_progress',
+        label: 'In Progress',
+        activeClass: 'bg-purple-500 text-white',
+        inactiveClass: 'bg-purple-100 text-purple-600 hover:bg-purple-200',
+        icon: 'fas fa-spinner'
+    },
+    {
+        value: 'completed',
+        label: 'Completed',
+        activeClass: 'bg-green-500 text-white',
+        inactiveClass: 'bg-green-100 text-green-600 hover:bg-green-200',
+        icon: 'fas fa-check'
+    },
+    {
+        value: 'cancelled',
+        label: 'Cancelled',
+        activeClass: 'bg-red-500 text-white',
+        inactiveClass: 'bg-red-100 text-red-600 hover:bg-red-200',
+        icon: 'fas fa-times'
+    }
+];
+
 const form = useForm({
     title: '',
     description: '',
@@ -212,6 +264,24 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('tasks.store'));
+    form.post(route('tasks.store'), {
+        onSuccess: () => {
+            // Redirect ke halaman index dengan filter status yang sesuai
+            window.location = route('tasks.index', { 
+                status: form.status,
+                highlight: 'new' // Parameter tambahan untuk highlight task baru
+            });
+        },
+    });
 };
-</script> 
+</script>
+
+<style scoped>
+.status-button {
+    transition: all 0.2s ease;
+}
+
+.status-button:hover {
+    transform: translateY(-1px);
+}
+</style> 

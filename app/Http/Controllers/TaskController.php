@@ -12,7 +12,7 @@ use Inertia\Inertia;
 
 class TaskController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $tasks = Task::with(['category', 'platform', 'assignees', 'creator'])
             ->orderBy('created_at', 'desc')
@@ -48,8 +48,12 @@ class TaskController extends Controller
                 'created_at' => $task->created_at->format('d M Y H:i')
             ]);
 
+        // Debug statement
+        \Log::info('Tasks data:', ['tasks' => $tasks->toArray()]);
+
         return Inertia::render('Tasks/Index', [
-            'tasks' => $tasks
+            'tasks' => $tasks,
+            'highlight' => $request->query('highlight')
         ]);
     }
 
@@ -70,7 +74,7 @@ class TaskController extends Controller
             'category_id' => 'required|exists:categories,id',
             'platform_id' => 'nullable|exists:platforms,id',
             'priority' => 'required|in:low,medium,high,urgent',
-            'status' => 'required|in:draft,in_review,approved,in_progress,completed,cancelled',
+            'status' => 'required|in:draft,in_progress,completed,cancelled',
             'start_date' => 'nullable|date',
             'due_date' => 'required|date',
             'assignees' => 'required|array|min:1',
@@ -178,7 +182,7 @@ class TaskController extends Controller
             'category_id' => 'required|exists:categories,id',
             'platform_id' => 'nullable|exists:platforms,id',
             'priority' => 'required|in:low,medium,high,urgent',
-            'status' => 'required|in:draft,in_review,approved,in_progress,completed,cancelled',
+            'status' => 'required|in:draft,in_progress,completed,cancelled',
             'start_date' => 'nullable|date',
             'due_date' => 'required|date',
             'assignees' => 'required|array|min:1',
@@ -209,5 +213,24 @@ class TaskController extends Controller
 
         return redirect()->route('tasks.index')
             ->with('message', 'Task berhasil dihapus');
+    }
+
+    /**
+     * Update the status of the specified task.
+     */
+    public function updateStatus(Request $request, Task $task)
+    {
+        $request->validate([
+            'status' => ['required', 'string', 'in:draft,in_progress,completed,cancelled'],
+        ]);
+
+        $task->update([
+            'status' => $request->status,
+        ]);
+
+        return response()->json([
+            'message' => 'Task status updated successfully',
+            'task' => $task->load(['category', 'platform', 'assignees', 'creator'])
+        ]);
     }
 } 

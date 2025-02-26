@@ -261,7 +261,7 @@ watch(() => usePage().props.settings, (newSettings) => {
 
             <!-- Page content -->
             <main class="py-6 px-4 md:px-6">
-                <div class="max-w-7xl mx-auto">
+                <div class="w-full mx-auto">
                 <slot />
                 </div>
             </main>
