@@ -223,11 +223,14 @@
                                     <div v-if="comment.attachment_path" class="mt-2">
                                         <a
                                             :href="'/storage/' + comment.attachment_path"
-                                            target="_blank"
+                                            :download="comment.attachment_name"
                                             class="flex items-center p-2 space-x-2 bg-gray-100 rounded dark:bg-gray-600"
                                         >
                                             <DocumentIcon class="w-5 h-5" />
                                             <span class="text-sm">{{ comment.attachment_name }}</span>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400" v-if="comment.attachment_size">
+                                                ({{ formatFileSize(comment.attachment_size) }})
+                                            </span>
                                         </a>
                                     </div>
                                     

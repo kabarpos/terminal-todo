@@ -32,17 +32,30 @@
                             class="w-full px-4 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
                         >
                     </div>
-                    <div>
-                        <select
-                            v-model="priorityFilter"
-                            class="w-full px-4 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
-                        >
-                            <option value="">Semua Prioritas</option>
-                            <option value="low">Low</option>
-                            <option value="medium">Medium</option>
-                            <option value="high">High</option>
-                            <option value="urgent">Urgent</option>
-                        </select>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <select
+                                v-model="priorityFilter"
+                                class="w-full px-4 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
+                            >
+                                <option value="">Semua Prioritas</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select
+                                v-model="categoryFilter"
+                                class="w-full px-4 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
+                            >
+                                <option value="">Semua Kategori</option>
+                                <option v-for="category in categories" :key="category.id" :value="category.id">
+                                    {{ category.name }}
+                                </option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -210,6 +223,10 @@ const props = defineProps({
         type: Array,
         required: true
     },
+    categories: {
+        type: Array,
+        required: true
+    },
     highlight: {
         type: String,
         default: null
@@ -218,6 +235,7 @@ const props = defineProps({
 
 const search = ref('');
 const priorityFilter = ref('');
+const categoryFilter = ref('');
 const selectedTask = ref(null);
 const confirmingTaskDeletion = ref(false);
 const form = useForm({});
@@ -283,6 +301,10 @@ const matchesFilters = (task) => {
     }
 
     if (priorityFilter.value && task.priority !== priorityFilter.value) {
+        return false;
+    }
+
+    if (categoryFilter.value && task.category?.id !== parseInt(categoryFilter.value)) {
         return false;
     }
 

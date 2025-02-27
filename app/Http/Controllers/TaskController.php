@@ -53,6 +53,7 @@ class TaskController extends Controller
 
         return Inertia::render('Tasks/Index', [
             'tasks' => $tasks,
+            'categories' => Category::where('type', 'task')->where('is_active', true)->get(),
             'highlight' => $request->query('highlight')
         ]);
     }
