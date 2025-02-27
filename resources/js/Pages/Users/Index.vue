@@ -158,16 +158,19 @@
                                     <div class="flex justify-end gap-2 sm:gap-3">
                                         <Link
                                             :href="route('admin.users.edit', user.id)"
-                                            class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200"
                                         >
-                                            Edit
+                                            <PrimaryButton
+                                                size="sm"
+                                            >
+                                                Edit
+                                            </PrimaryButton>
                                         </Link>
-                                        <button 
+                                        <DangerButton
+                                            size="sm"
                                             @click="confirmUserDeletion(user)"
-                                            class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200"
                                         >
                                             Delete
-                                        </button>
+                                        </DangerButton>
                                     </div>
                                 </td>
                             </tr>

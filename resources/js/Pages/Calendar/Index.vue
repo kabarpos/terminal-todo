@@ -27,21 +27,23 @@
                         <div class="mb-6">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center space-x-2">
-                                    <button
+                                    <IconButton
                                         @click="previousMonth"
-                                        class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                                        variant="ghost"
+                                        size="sm"
                                     >
                                         <ChevronLeftIcon class="h-5 w-5" />
-                                    </button>
+                                    </IconButton>
                                     <h3 class="text-lg font-medium">
                                         {{ currentMonthName }} {{ currentYear }}
                                     </h3>
-                                    <button
+                                    <IconButton
                                         @click="nextMonth"
-                                        class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                                        variant="ghost"
+                                        size="sm"
                                     >
                                         <ChevronRightIcon class="h-5 w-5" />
-                                    </button>
+                                    </IconButton>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <button
@@ -165,6 +167,7 @@ import {
 } from '@heroicons/vue/24/outline';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, parseISO, isAfter, isBefore, addDays } from 'date-fns';
 import { id } from 'date-fns/locale';
+import IconButton from '@/Components/IconButton.vue';
 
 const props = defineProps({
     events: {

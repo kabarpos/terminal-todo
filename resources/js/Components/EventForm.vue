@@ -1,12 +1,12 @@
 <template>
-    <form @submit.prevent="$emit('submit')" class="space-y-6">
+    <form @submit.prevent="handleSubmit" class="space-y-6">
         <div>
-            <InputLabel for="title" value="Judul" />
+            <InputLabel for="event-title" value="Judul" />
             <TextInput
-                id="title"
+                id="event-title"
+                v-model="form.title"
                 type="text"
                 class="mt-1 block w-full"
-                v-model="form.title"
                 required
                 autofocus
             />
@@ -14,11 +14,11 @@
         </div>
 
         <div>
-            <InputLabel for="description" value="Deskripsi" />
+            <InputLabel for="event-description" value="Deskripsi" />
             <TextArea
-                id="description"
-                class="mt-1 block w-full"
+                id="event-description"
                 v-model="form.description"
+                class="mt-1 block w-full"
                 rows="4"
             />
             <InputError class="mt-2" :message="form.errors.description" />
@@ -26,9 +26,9 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <InputLabel for="publish_date" value="Tanggal Publikasi" />
+                <InputLabel for="event-publish_date" value="Tanggal Publikasi" />
                 <TextInput
-                    id="publish_date"
+                    id="event-publish_date"
                     type="datetime-local"
                     class="mt-1 block w-full"
                     v-model="form.publish_date"
@@ -38,9 +38,9 @@
             </div>
 
             <div>
-                <InputLabel for="deadline" value="Deadline" />
+                <InputLabel for="event-deadline" value="Deadline" />
                 <TextInput
-                    id="deadline"
+                    id="event-deadline"
                     type="datetime-local"
                     class="mt-1 block w-full"
                     v-model="form.deadline"
@@ -51,9 +51,9 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <InputLabel for="platform_id" value="Platform" />
+                <InputLabel for="event-platform_id" value="Platform" />
                 <SelectInput
-                    id="platform_id"
+                    id="event-platform_id"
                     class="mt-1 block w-full"
                     v-model="form.platform_id"
                     required
@@ -67,9 +67,9 @@
             </div>
 
             <div>
-                <InputLabel for="category_id" value="Kategori" />
+                <InputLabel for="event-category_id" value="Kategori" />
                 <SelectInput
-                    id="category_id"
+                    id="event-category_id"
                     class="mt-1 block w-full"
                     v-model="form.category_id"
                     required
@@ -84,9 +84,9 @@
         </div>
 
         <div>
-            <InputLabel for="status" value="Status" />
+            <InputLabel for="event-status" value="Status" />
             <SelectInput
-                id="status"
+                id="event-status"
                 class="mt-1 block w-full"
                 v-model="form.status"
                 required
@@ -101,29 +101,35 @@
         </div>
 
         <div>
-            <InputLabel for="assignees" value="Penanggung Jawab" />
+            <InputLabel for="event-assignees" value="Penanggung Jawab" />
             <MultiSelect
-                id="assignees"
+                id="event-assignees"
                 class="mt-1 block w-full"
                 v-model="form.assignees"
                 :options="users.map(u => ({
-                    value: u.id,
+                    value: u.id?.toString(),
                     label: u.name
-                }))"
+                })).filter(opt => opt.value !== undefined)"
                 multiple
             />
             <InputError class="mt-2" :message="form.errors.assignees" />
         </div>
 
-        <div class="flex items-center justify-end space-x-3">
+        <div class="flex items-center justify-end gap-4">
             <Link
                 :href="route('calendar.index')"
-                class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
+                class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
             >
                 Batal
             </Link>
-            <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
+
+            <PrimaryButton
+                type="submit"
+                :class="{ 'opacity-25': form.processing }"
+                :disabled="form.processing"
+                class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-colors duration-200"
+            >
+                {{ form.processing ? 'Menyimpan...' : 'Simpan Event' }}
             </PrimaryButton>
         </div>
     </form>
@@ -158,5 +164,21 @@ const props = defineProps({
     }
 });
 
-defineEmits(['submit']);
+const emit = defineEmits(['submit']);
+
+const handleSubmit = (e) => {
+    console.log('=== EVENT FORM SUBMIT ===');
+    console.log('Form Element:', e.target);
+    console.log('Form Data:', {
+        title: props.form.title,
+        description: props.form.description,
+        publish_date: props.form.publish_date,
+        deadline: props.form.deadline,
+        status: props.form.status,
+        platform_id: props.form.platform_id,
+        category_id: props.form.category_id,
+        assignees: props.form.assignees
+    });
+    emit('submit');
+};
 </script> 

@@ -3,9 +3,27 @@
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                Edit Event
-            </h2>
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold leading-tight text-[var(--text-primary)]">
+                    Edit Event
+                </h2>
+                <div class="flex items-center space-x-3">
+                    <SecondaryButton
+                        @click="() => router.get(route('calendar.index'))"
+                        variant="outline"
+                    >
+                        <ArrowLeftIcon class="w-5 h-5 mr-2" />
+                        Kembali
+                    </SecondaryButton>
+                    <DangerButton
+                        @click="confirmDelete"
+                        :disabled="form.processing"
+                    >
+                        <TrashIcon class="w-5 h-5 mr-2" />
+                        Hapus
+                    </DangerButton>
+                </div>
+            </div>
         </template>
 
         <div class="py-12">
@@ -45,7 +63,7 @@
                         :disabled="form.processing"
                         @click="deleteEvent"
                     >
-                        Hapus Event
+                        {{ form.processing ? 'Menghapus...' : 'Hapus Event' }}
                     </DangerButton>
                 </div>
             </div>
@@ -55,19 +73,14 @@
 
 <script setup>
 import { ref } from 'vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import TextArea from '@/Components/TextArea.vue';
-import SelectInput from '@/Components/SelectInput.vue';
-import MultiSelect from '@/Components/MultiSelect.vue';
 import Modal from '@/Components/Modal.vue';
 import EventForm from '@/Components/EventForm.vue';
+import { ArrowLeftIcon, TrashIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
     event: {
@@ -88,6 +101,9 @@ const props = defineProps({
     }
 });
 
+// Debug initial data
+console.log('Initial Event Data:', props.event);
+
 const form = useForm({
     title: props.event.title,
     description: props.event.description,
@@ -96,8 +112,15 @@ const form = useForm({
     status: props.event.status,
     platform_id: props.event.platform_id,
     category_id: props.event.category_id,
-    assignees: props.event.assignees.map(a => a.id)
+    assignees: Array.isArray(props.event.assignees) 
+        ? props.event.assignees
+            .map(a => a.id?.toString())
+            .filter(id => id !== undefined)
+        : []
 });
+
+// Debug form initialization
+console.log('Form Data after initialization:', form.data());
 
 const confirmingDeletion = ref(false);
 
@@ -116,9 +139,40 @@ const deleteEvent = () => {
 };
 
 const submit = () => {
-    form.put(route('calendar.update', props.event.id), {
-        onSuccess: () => {
-            // Redirect handled by controller
+    // Debug before submit
+    console.log('=== DEBUG SUBMIT START ===');
+    console.log('Event ID:', props.event.id);
+    console.log('Form Data before submit:', {
+        title: form.title,
+        description: form.description,
+        publish_date: form.publish_date,
+        deadline: form.deadline,
+        status: form.status,
+        platform_id: form.platform_id,
+        category_id: form.category_id,
+        assignees: form.assignees
+    });
+    console.log('Route:', route('calendar.update', props.event.id));
+    
+    // Pastikan assignees adalah array valid
+    const formData = form.data();
+    formData.assignees = formData.assignees.filter(id => id !== undefined && id !== null);
+    
+    form.put(route('calendar.update', props.event.id), formData, {
+        preserveScroll: true,
+        onSuccess: (page) => {
+            console.log('Success Response:', page);
+            router.visit(route('calendar.index'));
+        },
+        onError: (errors) => {
+            console.error('=== VALIDATION ERRORS ===');
+            console.error(errors);
+            console.log('Current Form State:', form.data());
+            console.log('Processing State:', form.processing);
+        },
+        onFinish: () => {
+            console.log('=== REQUEST FINISHED ===');
+            console.log('Final Form State:', form.data());
         }
     });
 };

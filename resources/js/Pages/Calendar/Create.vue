@@ -3,22 +3,32 @@
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                Tambah Event
-            </h2>
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
+                    Tambah Event
+                </h2>
+                <Link
+                    :href="route('calendar.index')"
+                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800"
+                >
+                    <ArrowLeftIcon class="w-5 h-5 mr-2" />
+                    Kembali
+                </Link>
+            </div>
         </template>
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
                     <div class="p-6">
-                        <EventForm
-                            :form="form"
-                            :platforms="platforms"
-                            :categories="categories"
-                            :users="users"
-                            @submit="submit"
-                        />
+                        <form @submit.prevent="submit">
+                            <EventForm
+                                :form="form"
+                                :platforms="platforms"
+                                :categories="categories"
+                                :users="users"
+                            />
+                        </form>
                     </div>
                 </div>
             </div>
@@ -27,10 +37,13 @@
 </template>
 
 <script setup>
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import EventForm from '@/Components/EventForm.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
     platforms: Array,
