@@ -155,13 +155,12 @@
                             </div>
 
                             <div class="flex items-center justify-end gap-4">
-                                <SecondaryButton
+                                <Link
                                     :href="route('tasks.index')"
-                                    variant="outline"
                                     class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                                 >
                                     Batal
-                                </SecondaryButton>
+                                </Link>
 
                                 <PrimaryButton
                                     :class="{ 'opacity-25': form.processing }"
@@ -186,7 +185,6 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import TextArea from '@/Components/TextArea.vue';
 import SelectInput from '@/Components/SelectInput.vue';
@@ -217,20 +215,6 @@ const statuses = [
         activeClass: 'bg-gray-600 text-white',
         inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200',
         icon: 'fas fa-file-alt'
-    },
-    {
-        value: 'in_review',
-        label: 'In Review',
-        activeClass: 'bg-yellow-500 text-white',
-        inactiveClass: 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200',
-        icon: 'fas fa-search'
-    },
-    {
-        value: 'approved',
-        label: 'Approved',
-        activeClass: 'bg-blue-500 text-white',
-        inactiveClass: 'bg-blue-100 text-blue-600 hover:bg-blue-200',
-        icon: 'fas fa-check-circle'
     },
     {
         value: 'in_progress',

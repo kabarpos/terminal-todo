@@ -62,24 +62,27 @@
                                 item-key="id"
                                 class="min-h-[200px] space-y-3"
                                 @change="(e) => handleChange(e, status)"
-                                :animation="200"
+                                :animation="150"
                                 ghost-class="sortable-ghost"
                                 drag-class="sortable-drag"
                                 :force-fallback="true"
                                 handle=".drag-handle"
-                                :delay="0"
+                                :delay="50"
                                 :delayOnTouchOnly="true"
-                                :touchStartThreshold="5"
+                                :touchStartThreshold="2"
                                 :fallbackClass="'sortable-fallback'"
                                 :fallbackOnBody="true"
                                 :scroll="true"
                                 :scrollSensitivity="100"
                                 :scrollSpeed="20"
+                                :dragoverBubble="true"
+                                :removeCloneOnHide="false"
+                                :emptyInsertThreshold="5"
                             >
                                 <template #item="{ element: task }">
                                     <div 
                                         v-if="matchesFilters(task)"
-                                        class="task-card draggable-item bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-500 border border-gray-100 dark:border-gray-700"
+                                        class="task-card draggable-item bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700"
                                         :class="{
                                             'animate-highlight': props.highlight === 'new' && task.status === form.status,
                                             'opacity-50': updatingTaskId === task.id
@@ -87,9 +90,9 @@
                                     >
                                         <div class="flex items-center justify-between mb-2">
                                             <div class="flex items-center space-x-2">
-                                                <div class="drag-handle cursor-move text-gray-400 hover:text-gray-600">
+                                                <div class="drag-handle cursor-grab active:cursor-grabbing p-1 -m-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9h8M8 15h8" />
                                                     </svg>
                                                 </div>
                                                 <span class="px-2 py-1 text-xs font-semibold rounded-full"
@@ -306,7 +309,11 @@ const handleChange = async (event, newStatus) => {
             // Update status task secara lokal terlebih dahulu
             task.status = newStatus;
             
-            // Kirim update ke server
+            // Tambahkan CSRF token ke header axios
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            axios.defaults.headers.common['X-CSRF-TOKEN'] = token;
+            
+            // Kirim update ke server menggunakan axios
             const response = await axios.put(route('tasks.update-status', task.id), {
                 status: newStatus
             });
@@ -314,7 +321,7 @@ const handleChange = async (event, newStatus) => {
             console.log('Status updated successfully:', response.data);
             
             // Update task dengan data dari server
-            if (response.data && response.data.task) {
+            if (response.data && response.data.success && response.data.task) {
                 Object.assign(task, response.data.task);
             }
             
@@ -409,58 +416,52 @@ watch(() => tasksByStatus.value, (newValue) => {
     transform: translateY(-1px);
 }
 
-/* Prevent text selection during drag */
-.drag-handle,
-.draggable-item {
+/* Improved drag handle styling */
+.drag-handle {
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Improved dragging states */
+.sortable-drag {
+    opacity: 0.9;
+    transform: scale(1.02);
+    background: #fff;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    @apply dark:bg-gray-800;
+}
+
+.sortable-ghost {
+    @apply bg-blue-50 border-2 border-blue-300 dark:bg-blue-900 dark:border-blue-700;
+    opacity: 0.8;
+    box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.sortable-fallback {
+    @apply shadow-lg;
+    transform: scale(1.02);
+}
+
+/* Prevent text selection more aggressively */
+.draggable-item * {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-}
-
-/* Smooth transition for dragging */
-.sortable-drag {
-    opacity: 0.5;
-    background: #fff;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-/* Ghost item styling */
-.sortable-ghost {
-    @apply bg-blue-50 border-2 border-blue-200 dark:bg-blue-900 dark:border-blue-800;
-    opacity: 0.8;
-}
-
-.ghost-class {
-    @apply bg-blue-50 border-2 border-blue-200 dark:bg-blue-900 dark:border-blue-800;
-}
-
-.drag-class {
-    @apply opacity-50 shadow-lg;
-}
-
-@keyframes highlight {
-    0% {
-        background-color: rgba(59, 130, 246, 0.2);
-        transform: scale(1);
-    }
-    50% {
-        background-color: rgba(59, 130, 246, 0.1);
-        transform: scale(1.02);
-    }
-    100% {
-        background-color: transparent;
-        transform: scale(1);
-    }
-}
-
-.animate-highlight {
-    animation: highlight 2s ease-in-out;
+    -webkit-user-drag: none;
 }
 
 /* Smooth transitions for all cards */
 .task-card {
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    touch-action: pan-y;
+    will-change: transform, opacity, box-shadow;
 }
 
 .task-card:hover {

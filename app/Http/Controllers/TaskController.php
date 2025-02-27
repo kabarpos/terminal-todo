@@ -232,7 +232,7 @@ class TaskController extends Controller
         $task->load(['category', 'platform', 'assignees', 'creator']);
 
         return response()->json([
-            'message' => 'Task status updated successfully',
+            'success' => true,
             'task' => [
                 'id' => $task->id,
                 'title' => $task->title,
