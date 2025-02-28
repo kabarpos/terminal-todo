@@ -110,29 +110,30 @@ const eventStats = ref(props.monthlyEvents);
 
             <!-- Monthly Events -->
             <Card class="p-6">
-                <h3 class="text-lg font-semibold text-[var(--text-primary)] mb-4">Agenda Bulanan</h3>
-                <div class="space-y-4">
-                    <div v-for="(month, index) in eventStats" :key="index" class="flex items-center justify-between p-4 bg-[var(--bg-secondary)] rounded-lg">
-                        <div class="flex items-center space-x-4">
-                            <div class="p-2 bg-indigo-100 rounded-full">
-                                <svg class="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="font-medium text-[var(--text-primary)]">{{ month.name }}</p>
-                                <p class="text-sm text-[var(--text-secondary)]">{{ month.total }} agenda</p>
-                            </div>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-[var(--text-primary)]">Agenda Bulanan</h3>
+                    <div class="text-sm text-[var(--text-secondary)]">
+                        6 bulan ke depan
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div v-for="(month, index) in eventStats" 
+                         :key="index" 
+                         class="flex flex-col items-center p-3 rounded-lg border border-[var(--border-secondary)] hover:border-[var(--border-primary)] transition-colors duration-200"
+                         :class="{
+                            'bg-green-50 dark:bg-green-900/10': month.status === 'completed',
+                            'bg-yellow-50 dark:bg-yellow-900/10': month.status === 'in_progress',
+                            'bg-gray-50 dark:bg-gray-900/10': month.status === 'upcoming'
+                         }">
+                        <div class="text-sm font-medium text-[var(--text-primary)]">{{ month.name }}</div>
+                        <div class="mt-2 text-2xl font-bold" :class="{
+                            'text-green-600 dark:text-green-400': month.status === 'completed',
+                            'text-yellow-600 dark:text-yellow-400': month.status === 'in_progress',
+                            'text-gray-600 dark:text-gray-400': month.status === 'upcoming'
+                        }">
+                            {{ month.total }}
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="px-2.5 py-0.5 text-xs font-medium rounded-full" :class="{
-                                'bg-green-100 text-green-800': month.status === 'completed',
-                                'bg-yellow-100 text-yellow-800': month.status === 'in_progress',
-                                'bg-gray-100 text-gray-800': month.status === 'upcoming'
-                            }">
-                                {{ month.status }}
-                            </span>
-                        </div>
+                        <div class="mt-1 text-xs text-[var(--text-secondary)]">agenda</div>
                     </div>
                 </div>
             </Card>
