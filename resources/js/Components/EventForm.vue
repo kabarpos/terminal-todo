@@ -114,32 +114,12 @@
             />
             <InputError class="mt-2" :message="form.errors.assignees" />
         </div>
-
-        <div class="flex items-center justify-end gap-4">
-            <Link
-                :href="route('calendar.index')"
-                class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-            >
-                Batal
-            </Link>
-
-            <PrimaryButton
-                type="submit"
-                :class="{ 'opacity-25': form.processing }"
-                :disabled="form.processing"
-                class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-colors duration-200"
-            >
-                {{ form.processing ? 'Menyimpan...' : 'Simpan Event' }}
-            </PrimaryButton>
-        </div>
     </form>
 </template>
 
 <script setup>
-import { Link } from '@inertiajs/vue3';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import TextArea from '@/Components/TextArea.vue';
 import SelectInput from '@/Components/SelectInput.vue';

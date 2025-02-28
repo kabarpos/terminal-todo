@@ -164,7 +164,12 @@ class EditorialCalendarController extends Controller
                 'publish_date' => $calendar->publish_date->format('Y-m-d\TH:i:s'),
                 'deadline' => $calendar->deadline?->format('Y-m-d\TH:i:s'),
                 'status' => $calendar->status,
-                'assignees' => $calendar->assignees->pluck('id'),
+                'assignees' => $calendar->assignees->map(function($assignee) {
+                    return [
+                        'id' => $assignee->id,
+                        'name' => $assignee->name
+                    ];
+                }),
                 'metadata' => $calendar->metadata
             ],
             'platforms' => Platform::where('is_active', true)->get(),

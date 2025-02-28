@@ -69,17 +69,26 @@
                                 <div>
                                     <h4 class="mb-2 font-semibold text-gray-700 dark:text-gray-300">Status</h4>
                                     <span :class="getStatusClass(event.status)">
-                                        {{ event.status }}
+                                        {{ getStatusLabel(event.status) }}
                                     </span>
                                 </div>
                                 <div>
                                     <h4 class="mb-2 font-semibold text-gray-700 dark:text-gray-300">Dibuat Oleh</h4>
                                     <div class="flex items-center">
-                                        <img
-                                            :src="event.creator.avatar_url"
-                                            :alt="event.creator.name"
-                                            class="w-6 h-6 mr-2 rounded-full"
-                                        />
+                                        <div class="w-6 h-6 mr-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                                            <img
+                                                v-if="event.creator.profile_photo_url"
+                                                :src="event.creator.profile_photo_url"
+                                                :alt="event.creator.name"
+                                                class="w-full h-full object-cover"
+                                            />
+                                            <div
+                                                v-else
+                                                class="w-full h-full flex items-center justify-center text-gray-500 dark:text-gray-400"
+                                            >
+                                                <UserCircleIcon class="w-6 h-6" />
+                                            </div>
+                                        </div>
                                         <span>{{ event.creator.name }}</span>
                                     </div>
                                 </div>
@@ -357,6 +366,21 @@ const getStatusClass = (status) => {
             return 'text-red-600 dark:text-red-400';
         default:
             return 'text-gray-600 dark:text-gray-400';
+    }
+};
+
+const getStatusLabel = (status) => {
+    switch (status) {
+        case 'planned':
+            return 'Direncanakan';
+        case 'in_progress':
+            return 'Dalam Proses';
+        case 'published':
+            return 'Dipublikasi';
+        case 'cancelled':
+            return 'Dibatalkan';
+        default:
+            return status;
     }
 };
 

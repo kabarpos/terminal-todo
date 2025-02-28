@@ -21,13 +21,31 @@
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
                     <div class="p-6">
-                        <form @submit.prevent="submit">
+                        <form @submit.prevent="submit" class="space-y-6">
                             <EventForm
                                 :form="form"
                                 :platforms="platforms"
                                 :categories="categories"
                                 :users="users"
                             />
+
+                            <div class="flex items-center justify-end gap-4">
+                                <Link
+                                    :href="route('calendar.index')"
+                                    class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                                >
+                                    Batal
+                                </Link>
+
+                                <PrimaryButton
+                                    type="submit"
+                                    :class="{ 'opacity-25': form.processing }"
+                                    :disabled="form.processing"
+                                    class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-colors duration-200"
+                                >
+                                    {{ form.processing ? 'Menyimpan...' : 'Simpan Event' }}
+                                </PrimaryButton>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -42,13 +60,21 @@ import { useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import EventForm from '@/Components/EventForm.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { ArrowLeftIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
-    platforms: Array,
-    categories: Array,
-    users: Array,
+    platforms: {
+        type: Array,
+        required: true
+    },
+    categories: {
+        type: Array,
+        required: true
+    },
+    users: {
+        type: Array,
+        required: true
+    },
     initialDate: String,
     auth: {
         type: Object,
@@ -70,7 +96,7 @@ const form = useForm({
 const submit = () => {
     form.post(route('calendar.store'), {
         onSuccess: () => {
-            form.reset();
+            router.visit(route('calendar.index'));
         }
     });
 };
