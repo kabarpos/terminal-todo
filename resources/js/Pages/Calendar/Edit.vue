@@ -1,7 +1,7 @@
 <template>
-    <Head title="Edit Event" />
+    <Head title="Calendar" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Edit Event">
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-[var(--text-primary)]">
@@ -97,6 +97,10 @@ const props = defineProps({
     },
     users: {
         type: Array,
+        required: true
+    },
+    auth: {
+        type: Object,
         required: true
     }
 });

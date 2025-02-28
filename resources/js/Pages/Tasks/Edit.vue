@@ -1,7 +1,7 @@
 <template>
-    <Head title="Edit Task" />
+    <Head title="Tasks" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Edit Task">
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
                 Edit Task
@@ -204,6 +204,10 @@ const props = defineProps({
     },
     users: {
         type: Array,
+        required: true
+    },
+    auth: {
+        type: Object,
         required: true
     }
 });

@@ -8,9 +8,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class CalendarCommentController extends Controller
 {
+    use AuthorizesRequests;
+
     public function store(Request $request, EditorialCalendar $calendar)
     {
         $request->validate([

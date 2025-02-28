@@ -1,7 +1,7 @@
 <template>
-    <Head :title="event?.title || 'Detail Event'" />
+    <Head title="Calendar" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Detail Event">
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
@@ -301,6 +301,10 @@ import { PencilIcon, CalendarIcon, UserCircleIcon, TrashIcon, DocumentIcon, Link
 
 const props = defineProps({
     event: {
+        type: Object,
+        required: true
+    },
+    auth: {
         type: Object,
         required: true
     }

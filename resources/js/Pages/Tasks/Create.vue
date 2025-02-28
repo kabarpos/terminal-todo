@@ -1,7 +1,7 @@
 <template>
-    <Head title="Tambah Task" />
+    <Head title="Tasks" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Tambah Task">
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
                 Tambah Task
@@ -200,6 +200,10 @@ const props = defineProps({
     },
     users: {
         type: Array,
+        required: true
+    },
+    auth: {
+        type: Object,
         required: true
     }
 });

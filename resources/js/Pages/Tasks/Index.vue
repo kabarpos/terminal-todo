@@ -1,7 +1,7 @@
 <template>
     <Head title="Tasks" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Manajemen Task">
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
@@ -234,6 +234,10 @@ const props = defineProps({
     highlight: {
         type: String,
         default: null
+    },
+    auth: {
+        type: Object,
+        required: true
     }
 });
 

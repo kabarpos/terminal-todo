@@ -1,7 +1,7 @@
 <template>
-    <Head title="Tambah Event" />
+    <Head title="Calendar" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Tambah Event">
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
@@ -49,7 +49,11 @@ const props = defineProps({
     platforms: Array,
     categories: Array,
     users: Array,
-    initialDate: String
+    initialDate: String,
+    auth: {
+        type: Object,
+        required: true
+    }
 });
 
 const form = useForm({

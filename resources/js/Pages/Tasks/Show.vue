@@ -1,7 +1,7 @@
 <template>
-    <Head title="Detail Task" />
+    <Head title="Tasks" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Detail Task">
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
@@ -192,6 +192,10 @@ import { id } from 'date-fns/locale';
 
 const props = defineProps({
     task: {
+        type: Object,
+        required: true
+    },
+    auth: {
         type: Object,
         required: true
     }

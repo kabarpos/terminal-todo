@@ -1,7 +1,7 @@
 <template>
-    <Head title="Content Calendar" />
+    <Head title="Calendar" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Content Calendar">
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
@@ -172,6 +172,10 @@ import IconButton from '@/Components/IconButton.vue';
 const props = defineProps({
     events: {
         type: Array,
+        required: true
+    },
+    auth: {
+        type: Object,
         required: true
     }
 });

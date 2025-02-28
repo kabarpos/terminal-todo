@@ -1,7 +1,7 @@
 <template>
-    <Head title="Tambah Platform" />
+    <Head title="Platform" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Tambah Platform">
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
                 Tambah Platform
@@ -75,13 +75,12 @@
                             </div>
 
                             <div class="flex items-center justify-end gap-4">
-                                <SecondaryButton
+                                <Link
                                     :href="route('platforms.index')"
-                                    variant="outline"
                                     class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                                 >
                                     Batal
-                                </SecondaryButton>
+                                </Link>
 
                                 <PrimaryButton
                                     :class="{ 'opacity-25': form.processing }"
@@ -108,6 +107,13 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import TextArea from '@/Components/TextArea.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+
+const props = defineProps({
+    auth: {
+        type: Object,
+        required: true
+    }
+});
 
 const form = useForm({
     name: '',
