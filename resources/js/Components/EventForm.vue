@@ -107,9 +107,9 @@
                 class="mt-1 block w-full"
                 v-model="form.assignees"
                 :options="users.map(u => ({
-                    value: u.id?.toString(),
+                    value: u.id.toString(),
                     label: u.name
-                })).filter(opt => opt.value !== undefined)"
+                }))"
                 multiple
             />
             <InputError class="mt-2" :message="form.errors.assignees" />
