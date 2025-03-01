@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Embed\Embed;
 use Illuminate\Support\Facades\Storage;
 use GuzzleHttp\Client;
+use App\Services\ArticleCrawlerService;
 
 class NewsFeed extends Model
 {
@@ -39,40 +40,23 @@ class NewsFeed extends Model
         return $this->belongsTo(User::class);
     }
 
-    public static function fetchMetaData($url, $type)
+    public static function fetchMetaData($url, $type = null)
     {
         try {
-            $client = new Client();
-            $response = $client->get($url);
-            $html = (string) $response->getBody();
-            
-            // Parse HTML menggunakan DOMDocument
-            $doc = new \DOMDocument();
-            @$doc->loadHTML($html);
-            $xpath = new \DOMXPath($doc);
+            $crawler = new ArticleCrawlerService();
+            $metadata = $crawler->scrape($url);
 
-            $metadata = [
-                'title' => '',
-                'description' => '',
-                'image_url' => '',
+            return [
+                'title' => $metadata['title'],
+                'description' => $metadata['description'],
+                'image_url' => $metadata['image'],
                 'video_url' => null,
-                'site_name' => '',
-                'meta_data' => []
+                'site_name' => $metadata['site_name'],
+                'meta_data' => [
+                    'content' => $metadata['content'],
+                    'original_url' => $url
+                ]
             ];
-
-            // Ambil metadata berdasarkan tipe konten
-            switch ($type) {
-                case self::TYPE_VIDEO:
-                    $metadata = self::extractVideoMetadata($xpath, $metadata);
-                    break;
-                case self::TYPE_SOCIAL_MEDIA:
-                    $metadata = self::extractSocialMediaMetadata($xpath, $metadata);
-                    break;
-                default:
-                    $metadata = self::extractDefaultMetadata($xpath, $metadata);
-            }
-
-            return $metadata;
         } catch (\Exception $e) {
             \Log::error('Error fetching metadata: ' . $e->getMessage());
             return null;

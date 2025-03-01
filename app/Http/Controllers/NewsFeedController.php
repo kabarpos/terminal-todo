@@ -7,10 +7,18 @@ use App\Models\NewsFeed;
 use Inertia\Inertia;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Storage;
+use App\Services\ArticleCrawlerService;
 
 class NewsFeedController extends Controller
 {
     use AuthorizesRequests;
+
+    protected $crawler;
+
+    public function __construct(ArticleCrawlerService $crawler)
+    {
+        $this->crawler = $crawler;
+    }
 
     /**
      * Display a listing of the resource.
@@ -206,6 +214,24 @@ class NewsFeedController extends Controller
         }
 
         return response()->json($metadata);
+    }
+
+    public function fetchMetadata(Request $request)
+    {
+        try {
+            $url = $request->input('url');
+            $metadata = $this->crawler->scrape($url);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $metadata
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        }
     }
 
     protected function getDefaultProfilePhotoUrl($name)

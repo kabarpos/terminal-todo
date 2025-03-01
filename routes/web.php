@@ -69,4 +69,5 @@ Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
 
     Route::resource('news-feeds', NewsFeedController::class);
     Route::post('news-feeds/preview', [NewsFeedController::class, 'preview'])->name('news-feeds.preview');
+    Route::post('/news-feeds/fetch-metadata', [NewsFeedController::class, 'fetchMetadata'])->name('news-feeds.fetch-metadata');
 });

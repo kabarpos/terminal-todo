@@ -82,7 +82,36 @@
                 <p class="text-gray-700 text-lg leading-relaxed">{{ feed.description }}</p>
               </div>
 
-              <div class="border-t pt-8">
+              <div v-if="feed.meta_data?.content" class="mt-8 border-t pt-8">
+                <h2 class="text-xl font-semibold mb-4">Konten Artikel</h2>
+                <div class="prose max-w-none">
+                  <div class="text-gray-700 leading-relaxed space-y-4" v-html="formatContent(feed.meta_data.content)"></div>
+                </div>
+              </div>
+
+              <div class="mt-8 bg-gray-50 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Artikel</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-sm text-gray-500">Sumber</p>
+                    <p class="text-gray-900">{{ feed.site_name }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-500">Tanggal Publikasi</p>
+                    <p class="text-gray-900">{{ formatDate(feed.created_at) }}</p>
+                  </div>
+                  <div>
+                    <p class="text-sm text-gray-500">Tipe Konten</p>
+                    <p class="text-gray-900 capitalize">{{ feed.type }}</p>
+                  </div>
+                  <div v-if="feed.url">
+                    <p class="text-sm text-gray-500">Domain</p>
+                    <p class="text-gray-900">{{ getDomain(feed.url) }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="border-t pt-8 mt-8">
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                   <a
                     :href="feed.url"
@@ -95,21 +124,6 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                   </a>
-
-                  <div class="flex items-center space-x-4 text-sm text-gray-500">
-                    <span title="Domain">
-                      <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                      </svg>
-                      {{ getDomain(feed.url) }}
-                    </span>
-                    <span title="Tanggal Publikasi">
-                      <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      {{ formatDate(feed.created_at) }}
-                    </span>
-                  </div>
                 </div>
               </div>
 
@@ -176,5 +190,14 @@ const destroy = () => {
   if (confirm('Apakah Anda yakin ingin menghapus feed ini?')) {
     router.delete(route('news-feeds.destroy', props.feed.id))
   }
+}
+
+const formatContent = (content) => {
+  if (!content) return '';
+  // Split content by newlines and wrap each paragraph in <p> tags
+  return content.split('\n\n')
+    .filter(p => p.trim())
+    .map(p => `<p>${p}</p>`)
+    .join('');
 }
 </script> 
