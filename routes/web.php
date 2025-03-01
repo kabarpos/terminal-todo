@@ -11,6 +11,7 @@ use App\Http\Controllers\TaskCommentController;
 use App\Http\Controllers\EditorialCalendarController;
 use App\Http\Controllers\CalendarCommentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NewsFeedController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -65,4 +66,7 @@ Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
     });
+
+    Route::resource('news-feeds', NewsFeedController::class);
+    Route::post('news-feeds/preview', [NewsFeedController::class, 'preview'])->name('news-feeds.preview');
 });

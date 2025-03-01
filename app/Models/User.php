@@ -33,6 +33,7 @@ class User extends Authenticatable
         'approved_at',
         'approved_by',
         'last_login_at',
+        'profile_photo_path',
     ];
 
     protected $hidden = [
@@ -49,6 +50,7 @@ class User extends Authenticatable
 
     protected $appends = [
         'avatar_url',
+        'profile_photo_url',
     ];
 
     // Accessor untuk avatar URL
@@ -58,6 +60,15 @@ class User extends Authenticatable
             return Storage::disk('public')->url($this->avatar);
         }
         return '/default-avatar.png';
+    }
+
+    public function getProfilePhotoUrlAttribute()
+    {
+        if ($this->profile_photo_path) {
+            return Storage::url($this->profile_photo_path);
+        }
+
+        return 'https://ui-avatars.com/api/?name='.urlencode($this->name).'&color=7F9CF5&background=EBF4FF';
     }
 
     // Relationships
