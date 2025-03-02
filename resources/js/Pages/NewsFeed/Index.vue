@@ -25,7 +25,7 @@
               <div v-for="feed in feeds.data" :key="feed.id" class="bg-white rounded-lg shadow-md overflow-hidden">
                 <Link :href="route('news-feeds.show', feed.id)" class="block hover:opacity-75">
                   <div v-if="feed.image_url" class="aspect-video bg-gray-100">
-                    <img :src="feed.image_url" :alt="feed.title" class="w-full h-full object-cover">
+                    <img :src="feed.image_url_full" :alt="feed.title" class="w-full h-full object-cover">
                   </div>
                   <div v-else-if="feed.video_url" class="aspect-video bg-gray-100">
                     <video :src="feed.video_url" class="w-full h-full object-cover" controls></video>

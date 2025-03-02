@@ -12,20 +12,6 @@
           <div class="p-6 text-gray-900">
             <form @submit.prevent="submit" class="space-y-6">
               <div>
-                <InputLabel for="url" value="URL" />
-                <TextInput
-                  id="url"
-                  type="url"
-                  class="mt-1 block w-full"
-                  v-model="form.url"
-                  required
-                  autofocus
-                  :placeholder="form.type === 'video' ? 'https://www.youtube.com/watch?v=...' : 'https://example.com/article'"
-                />
-                <InputError class="mt-2" :message="form.errors.url" />
-              </div>
-
-              <div>
                 <InputLabel for="type" value="Tipe" />
                 <SelectInput
                   id="type"
@@ -40,6 +26,72 @@
                 <InputError class="mt-2" :message="form.errors.type" />
               </div>
 
+              <!-- Form untuk tipe image -->
+              <template v-if="form.type === 'image'">
+                <div class="space-y-4">
+                  <div>
+                    <InputLabel for="image" value="Upload Gambar" />
+                    <input
+                      type="file"
+                      id="image"
+                      accept="image/*"
+                      @change="handleImageUpload"
+                      class="mt-1 block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-indigo-50 file:text-indigo-700
+                        hover:file:bg-indigo-100"
+                    />
+                    <InputError class="mt-2" :message="form.errors.image" />
+                  </div>
+
+                  <div v-if="imagePreview" class="mt-4">
+                    <div class="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                      <img :src="imagePreview" class="w-full h-full object-contain" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <InputLabel for="title" value="Judul" />
+                    <TextInput
+                      id="title"
+                      type="text"
+                      class="mt-1 block w-full"
+                      v-model="form.title"
+                      placeholder="Judul gambar"
+                    />
+                    <InputError class="mt-2" :message="form.errors.title" />
+                  </div>
+
+                  <div>
+                    <InputLabel for="description" value="Deskripsi" />
+                    <textarea
+                      id="description"
+                      v-model="form.description"
+                      rows="3"
+                      class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                      placeholder="Deskripsi gambar"
+                    ></textarea>
+                    <InputError class="mt-2" :message="form.errors.description" />
+                  </div>
+                </div>
+              </template>
+
+              <!-- Form untuk tipe lain (news/video) -->
+              <div v-else>
+                <InputLabel for="url" value="URL" />
+                <TextInput
+                  id="url"
+                  type="url"
+                  class="mt-1 block w-full"
+                  v-model="form.url"
+                  required
+                  :placeholder="form.type === 'video' ? 'https://www.youtube.com/watch?v=...' : 'https://example.com/article'"
+                />
+                <InputError class="mt-2" :message="form.errors.url" />
+              </div>
+
               <div v-if="preview" class="mt-6">
                 <h3 class="text-lg font-medium text-gray-900">Preview</h3>
                 <div class="mt-4 bg-gray-50 rounded-lg p-4">
@@ -47,7 +99,13 @@
                     <img :src="preview.image_url" :alt="preview.title" class="w-full h-full object-cover rounded-lg">
                   </div>
                   <div v-if="preview.video_url" class="aspect-video bg-gray-100 mb-4">
-                    <video :src="preview.video_url" class="w-full h-full object-cover rounded-lg" controls></video>
+                    <iframe
+                      :src="preview.video_url"
+                      class="w-full h-full rounded-lg"
+                      frameborder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowfullscreen
+                    ></iframe>
                   </div>
                   <h4 class="text-xl font-semibold">{{ preview.title }}</h4>
                   <p class="mt-2 text-gray-600">{{ preview.description }}</p>
@@ -88,9 +146,13 @@ import { ref, watch } from 'vue'
 import axios from 'axios'
 
 const preview = ref(null)
+const imagePreview = ref(null)
 const form = useForm({
   url: '',
-  type: 'news'
+  type: 'news',
+  image: null,
+  title: '',
+  description: ''
 })
 
 const fetchPreview = async (url) => {
@@ -102,20 +164,53 @@ const fetchPreview = async (url) => {
   }
 }
 
+const handleImageUpload = (e) => {
+  const file = e.target.files[0]
+  if (!file) return
+
+  form.image = file
+  
+  // Create preview URL
+  imagePreview.value = URL.createObjectURL(file)
+}
+
+const submit = () => {
+  if (form.type === 'image') {
+    form.post(route('news-feeds.store'), {
+      forceFormData: true,
+      preserveScroll: true,
+      preserveState: true,
+      onSuccess: () => {
+        form.reset()
+        imagePreview.value = null
+      },
+      onError: (errors) => {
+        console.error('Upload errors:', errors)
+      }
+    })
+  } else {
+    form.post(route('news-feeds.store'), {
+      preserveScroll: true,
+      preserveState: true,
+      onSuccess: () => {
+        form.reset()
+        preview.value = null
+      }
+    })
+  }
+}
+
+watch(() => form.type, (newType) => {
+  form.reset('url', 'image', 'title', 'description')
+  preview.value = null
+  imagePreview.value = null
+})
+
 watch(() => form.url, async (newUrl) => {
-  if (newUrl) {
+  if (newUrl && form.type !== 'image') {
     await fetchPreview(newUrl)
   } else {
     preview.value = null
   }
 })
-
-const submit = () => {
-  form.post(route('news-feeds.store'), {
-    onSuccess: () => {
-      form.reset()
-      preview.value = null
-    }
-  })
-}
 </script> 

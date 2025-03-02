@@ -60,17 +60,29 @@ class NewsFeedController extends Controller
         try {
             $data = [
                 'user_id' => auth()->id(),
-                'type' => $request->type
+                'type' => $request->type,
+                'url' => null,
+                'title' => $request->title,
+                'description' => $request->description
             ];
 
             if ($request->type === NewsFeed::TYPE_IMAGE) {
                 // Handle uploaded image
-                $data['title'] = $request->title;
-                $data['description'] = $request->description;
-                
                 $newsFeed = NewsFeed::create($data);
+                
                 if ($request->hasFile('image')) {
-                    $newsFeed->uploadImage($request->file('image'));
+                    $path = $request->file('image')->store('images/feeds', 'public');
+                    $newsFeed->update([
+                        'image_url' => $path,
+                        'meta_data' => [
+                            'type' => 'image',
+                            'original_filename' => $request->file('image')->getClientOriginalName(),
+                            'file_size' => $request->file('image')->getSize(),
+                            'dimensions' => getimagesize($request->file('image')->getRealPath()),
+                            'mime_type' => $request->file('image')->getMimeType(),
+                            'is_uploaded' => true
+                        ]
+                    ]);
                 }
             } else {
                 // Handle URL-based content (news, video, social media)

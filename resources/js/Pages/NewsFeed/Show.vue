@@ -70,8 +70,68 @@
                 </div>
               </div>
 
-              <div v-if="feed.image_url" class="aspect-video bg-gray-100 mb-6 rounded-lg overflow-hidden shadow-lg">
-                <img :src="feed.image_url" :alt="feed.title" class="w-full h-full object-cover">
+              <!-- Image Preview -->
+              <div v-if="feed.type === 'image'" class="mb-8">
+                <div class="relative aspect-video bg-gray-100 rounded-lg overflow-hidden shadow-lg cursor-pointer" @click="openLightbox">
+                  <img 
+                    :src="feed.image_url_full" 
+                    :alt="feed.title" 
+                    class="w-full h-full object-contain"
+                  >
+                  <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4">
+                    <div class="text-white">
+                      <p v-if="feed.meta_data?.dimensions" class="text-sm">
+                        {{ feed.meta_data.dimensions.width }} x {{ feed.meta_data.dimensions.height }} piksel
+                      </p>
+                      <p v-if="feed.meta_data?.file_size" class="text-sm">
+                        {{ formatFileSize(feed.meta_data.file_size) }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Lightbox -->
+                <div v-if="showLightbox" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90" @click="closeLightbox">
+                  <div class="relative max-w-7xl mx-auto p-4">
+                    <button 
+                      class="absolute top-4 right-4 text-white hover:text-gray-300 focus:outline-none"
+                      @click="closeLightbox"
+                    >
+                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                    
+                    <img 
+                      :src="feed.image_url_full" 
+                      :alt="feed.title"
+                      class="max-h-[90vh] max-w-full object-contain"
+                      @click.stop
+                    >
+                    
+                    <div class="absolute bottom-4 left-4 right-4 text-white text-center">
+                      <h3 class="text-xl font-semibold">{{ feed.title }}</h3>
+                      <p class="text-sm mt-2">{{ feed.description }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Image Information -->
+                <div class="mt-6 space-y-4">
+                  <div v-if="feed.meta_data?.tags && feed.meta_data.tags.length > 0" class="flex flex-wrap gap-2">
+                    <span 
+                      v-for="tag in feed.meta_data.tags" 
+                      :key="tag"
+                      class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm"
+                    >
+                      #{{ tag }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="feed.image_url && feed.type !== 'image'" class="aspect-video bg-gray-100 rounded-lg overflow-hidden mb-6">
+                <img :src="feed.image_url_full" :alt="feed.title" class="w-full h-full object-cover">
               </div>
 
               <div v-if="feed.type === 'video' && feed.video_url" class="aspect-video bg-gray-100 mb-6 rounded-lg overflow-hidden shadow-lg">
@@ -102,38 +162,89 @@
               </div>
 
               <!-- Article Content -->
-              <div v-if="feed.meta_data?.content" class="mt-8 border-t pt-8">
+              <div v-if="feed.meta_data?.content && feed.type === 'news'" class="mt-8 border-t pt-8">
                 <h2 class="text-xl font-semibold mb-4">Konten Artikel</h2>
                 <div class="prose max-w-none">
                   <div class="text-gray-700 leading-relaxed space-y-4" v-html="formatContent(feed.meta_data.content)"></div>
                 </div>
               </div>
 
+              <!-- Information Section - Different for each type -->
               <div class="mt-8 bg-gray-50 rounded-lg p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Artikel</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p class="text-sm text-gray-500">Sumber</p>
-                    <p class="text-gray-900">{{ feed.site_name }}</p>
+                <!-- News Information -->
+                <div v-if="feed.type === 'news'">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Artikel</h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p class="text-sm text-gray-500">Sumber</p>
+                      <p class="text-gray-900">{{ feed.site_name }}</p>
+                    </div>
+                    <div>
+                      <p class="text-sm text-gray-500">Tanggal Publikasi</p>
+                      <p class="text-gray-900">{{ formatDate(feed.created_at) }}</p>
+                    </div>
+                    <div>
+                      <p class="text-sm text-gray-500">Domain</p>
+                      <p class="text-gray-900">{{ getDomain(feed.url) }}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p class="text-sm text-gray-500">Tanggal Publikasi</p>
-                    <p class="text-gray-900">{{ formatDate(feed.created_at) }}</p>
+                </div>
+
+                <!-- Image Information -->
+                <div v-if="feed.type === 'image'">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Gambar</h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p class="text-sm text-gray-500">Dimensi</p>
+                      <p class="text-gray-900" v-if="feed.meta_data?.dimensions">
+                        {{ feed.meta_data.dimensions.width }} x {{ feed.meta_data.dimensions.height }} piksel
+                      </p>
+                    </div>
+                    <div>
+                      <p class="text-sm text-gray-500">Ukuran File</p>
+                      <p class="text-gray-900">{{ formatFileSize(feed.meta_data?.file_size) }}</p>
+                    </div>
+                    <div>
+                      <p class="text-sm text-gray-500">Tipe File</p>
+                      <p class="text-gray-900">{{ feed.meta_data?.mime_type }}</p>
+                    </div>
+                    <div>
+                      <p class="text-sm text-gray-500">Tanggal Upload</p>
+                      <p class="text-gray-900">{{ formatDate(feed.created_at) }}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p class="text-sm text-gray-500">Tipe Konten</p>
-                    <p class="text-gray-900 capitalize">{{ feed.type }}</p>
-                  </div>
-                  <div v-if="feed.url">
-                    <p class="text-sm text-gray-500">Domain</p>
-                    <p class="text-gray-900">{{ getDomain(feed.url) }}</p>
+                </div>
+
+                <!-- Video Information -->
+                <div v-if="feed.type === 'video'">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Informasi Video</h3>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p class="text-sm text-gray-500">Channel</p>
+                      <p class="text-gray-900">{{ feed.meta_data?.author_name }}</p>
+                    </div>
+                    <div>
+                      <p class="text-sm text-gray-500">Jumlah Views</p>
+                      <p class="text-gray-900">{{ formatNumber(feed.meta_data?.view_count) }} x ditonton</p>
+                    </div>
+                    <div>
+                      <p class="text-sm text-gray-500">Platform</p>
+                      <p class="text-gray-900">{{ feed.site_name }}</p>
+                    </div>
+                    <div>
+                      <p class="text-sm text-gray-500">Tanggal Upload</p>
+                      <p class="text-gray-900">{{ formatDate(feed.meta_data?.publish_date || feed.created_at) }}</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
+              <!-- Action Buttons - Different for each type -->
               <div class="border-t pt-8 mt-8">
                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                  <!-- News Action -->
                   <a
+                    v-if="feed.type === 'news' && feed.url"
                     :href="feed.url"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -142,6 +253,34 @@
                     <span>Buka di {{ feed.site_name }}</span>
                     <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+
+                  <!-- Image Action -->
+                  <a
+                    v-if="feed.type === 'image'"
+                    :href="feed.image_url_full"
+                    download
+                    class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    <span>Download Gambar</span>
+                    <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                  </a>
+
+                  <!-- Video Action -->
+                  <a
+                    v-if="feed.type === 'video' && feed.url"
+                    :href="feed.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    <span>Tonton di {{ feed.site_name }}</span>
+                    <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </a>
                 </div>
@@ -168,6 +307,7 @@ const props = defineProps({
 })
 
 const showCopiedMessage = ref(false)
+const showLightbox = ref(false)
 
 const formatDate = (date) => {
   return new Date(date).toLocaleDateString('id-ID', {
@@ -224,4 +364,39 @@ const formatContent = (content) => {
 const formatNumber = (number) => {
   return new Intl.NumberFormat('id-ID').format(number);
 }
+
+const formatFileSize = (bytes) => {
+  if (!bytes) return '';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let size = bytes;
+  let unitIndex = 0;
+  
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+  
+  return `${size.toFixed(1)} ${units[unitIndex]}`;
+}
+
+const openLightbox = () => {
+  showLightbox.value = true
+  // Prevent scrolling when lightbox is open
+  document.body.style.overflow = 'hidden'
+}
+
+const closeLightbox = () => {
+  showLightbox.value = false
+  // Restore scrolling
+  document.body.style.overflow = 'auto'
+}
+
+// Handle escape key to close lightbox
+onMounted(() => {
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && showLightbox.value) {
+      closeLightbox()
+    }
+  })
+})
 </script> 

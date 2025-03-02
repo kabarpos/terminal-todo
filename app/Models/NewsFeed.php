@@ -31,6 +31,8 @@ class NewsFeed extends Model
         'meta_data'
     ];
 
+    protected $appends = ['image_url_full'];
+
     protected $casts = [
         'meta_data' => 'array'
     ];
@@ -43,6 +45,26 @@ class NewsFeed extends Model
     public static function fetchMetaData($url, $type = null)
     {
         try {
+            if ($type === self::TYPE_IMAGE) {
+                // Untuk tipe gambar yang diupload
+                return [
+                    'title' => '', // Akan diisi oleh user
+                    'description' => '', // Akan diisi oleh user
+                    'image_url' => null, // Akan diisi setelah upload
+                    'video_url' => null,
+                    'site_name' => 'Galeri Foto',
+                    'meta_data' => [
+                        'type' => 'image',
+                        'original_filename' => null, // Akan diisi setelah upload
+                        'file_size' => null, // Akan diisi setelah upload
+                        'dimensions' => null, // Akan diisi setelah upload
+                        'mime_type' => null, // Akan diisi setelah upload
+                        'tags' => [], // Untuk kategorisasi gambar
+                        'is_uploaded' => true
+                    ]
+                ];
+            }
+
             if ($type === self::TYPE_VIDEO) {
                 $videoId = self::extractYoutubeId($url);
                 if (!$videoId) {
@@ -269,14 +291,55 @@ class NewsFeed extends Model
         return $node->length > 0 ? $node->item(0)->nodeValue : null;
     }
 
-    public function uploadImage($image)
+    public function uploadImage($file)
     {
-        if ($this->image_url) {
+        try {
             // Hapus gambar lama jika ada
-            Storage::disk('public')->delete($this->image_url);
-        }
+            if ($this->image_url) {
+                Storage::disk('public')->delete($this->image_url);
+            }
 
-        $path = $image->store('news-feeds', 'public');
-        $this->update(['image_url' => $path]);
+            // Generate nama file unik
+            $filename = uniqid('img_') . '.' . $file->getClientOriginalExtension();
+            
+            // Simpan file ke storage
+            $path = $file->storeAs('images/feeds', $filename, 'public');
+            
+            // Dapatkan dimensi gambar
+            list($width, $height) = getimagesize($file->getRealPath());
+            
+            // Update metadata
+            $this->update([
+                'url' => null,
+                'image_url' => $path,
+                'meta_data' => [
+                    'type' => 'image',
+                    'original_filename' => $file->getClientOriginalName(),
+                    'file_size' => $file->getSize(),
+                    'dimensions' => [
+                        'width' => $width,
+                        'height' => $height
+                    ],
+                    'mime_type' => $file->getMimeType(),
+                    'is_uploaded' => true
+                ]
+            ]);
+
+            return $path;
+        } catch (\Exception $e) {
+            \Log::error('Error uploading image: ' . $e->getMessage(), [
+                'file' => $file->getClientOriginalName(),
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    public function getImageUrlFullAttribute()
+    {
+        if (!$this->image_url) {
+            return null;
+        }
+        return $this->image_url ? Storage::disk('public')->url($this->image_url) : null;
     }
 }

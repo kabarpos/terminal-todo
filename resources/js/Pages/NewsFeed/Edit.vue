@@ -74,8 +74,8 @@
                   />
                   <InputError class="mt-2" :message="form.errors.image" />
                   
-                  <div v-if="feed.image_url" class="mt-2">
-                    <img :src="feed.image_url" alt="Current image" class="max-w-xs rounded">
+                  <div v-if="feed.image_url_full" class="mt-2">
+                    <img :src="feed.image_url_full" alt="Current image" class="max-w-xs rounded">
                   </div>
                 </div>
               </div>

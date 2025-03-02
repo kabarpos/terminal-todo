@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('title')->nullable();
             $table->text('description')->nullable();
             $table->string('image_path')->nullable(); // untuk uploaded image
-            $table->string('image_url')->nullable(); // untuk image dari metadata
+            $table->string('image_url')->nullable(); // untuk image dari metadata atau upload
             $table->string('video_url')->nullable();
             $table->string('site_name')->nullable();
             $table->json('meta_data')->nullable();
