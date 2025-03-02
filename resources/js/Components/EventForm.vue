@@ -31,7 +31,12 @@
                     id="event-publish_date"
                     type="datetime-local"
                     class="mt-1 block w-full"
-                    v-model="form.publish_date"
+                    :value="form.publish_date"
+                    @input="(e) => {
+                        console.log('Input event triggered');
+                        console.log('New value:', e.target.value);
+                        form.publish_date = e.target.value;
+                    }"
                     required
                 />
                 <InputError class="mt-2" :message="form.errors.publish_date" />

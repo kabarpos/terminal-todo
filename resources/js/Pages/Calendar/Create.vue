@@ -57,6 +57,7 @@
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
 import { useForm } from '@inertiajs/vue3';
+import { watch, onMounted, ref } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import EventForm from '@/Components/EventForm.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -75,23 +76,77 @@ const props = defineProps({
         type: Array,
         required: true
     },
-    initialDate: String,
+    prefilledDate: {
+        type: String,
+        default: ''
+    },
     auth: {
         type: Object,
         required: true
     }
 });
 
+console.log('Props received:', props);
+console.log('Prefilled Date from props:', props.prefilledDate);
+
+// Format prefilledDate to include time if it's just a date
+const getInitialDate = (date) => {
+    console.log('getInitialDate called with:', date);
+    if (!date) {
+        console.log('No date provided');
+        return '';
+    }
+    // If prefilledDate is just a date (YYYY-MM-DD), add time
+    if (date.length === 10) {
+        const formattedDate = `${date}T00:00`;
+        console.log('Formatted date:', formattedDate);
+        return formattedDate;
+    }
+    console.log('Date already formatted:', date);
+    return date;
+};
+
+const initialFormDate = getInitialDate(props.prefilledDate);
+console.log('Initial form date:', initialFormDate);
+
+// Initialize form with formatted date
 const form = useForm({
     title: '',
     description: '',
-    publish_date: props.initialDate || '',
+    publish_date: initialFormDate,
     deadline: '',
     platform_id: '',
     category_id: '',
     status: 'planned',
     assignees: []
 });
+
+console.log('Form initialized with publish_date:', form.publish_date);
+
+onMounted(() => {
+    console.log('Component mounted');
+    console.log('Current form publish_date:', form.publish_date);
+    console.log('Current props.prefilledDate:', props.prefilledDate);
+    
+    if (props.prefilledDate && !form.publish_date) {
+        const formattedDate = getInitialDate(props.prefilledDate);
+        console.log('Setting publish_date on mount:', formattedDate);
+        form.publish_date = formattedDate;
+    }
+});
+
+// Watch for changes in prefilledDate prop
+watch(() => props.prefilledDate, (newDate, oldDate) => {
+    console.log('Watch triggered');
+    console.log('Old date:', oldDate);
+    console.log('New date:', newDate);
+    
+    if (newDate) {
+        const formattedDate = getInitialDate(newDate);
+        console.log('Setting new publish_date:', formattedDate);
+        form.publish_date = formattedDate;
+    }
+}, { immediate: true });
 
 const submit = () => {
     form.post(route('calendar.store'), {

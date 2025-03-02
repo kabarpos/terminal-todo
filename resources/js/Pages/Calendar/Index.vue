@@ -271,8 +271,8 @@ const today = () => {
 };
 
 const createEventOnDate = (date) => {
-    // Format the date as required by the create form
-    const formattedDate = format(date, "yyyy-MM-dd'T'HH:mm", { locale: id });
+    // Format the date as required by the create form (YYYY-MM-DD)
+    const formattedDate = format(date, "yyyy-MM-dd", { locale: id });
     
     // Navigate to create page with the date pre-filled
     router.visit(route('calendar.create', { date: formattedDate }));
