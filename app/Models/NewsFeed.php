@@ -9,6 +9,7 @@ use Embed\Embed;
 use Illuminate\Support\Facades\Storage;
 use GuzzleHttp\Client;
 use App\Services\ArticleCrawlerService;
+use App\Services\SocialMediaService;
 
 class NewsFeed extends Model
 {
@@ -16,7 +17,6 @@ class NewsFeed extends Model
 
     const TYPE_NEWS = 'news';
     const TYPE_VIDEO = 'video';
-    const TYPE_SOCIAL_MEDIA = 'social_media';
     const TYPE_IMAGE = 'image';
 
     protected $fillable = [
@@ -43,6 +43,112 @@ class NewsFeed extends Model
     public static function fetchMetaData($url, $type = null)
     {
         try {
+            if ($type === self::TYPE_VIDEO) {
+                $videoId = self::extractYoutubeId($url);
+                if (!$videoId) {
+                    throw new Exception('URL video harus dari YouTube');
+                }
+
+                // Normalisasi URL YouTube ke format lengkap
+                $normalizedUrl = "https://www.youtube.com/watch?v={$videoId}";
+
+                // Ambil metadata dari halaman video dengan User-Agent
+                $client = new Client();
+                $response = $client->get($normalizedUrl, [
+                    'headers' => [
+                        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept-Language' => 'en-US,en;q=0.9',
+                    ]
+                ]);
+                $html = $response->getBody()->getContents();
+
+                // Ekstrak deskripsi dengan pola yang lebih lengkap
+                $fullDescription = '';
+                $descriptionPatterns = [
+                    '/\"description\":\s*{\s*\"simpleText\":\s*\"(.*?)\"}/s',
+                    '/\"description\":\s*\"(.*?)\"/',
+                    '/\"shortDescription\":\s*\"(.*?)\"/',
+                    '/meta property="og:description" content="([^"]+)"/',
+                    '/meta name="description" content="([^"]+)"/'
+                ];
+
+                foreach ($descriptionPatterns as $pattern) {
+                    if (preg_match($pattern, $html, $matches)) {
+                        $fullDescription = $matches[1];
+                        $fullDescription = stripcslashes($fullDescription);
+                        $fullDescription = html_entity_decode($fullDescription, ENT_QUOTES | ENT_HTML5);
+                        break;
+                    }
+                }
+
+                // Ekstrak view count dengan pola yang lebih lengkap
+                $viewCount = null;
+                $viewCountPatterns = [
+                    '/\"viewCount\":\s*\"([0-9,]+)\"/',
+                    '/\"viewCount\":\s*([0-9]+)/',
+                    '/\"viewCountText\":\s*{\s*\"simpleText\":\s*\"([^"]+)\"/',
+                    '/\"viewCount\":\s*{\s*\"simpleText\":\s*\"([^"]+)\"/',
+                    '/\"viewCount\":\s*{\s*\"text\":\s*\"([^"]+)\"/'
+                ];
+
+                foreach ($viewCountPatterns as $pattern) {
+                    if (preg_match($pattern, $html, $matches)) {
+                        $viewCount = $matches[1];
+                        // Bersihkan format angka
+                        $viewCount = preg_replace('/[^0-9]/', '', $viewCount);
+                        break;
+                    }
+                }
+
+                // Ekstrak tanggal publikasi
+                $publishDate = null;
+                $datePatterns = [
+                    '/\"publishDate\":\s*\"([^"]+)\"/',
+                    '/\"uploadDate\":\s*\"([^"]+)\"/',
+                    '/meta itemprop="uploadDate" content="([^"]+)"/'
+                ];
+
+                foreach ($datePatterns as $pattern) {
+                    if (preg_match($pattern, $html, $matches)) {
+                        $publishDate = $matches[1];
+                        break;
+                    }
+                }
+
+                // Gunakan oEmbed untuk metadata dasar
+                $oembedUrl = "https://www.youtube.com/oembed?url={$normalizedUrl}&format=json";
+                $oembedResponse = $client->get($oembedUrl);
+                $data = json_decode($oembedResponse->getBody(), true);
+
+                \Log::info('YouTube metadata fetched', [
+                    'video_id' => $videoId,
+                    'normalized_url' => $normalizedUrl,
+                    'view_count' => $viewCount,
+                    'publish_date' => $publishDate,
+                    'description_length' => strlen($fullDescription)
+                ]);
+
+                return [
+                    'title' => $data['title'],
+                    'description' => $fullDescription ?: $data['title'],
+                    'image_url' => "https://img.youtube.com/vi/{$videoId}/maxresdefault.jpg",
+                    'video_url' => "https://www.youtube.com/embed/{$videoId}",
+                    'site_name' => 'YouTube',
+                    'meta_data' => [
+                        'author_name' => $data['author_name'],
+                        'author_url' => $data['author_url'],
+                        'provider_name' => $data['provider_name'],
+                        'type' => 'video',
+                        'html' => $data['html'],
+                        'video_id' => $videoId,
+                        'publish_date' => $publishDate,
+                        'view_count' => $viewCount,
+                        'full_description' => $fullDescription
+                    ]
+                ];
+            }
+
+            // Default crawler untuk konten website
             $crawler = new ArticleCrawlerService();
             $metadata = $crawler->scrape($url);
 
@@ -57,10 +163,35 @@ class NewsFeed extends Model
                     'original_url' => $url
                 ]
             ];
-        } catch (\Exception $e) {
-            \Log::error('Error fetching metadata: ' . $e->getMessage());
-            return null;
+        } catch (Exception $e) {
+            \Log::error('Error fetching metadata: ' . $e->getMessage(), [
+                'url' => $url,
+                'type' => $type,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Return basic metadata jika gagal
+            return [
+                'title' => 'Untitled',
+                'description' => '',
+                'image_url' => null,
+                'video_url' => null,
+                'site_name' => 'Unknown',
+                'meta_data' => [
+                    'original_url' => $url
+                ]
+            ];
         }
+    }
+
+    private static function extractYoutubeId($url) 
+    {
+        $pattern = '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i';
+        if (preg_match($pattern, $url, $matches)) {
+            return $matches[1];
+        }
+        return null;
     }
 
     private static function extractVideoMetadata($xpath, $metadata)

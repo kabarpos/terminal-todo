@@ -22,7 +22,6 @@
                 >
                   <option value="news">Berita</option>
                   <option value="video">Video</option>
-                  <option value="social_media">Media Sosial</option>
                   <option value="image">Gambar</option>
                 </SelectInput>
                 <InputError class="mt-2" :message="form.errors.type" />

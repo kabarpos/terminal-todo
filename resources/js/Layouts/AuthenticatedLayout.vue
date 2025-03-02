@@ -4,6 +4,10 @@ import { Link, router, usePage } from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import AppNavigation from '@/Components/Navigation/AppNavigation.vue';
 import { Head } from "@inertiajs/vue3";
+import { useSocialMediaScripts } from '@/Composables/useSocialMediaScripts';
+
+// Initialize social media scripts
+useSocialMediaScripts();
 
 const isSidebarOpen = ref(false);
 const isProfileMenuOpen = ref(false);
@@ -128,7 +132,6 @@ watch(() => usePage().props.settings, (newSettings) => {
 
 <template>
     <Head :title="`${title} - ${websiteSettings.title}`" replace />
-
     <div class="min-h-screen bg-light-bg dark:bg-dark-bg theme-transition">
         <!-- Sidebar -->
         <div
@@ -158,7 +161,7 @@ watch(() => usePage().props.settings, (newSettings) => {
                 <!-- Bottom Section with User Profile -->
                 <div class="mt-auto space-y-4 p-4 border-t border-light-border dark:border-dark-border">
                     <!-- Dark Mode Toggle -->
-                        <button
+                    <button
                         @click="toggleDarkMode"
                         class="w-full flex items-center px-2 py-2 text-sm text-light-text dark:text-dark-text rounded-lg hover:bg-light-card dark:hover:bg-dark-card transition-colors"
                     >
@@ -171,7 +174,7 @@ watch(() => usePage().props.settings, (newSettings) => {
                             </svg>
                         </div>
                         <span class="ml-3">{{ isDark ? 'Dark Mode' : 'Light Mode' }}</span>
-                        </button>
+                    </button>
 
                     <!-- User Profile -->
                     <div v-if="authenticatedUser" class="relative">
@@ -187,41 +190,41 @@ watch(() => usePage().props.settings, (newSettings) => {
                             <div class="ml-3 flex-1 text-left">
                                 <p class="text-sm font-medium text-light-text dark:text-dark-text">{{ authenticatedUser.name }}</p>
                                 <p class="text-xs text-light-text/60 dark:text-dark-text/60">{{ authenticatedUser.email }}</p>
-                                        </div>
-                                        <svg 
+                            </div>
+                            <svg 
                                 class="h-5 w-5 text-light-text/60 dark:text-dark-text/60 transition-transform duration-200" 
-                                            :class="{ 'rotate-180': isProfileMenuOpen }"
-                                            xmlns="http://www.w3.org/2000/svg" 
-                                            viewBox="0 0 20 20" 
-                                            fill="currentColor"
-                                        >
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                    
-                                    <!-- Profile Dropdown Menu -->
-                                    <div 
-                                        v-show="isProfileMenuOpen"
+                                :class="{ 'rotate-180': isProfileMenuOpen }"
+                                xmlns="http://www.w3.org/2000/svg" 
+                                viewBox="0 0 20 20" 
+                                fill="currentColor"
+                            >
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        
+                        <!-- Profile Dropdown Menu -->
+                        <div 
+                            v-show="isProfileMenuOpen"
                             class="absolute bottom-full left-0 right-0 mb-2 bg-light-card dark:bg-dark-card rounded-lg shadow-lg py-1 border border-light-border dark:border-dark-border"
-                                    >
-                                        <Link
-                                            :href="route('profile.edit')"
+                        >
+                            <Link
+                                :href="route('profile.edit')"
                                 class="flex items-center px-4 py-2 text-sm text-light-text dark:text-dark-text hover:bg-light-bg dark:hover:bg-dark-bg hover:text-primary-500 transition-colors"
-                                        >
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                </svg>
-                                                Edit Profile
-                                        </Link>
-                                        <button
-                                            @click="logout"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                Edit Profile
+                            </Link>
+                            <button
+                                @click="logout"
                                 class="w-full flex items-center px-4 py-2 text-sm text-light-text dark:text-dark-text hover:bg-light-bg dark:hover:bg-dark-bg hover:text-red-500 transition-colors"
-                                        >
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                                </svg>
-                                                Logout
-                                        </button>
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                Logout
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -262,7 +265,7 @@ watch(() => usePage().props.settings, (newSettings) => {
             <!-- Page content -->
             <main class="py-6 px-4 md:px-6">
                 <div class="w-full mx-auto">
-                <slot />
+                    <slot />
                 </div>
             </main>
         </div>

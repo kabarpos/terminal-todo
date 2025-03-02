@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'facebook' => [
+        'token' => env('FACEBOOK_APP_TOKEN'),
+        'client_id' => env('FACEBOOK_CLIENT_ID'),
+        'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
+    ],
+
+    'tiktok' => [
+        'client_key' => env('TIKTOK_CLIENT_KEY'),
+        'client_secret' => env('TIKTOK_CLIENT_SECRET'),
+    ],
+
 ];

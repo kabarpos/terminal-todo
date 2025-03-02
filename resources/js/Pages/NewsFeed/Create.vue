@@ -20,7 +20,7 @@
                   v-model="form.url"
                   required
                   autofocus
-                  placeholder="https://example.com/article"
+                  :placeholder="form.type === 'video' ? 'https://www.youtube.com/watch?v=...' : 'https://example.com/article'"
                 />
                 <InputError class="mt-2" :message="form.errors.url" />
               </div>
@@ -35,7 +35,6 @@
                 >
                   <option value="news">Berita</option>
                   <option value="video">Video</option>
-                  <option value="social_media">Media Sosial</option>
                   <option value="image">Gambar</option>
                 </SelectInput>
                 <InputError class="mt-2" :message="form.errors.type" />

@@ -74,14 +74,34 @@
                 <img :src="feed.image_url" :alt="feed.title" class="w-full h-full object-cover">
               </div>
 
-              <div v-if="feed.video_url" class="aspect-video bg-gray-100 mb-6 rounded-lg overflow-hidden shadow-lg">
-                <video :src="feed.video_url" class="w-full h-full object-cover" controls></video>
+              <div v-if="feed.type === 'video' && feed.video_url" class="aspect-video bg-gray-100 mb-6 rounded-lg overflow-hidden shadow-lg">
+                <iframe
+                  :src="feed.video_url"
+                  class="w-full h-full"
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                ></iframe>
               </div>
 
               <div class="prose max-w-none mb-8">
                 <p class="text-gray-700 text-lg leading-relaxed">{{ feed.description }}</p>
               </div>
 
+              <!-- Video Information -->
+              <div v-if="feed.type === 'video' && feed.meta_data" class="mt-8 border-t pt-8">
+                <div class="flex items-center space-x-4 mb-6">
+                  <a :href="feed.meta_data.author_url" target="_blank" class="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+                    <span class="font-medium">{{ feed.meta_data.author_name }}</span>
+                  </a>
+                  <div class="flex items-center space-x-2 text-gray-500">
+                    <span v-if="feed.meta_data.view_count">{{ formatNumber(feed.meta_data.view_count) }} x ditonton</span>
+                    <span v-if="feed.meta_data.publish_date">• {{ formatDate(feed.meta_data.publish_date) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Article Content -->
               <div v-if="feed.meta_data?.content" class="mt-8 border-t pt-8">
                 <h2 class="text-xl font-semibold mb-4">Konten Artikel</h2>
                 <div class="prose max-w-none">
@@ -141,7 +161,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Link, router } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 
 const props = defineProps({
   feed: Object
@@ -199,5 +219,9 @@ const formatContent = (content) => {
     .filter(p => p.trim())
     .map(p => `<p>${p}</p>`)
     .join('');
+}
+
+const formatNumber = (number) => {
+  return new Intl.NumberFormat('id-ID').format(number);
 }
 </script> 
