@@ -79,9 +79,10 @@
                                 >
                                     <div class="flex items-center justify-between mb-1">
                                         <span
-                                            class="text-sm"
+                                            class="text-sm w-7 h-7 flex items-center justify-center rounded-full"
                                             :class="{
-                                                'font-bold text-blue-600 dark:text-blue-400': day.isToday
+                                                'bg-blue-600 dark:bg-blue-500 text-white font-bold': day.isToday,
+                                                'hover:bg-gray-100 dark:hover:bg-gray-700': !day.isToday && day.isCurrentMonth
                                             }"
                                         >
                                             {{ day.date.getDate() }}
