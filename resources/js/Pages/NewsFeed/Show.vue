@@ -13,7 +13,7 @@
             Edit
           </Link>
           <button
-            @click="destroy"
+            @click="showDeleteModal = true"
             class="inline-flex items-center px-4 py-2 bg-red-600 dark:bg-red-700 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 dark:hover:bg-red-600 focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
           >
             Hapus
@@ -21,6 +21,32 @@
         </div>
       </div>
     </template>
+
+    <!-- Modal Konfirmasi Hapus -->
+    <Modal :show="showDeleteModal" @close="showDeleteModal = false">
+      <div class="p-6">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+          Konfirmasi Penghapusan
+        </h2>
+
+        <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">
+          Apakah Anda yakin ingin menghapus feed ini? Tindakan ini tidak dapat dibatalkan.
+        </p>
+
+        <div class="mt-6 flex justify-end space-x-3">
+          <SecondaryButton @click="showDeleteModal = false">
+            Batal
+          </SecondaryButton>
+
+          <DangerButton
+            class="ml-3"
+            @click="destroy"
+          >
+            Hapus Feed
+          </DangerButton>
+        </div>
+      </div>
+    </Modal>
 
     <div class="py-12">
       <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -274,11 +300,15 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Link, router } from '@inertiajs/vue3'
 import { ref, onMounted, watch } from 'vue'
+import Modal from '@/Components/Modal.vue'
+import SecondaryButton from '@/Components/SecondaryButton.vue'
+import DangerButton from '@/Components/DangerButton.vue'
 
 const props = defineProps({
   feed: Object
 })
 
+const showDeleteModal = ref(false)
 const showCopiedMessage = ref(false)
 const showLightbox = ref(false)
 
@@ -320,9 +350,7 @@ const copyToClipboard = async () => {
 }
 
 const destroy = () => {
-  if (confirm('Apakah Anda yakin ingin menghapus feed ini?')) {
-    router.delete(route('news-feeds.destroy', props.feed.id))
-  }
+  router.delete(route('news-feeds.destroy', props.feed.id))
 }
 
 const formatContent = (content) => {
