@@ -81,6 +81,28 @@
                 </div>
               </div>
 
+              <!-- Lightbox -->
+              <div v-if="showLightbox" 
+                   class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
+                   @click="closeLightbox">
+                <div class="relative max-w-[90vw] max-h-[90vh]">
+                  <img 
+                    :src="feed.image_url_full" 
+                    :alt="feed.title" 
+                    class="max-w-full max-h-[90vh] object-contain"
+                    @click.stop
+                  >
+                  <button 
+                    @click="closeLightbox" 
+                    class="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors duration-200"
+                  >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
               <div v-if="feed.image_url && feed.type !== 'image'" class="aspect-video bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden mb-6">
                 <img :src="feed.type === 'news' || feed.type === 'video' ? feed.image_url : feed.image_url_full" :alt="feed.title" class="w-full h-full object-cover">
               </div>

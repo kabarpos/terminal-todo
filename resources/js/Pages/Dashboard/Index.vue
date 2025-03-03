@@ -48,7 +48,7 @@ const eventStats = ref(props.monthlyEvents);
             </div>
         </template>
 
-        <div class="space-y-6">
+        <div class="space-y-6 max-w-7xl mx-auto">
             <!-- Task Stats -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Card class="p-6">
@@ -119,11 +119,11 @@ const eventStats = ref(props.monthlyEvents);
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <div v-for="(month, index) in eventStats" 
                          :key="index" 
-                         class="flex flex-col items-center p-3 rounded-lg border border-[var(--border-secondary)] hover:border-[var(--border-primary)] transition-colors duration-200"
+                         class="flex flex-col items-center p-3 rounded-lg border dark:border-opacity-10 transition-colors duration-200"
                          :class="{
-                            'bg-green-50 dark:bg-green-900/10': month.status === 'completed',
-                            'bg-yellow-50 dark:bg-yellow-900/10': month.status === 'in_progress',
-                            'bg-gray-50 dark:bg-gray-900/10': month.status === 'upcoming'
+                            'bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-500': month.status === 'completed',
+                            'bg-yellow-50 dark:bg-yellow-900/10 border-yellow-100 dark:border-yellow-500': month.status === 'in_progress',
+                            'bg-gray-50 dark:bg-gray-900/10 border-gray-100 dark:border-gray-500': month.status === 'upcoming'
                          }">
                         <div class="text-sm font-medium text-[var(--text-primary)]">{{ month.name }}</div>
                         <div class="mt-2 text-2xl font-bold" :class="{
