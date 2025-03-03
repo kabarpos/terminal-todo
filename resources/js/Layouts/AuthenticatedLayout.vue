@@ -4,10 +4,6 @@ import { Link, router, usePage } from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import AppNavigation from '@/Components/Navigation/AppNavigation.vue';
 import { Head } from "@inertiajs/vue3";
-import { useSocialMediaScripts } from '@/Composables/useSocialMediaScripts';
-
-// Initialize social media scripts
-useSocialMediaScripts();
 
 const isSidebarOpen = ref(false);
 const isProfileMenuOpen = ref(false);
