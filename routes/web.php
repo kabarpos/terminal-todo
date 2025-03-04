@@ -12,6 +12,7 @@ use App\Http\Controllers\EditorialCalendarController;
 use App\Http\Controllers\CalendarCommentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NewsFeedController;
+use App\Http\Controllers\TeamController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -70,6 +71,12 @@ Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
     Route::resource('news-feeds', NewsFeedController::class);
     Route::post('news-feeds/preview', [NewsFeedController::class, 'preview'])->name('news-feeds.preview');
     Route::post('/news-feeds/fetch-metadata', [NewsFeedController::class, 'fetchMetadata'])->name('news-feeds.fetch-metadata');
+
+    Route::resource('teams', TeamController::class);
+    Route::get('teams/{team}/available-users', [TeamController::class, 'getAvailableUsers'])->name('teams.available-users');
+    Route::post('teams/{team}/members', [TeamController::class, 'addMember'])->name('teams.members.add');
+    Route::delete('teams/{team}/members', [TeamController::class, 'removeMember'])->name('teams.members.remove');
+    Route::put('teams/{team}/members', [TeamController::class, 'updateMemberRole'])->name('teams.members.update-role');
 });
 
 // Social Media Reports Routes

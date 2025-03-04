@@ -11,7 +11,8 @@ import {
     TagIcon,
     ShareIcon,
     CalendarIcon,
-    NewspaperIcon
+    NewspaperIcon,
+    UsersIcon
 } from "@heroicons/vue/24/outline";
 
 const props = defineProps({
@@ -51,6 +52,12 @@ const navigationConfig = {
             name: "Tasks",
             href: route('tasks.index'),
             icon: ClipboardDocumentListIcon,
+            permission: 'view tasks'
+        },
+        {
+            name: "Teams",
+            href: route('teams.index'),
+            icon: UsersIcon,
             permission: 'view tasks'
         }
     ],
