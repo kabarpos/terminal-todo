@@ -151,6 +151,27 @@ const submit = () => {
                     </div>
 
                     <div class="relative">
+                        <InputLabel for="phone" value="Nomor WhatsApp" class="text-gray-700 dark:text-gray-300" />
+                        <div class="mt-1 relative rounded-lg shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                            </div>
+                            <TextInput
+                                id="phone"
+                                type="tel"
+                                class="pl-10 mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700/50 focus:border-blue-500 focus:ring-blue-500 transition-colors"
+                                v-model="form.phone"
+                                required
+                                @input="validatePhone"
+                                placeholder="08xxxxxxxxxx"
+                            />
+                        </div>
+                        <InputError class="mt-2" :message="form.errors.phone" />
+                    </div>
+
+                    <div class="relative">
                         <InputLabel for="password" value="Password" class="text-gray-700 dark:text-gray-300" />
                         <div class="mt-1 relative rounded-lg shadow-sm">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

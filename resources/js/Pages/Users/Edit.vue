@@ -74,14 +74,14 @@
                     <select
                         id="status"
                         v-model="form.status"
-                        class="mt-1 block w-full rounded-lg border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:border-[var(--primary-500)] focus:ring-[var(--primary-500)]"
+                        class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:focus:border-blue-400 dark:focus:ring-blue-400"
                         required
                     >
                         <option 
                             v-for="option in statusOptions" 
                             :key="option.value"
                             :value="option.value"
-                            class="bg-[var(--bg-secondary)] text-[var(--text-primary)]"
+                            class="py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200"
                         >
                             {{ option.label }}
                         </option>
@@ -90,12 +90,12 @@
                 </div>
 
                 <!-- Status Reason Field -->
-                <div v-if="form.status && form.status !== 'active'">
+                <div v-if="isStatusReasonRequired" class="mt-4">
                     <InputLabel for="status_reason" :value="getStatusReasonLabel()" />
                     <textarea
                         id="status_reason"
                         v-model="form.status_reason"
-                        class="mt-1 block w-full rounded-lg border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:border-[var(--primary-500)] focus:ring-[var(--primary-500)]"
+                        class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:focus:border-blue-400 dark:focus:ring-blue-400"
                         rows="3"
                         required
                         :placeholder="getStatusReasonPlaceholder()"
@@ -149,50 +149,26 @@ const props = defineProps({
     }
 });
 
-// Format roles untuk form
-const formattedRoles = computed(() => {
-    return props.user.roles.map(role => {
-        return typeof role === 'object' ? role.name : role;
-    });
-});
-
-const form = useForm({
-    name: props.user.name,
-    email: props.user.email,
-    phone: props.user.phone,
-    roles: formattedRoles.value.length ? formattedRoles.value : ['user'],
-    status: props.user.status || 'pending',
-    status_reason: props.user.status_reason || ''
-});
-
-const submit = () => {
-    // Validasi status sebelum submit
-    if (!form.status) {
-        form.status = 'pending';
-    }
-
-    // Validasi status_reason jika status bukan active
-    if (form.status !== 'active' && !form.status_reason) {
-        form.setError('status_reason', 'Alasan perubahan status wajib diisi');
-        return;
-    }
-    
-    form.put(route('admin.users.update', props.user.id), {
-        preserveScroll: true,
-        onSuccess: () => {
-            // Feedback sukses
-            console.log('User berhasil diperbarui dengan status:', form.status);
-        },
-        onError: (errors) => {
-            console.error('Error saat memperbarui user:', errors);
-        }
-    });
-};
-
-// Helper untuk mendapatkan nama role
+// Helper untuk mendapatkan nama role yang lebih robust
 const getRoleName = (role) => {
-    return typeof role === 'object' ? role.name : role;
+    if (!role) return '';
+    if (typeof role === 'string') return role;
+    if (typeof role === 'object' && role !== null) {
+        return role.name || role.id || '';
+    }
+    return '';
 };
+
+// Format roles untuk form dengan penanganan yang lebih baik
+const formattedRoles = computed(() => {
+    const userRoles = props.user.roles || [];
+    console.log('User roles sebelum format:', userRoles);
+    const formatted = userRoles
+        .map(role => getRoleName(role))
+        .filter(name => name !== '');
+    console.log('User roles setelah format:', formatted);
+    return formatted;
+});
 
 // Status options dari database enum
 const statusOptions = [
@@ -202,6 +178,21 @@ const statusOptions = [
     { value: 'banned', label: 'Diblokir' },
     { value: 'inactive', label: 'Nonaktif' }
 ];
+
+const form = useForm({
+    name: props.user.name || '',
+    email: props.user.email || '',
+    phone: props.user.phone || '',
+    roles: formattedRoles.value,
+    status: props.user.status || 'pending',
+    status_reason: props.user.status_reason || null,
+    previous_status: props.user.status || 'pending' // Tambahkan previous_status
+});
+
+// Computed property untuk mengecek apakah status_reason diperlukan
+const isStatusReasonRequired = computed(() => {
+    return form.status && form.status !== 'active';
+});
 
 // Helper untuk label status reason
 const getStatusReasonLabel = () => {
@@ -224,6 +215,69 @@ const getStatusReasonPlaceholder = () => {
     };
     return placeholders[form.status] || 'Masukkan alasan perubahan status...';
 };
+
+const submit = () => {
+    // Debug log untuk melihat data yang akan dikirim
+    console.log('Data yang akan dikirim:', {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        roles: form.roles,
+        status: form.status,
+        status_reason: form.status_reason,
+        previous_status: form.previous_status
+    });
+
+    // Validasi roles
+    if (!form.roles || form.roles.length === 0) {
+        form.setError('roles', 'Minimal pilih satu role untuk user');
+        return;
+    }
+
+    // Validasi status sebelum submit
+    if (!form.status) {
+        form.status = 'pending';
+    }
+
+    // Validasi perubahan status
+    if (form.previous_status === 'pending' && form.status === 'active') {
+        form.setError('status', 'User baru tidak bisa langsung diaktifkan. Silakan ubah ke status lain terlebih dahulu.');
+        return;
+    }
+
+    // Persiapkan data yang akan dikirim
+    const formData = {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        roles: form.roles,
+        status: form.status,
+        status_reason: form.status === 'active' ? null : (form.status_reason || ''),
+        previous_status: form.previous_status
+    };
+
+    // Validasi status_reason jika status bukan active
+    if (form.status !== 'active' && !formData.status_reason) {
+        form.setError('status_reason', 'Alasan perubahan status wajib diisi');
+        return;
+    }
+    
+    // Kirim data yang sudah diformat
+    form.put(route('admin.users.update', props.user.id), formData, {
+        preserveScroll: true,
+        onSuccess: () => {
+            console.log('User berhasil diperbarui:', formData);
+            // Update previous_status setelah berhasil
+            form.previous_status = form.status;
+        },
+        onError: (errors) => {
+            console.error('Detail error:', errors);
+            Object.keys(errors).forEach(key => {
+                console.error(`Error pada field ${key}:`, errors[key]);
+            });
+        }
+    });
+};
 </script>
 
 <style scoped>
@@ -231,6 +285,12 @@ const getStatusReasonPlaceholder = () => {
 select option {
     padding: 8px;
     margin: 4px;
+}
+
+/* Dark mode styling untuk dropdown */
+.dark select option {
+    background-color: #1f2937; /* dark:bg-gray-800 */
+    color: #e5e7eb; /* dark:text-gray-200 */
 }
 
 /* Memastikan checkbox memiliki ukuran yang konsisten */

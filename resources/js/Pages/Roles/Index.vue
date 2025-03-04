@@ -173,15 +173,103 @@ const search = ref('');
 
 const form = useForm({});
 
-// Computed property untuk filtered roles
+// Fungsi untuk memformat label permission
+const formatPermissionLabel = (permission) => {
+    if (!permission) return '';
+    
+    // Handle undefined case
+    if (permission.startsWith('undefined ')) {
+        permission = permission.replace('undefined ', '');
+    }
+    
+    let module, action;
+    if (permission.includes('.')) {
+        [module, action] = permission.split('.');
+    } else if (permission.includes(' ')) {
+        [action, module] = permission.split(' ');
+    } else {
+        return permission; // Return as is if no separator found
+    }
+    
+    // Mapping untuk label yang lebih baik
+    const actionLabels = {
+        'view': 'Lihat',
+        'create': 'Tambah',
+        'edit': 'Edit',
+        'delete': 'Hapus',
+        'assign': 'Tugaskan',
+        'change_task_status': 'Ubah Status Tugas',
+        'approve': 'Setujui',
+        'manage_team_members': 'Kelola Anggota Tim',
+        'create_calendar_events': 'Tambah Event Kalender',
+        'edit_calendar_events': 'Edit Event Kalender',
+        'delete_calendar_events': 'Hapus Event Kalender',
+        'upload': 'Unggah',
+        'export': 'Ekspor',
+        'access_admin': 'Akses Admin',
+        'manage_settings': 'Kelola Pengaturan',
+        'manage_all': 'Kelola Semua'
+    };
+
+    const moduleLabels = {
+        'users': 'Pengguna',
+        'roles': 'Role',
+        'tasks': 'Tugas',
+        'content': 'Konten',
+        'teams': 'Tim',
+        'calendar': 'Kalender',
+        'assets': 'Aset',
+        'reports': 'Laporan',
+        'analytics': 'Analitik',
+        'admin': 'Admin'
+    };
+    
+    const actionLabel = actionLabels[action] || action;
+    const moduleLabel = moduleLabels[module] || module;
+    
+    return `${actionLabel} ${moduleLabel}`;
+};
+
+// Helper untuk mengelompokkan permission berdasarkan modul
+const groupPermissionsByModule = (permissions) => {
+    if (!permissions) return {};
+    
+    const grouped = {};
+    permissions.forEach(permission => {
+        let module;
+        if (permission.includes('.')) {
+            [module] = permission.split('.');
+        } else if (permission.includes(' ')) {
+            const parts = permission.split(' ');
+            module = parts[parts.length - 1];
+        } else {
+            module = 'other';
+        }
+        
+        if (!grouped[module]) {
+            grouped[module] = [];
+        }
+        grouped[module].push(permission);
+    });
+    return grouped;
+};
+
+// Computed property untuk filtered roles dengan format yang benar
 const filteredRoles = computed(() => {
     if (!search.value) return props.roles;
     
     const searchTerm = search.value.toLowerCase();
-    return props.roles.filter(role => 
-        role.name.toLowerCase().includes(searchTerm) ||
-        role.permissions.some(permission => permission.toLowerCase().includes(searchTerm))
-    );
+    return props.roles.filter(role => {
+        if (!role) return false;
+        
+        const nameMatch = role.name.toLowerCase().includes(searchTerm);
+        const permissionMatch = role.permissions && role.permissions.some(permission => {
+            const formattedLabel = formatPermissionLabel(permission).toLowerCase();
+            return formattedLabel.includes(searchTerm);
+        });
+        
+        return nameMatch || permissionMatch;
+    });
 });
 
 const confirmRoleDeletion = (role) => {
@@ -195,37 +283,21 @@ const closeModal = () => {
 
 const deleteRole = () => {
     if (selectedRole.value) {
+        if (selectedRole.value.name.toLowerCase() === 'admin') {
+            alert('Role admin tidak dapat dihapus');
+            return;
+        }
+
         form.delete(route('admin.roles.destroy', selectedRole.value.id), {
             preserveScroll: true,
-            onSuccess: () => closeModal(),
+            onSuccess: () => {
+                closeModal();
+                console.log('Role berhasil dihapus');
+            },
+            onError: (error) => {
+                console.error('Error saat menghapus role:', error);
+            }
         });
     }
-};
-
-// Fungsi untuk memformat label permission
-const formatPermissionLabel = (permission) => {
-    if (!permission) return '';
-    
-    // Mapping untuk label yang lebih baik
-    const actionLabels = {
-        'view': 'View',
-        'create': 'Create',
-        'edit': 'Edit',
-        'delete': 'Delete',
-        'viewUsers': 'View Users',
-        'createUsers': 'Create Users',
-        'editUsers': 'Edit Users',
-        'deleteUsers': 'Delete Users',
-        'viewRoles': 'View Roles',
-        'createRoles': 'Create Roles',
-        'editRoles': 'Edit Roles',
-        'deleteRoles': 'Delete Roles'
-    };
-    
-    // Split permission dan ambil action
-    const action = permission.split('.').pop();
-    
-    // Return label yang sesuai atau action asli jika tidak ada dalam mapping
-    return actionLabels[action] || action;
 };
 </script> 

@@ -62,86 +62,35 @@
                                         Module
                                     </th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                        View
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                        Create
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                        Edit
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                        Delete
+                                        Permissions
                                     </th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <!-- Users Module -->
-                                <tr v-show="showModule('users')" class="border-b border-gray-200/50 dark:border-gray-700/25 hover:bg-[var(--bg-secondary)]/50">
+                                <tr v-for="(moduleConfig, moduleName) in modules" 
+                                    :key="moduleName" 
+                                    v-show="showModule(moduleName)" 
+                                    class="border-b border-gray-200/50 dark:border-gray-700/25 hover:bg-[var(--bg-secondary)]/50"
+                                >
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-primary)]">
-                                        Users
+                                        {{ moduleConfig.label }}
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <Checkbox
-                                            v-model:checked="form.permissions"
-                                            :value="'view users'"
-                                            :name="'view users'"
-                                        />
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <Checkbox
-                                            v-model:checked="form.permissions"
-                                            :value="'create users'"
-                                            :name="'create users'"
-                                        />
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <Checkbox
-                                            v-model:checked="form.permissions"
-                                            :value="'edit users'"
-                                            :name="'edit users'"
-                                        />
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <Checkbox
-                                            v-model:checked="form.permissions"
-                                            :value="'delete users'"
-                                            :name="'delete users'"
-                                        />
-                                    </td>
-                                </tr>
-                                <!-- Roles Module -->
-                                <tr v-show="showModule('roles')" class="border-b border-gray-200/50 dark:border-gray-700/25 hover:bg-[var(--bg-secondary)]/50">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-primary)]">
-                                        Roles
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <Checkbox
-                                            v-model:checked="form.permissions"
-                                            :value="'view roles'"
-                                            :name="'view roles'"
-                                        />
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <Checkbox
-                                            v-model:checked="form.permissions"
-                                            :value="'create roles'"
-                                            :name="'create roles'"
-                                        />
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <Checkbox
-                                            v-model:checked="form.permissions"
-                                            :value="'edit roles'"
-                                            :name="'edit roles'"
-                                        />
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <Checkbox
-                                            v-model:checked="form.permissions"
-                                            :value="'delete roles'"
-                                            :name="'delete roles'"
-                                        />
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-wrap gap-3">
+                                            <div v-for="action in moduleConfig.permissions" 
+                                                :key="action"
+                                                class="flex items-center gap-2"
+                                            >
+                                                <Checkbox
+                                                    v-model:checked="form.permissions"
+                                                    :value="getPermissionValue(moduleName, action)"
+                                                    :name="getPermissionValue(moduleName, action)"
+                                                />
+                                                <span class="text-sm text-[var(--text-primary)]">
+                                                    {{ formatPermissionLabel(action) }}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -196,17 +145,138 @@ const form = useForm({
 
 const searchQuery = ref('');
 
+// Definisi modul dan permission yang tersedia
+const modules = {
+    users: {
+        label: 'Users',
+        permissions: ['view users', 'create users', 'edit users', 'delete users']
+    },
+    roles: {
+        label: 'Roles',
+        permissions: ['view roles', 'create roles', 'edit roles', 'delete roles']
+    },
+    tasks: {
+        label: 'Tasks',
+        permissions: ['view tasks', 'create tasks', 'edit tasks', 'delete tasks', 'assign tasks', 'change task status']
+    },
+    content: {
+        label: 'Content',
+        permissions: ['view content', 'create content', 'edit content', 'delete content', 'approve content']
+    },
+    teams: {
+        label: 'Teams',
+        permissions: ['view teams', 'create teams', 'edit teams', 'delete teams', 'manage team members']
+    },
+    calendar: {
+        label: 'Calendar',
+        permissions: ['view calendar', 'create calendar events', 'edit calendar events', 'delete calendar events']
+    },
+    assets: {
+        label: 'Assets',
+        permissions: ['view assets', 'upload assets', 'edit assets', 'delete assets']
+    },
+    reports: {
+        label: 'Reports',
+        permissions: ['view reports', 'export reports']
+    },
+    analytics: {
+        label: 'Analytics',
+        permissions: ['view analytics']
+    },
+    admin: {
+        label: 'Admin',
+        permissions: ['access admin', 'manage settings', 'manage all']
+    }
+};
+
+// Helper untuk format permission
+const formatPermission = (permission) => {
+    return permission; // Tidak perlu format khusus karena sudah dalam format yang benar
+};
+
 // Method untuk filter module berdasarkan search query
 const showModule = (moduleName) => {
     if (!searchQuery.value) return true;
     return moduleName.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
            form.permissions.some(permission => 
-               permission.toLowerCase().includes(searchQuery.value.toLowerCase()) &&
-               permission.includes(moduleName)
+               permission.toLowerCase().includes(searchQuery.value.toLowerCase())
            );
 };
 
+// Update checkbox values dengan format yang benar
+const getPermissionValue = (moduleName, action) => {
+    return action; // Gunakan action langsung karena sudah include nama module
+};
+
+// Tambahkan fungsi formatPermissionLabel
+const formatPermissionLabel = (action) => {
+    const labels = {
+        'view users': 'Lihat Pengguna',
+        'create users': 'Tambah Pengguna',
+        'edit users': 'Edit Pengguna',
+        'delete users': 'Hapus Pengguna',
+        'view roles': 'Lihat Role',
+        'create roles': 'Tambah Role',
+        'edit roles': 'Edit Role',
+        'delete roles': 'Hapus Role',
+        'view tasks': 'Lihat Tugas',
+        'create tasks': 'Tambah Tugas',
+        'edit tasks': 'Edit Tugas',
+        'delete tasks': 'Hapus Tugas',
+        'assign tasks': 'Tugaskan',
+        'change task status': 'Ubah Status Tugas',
+        'view content': 'Lihat Konten',
+        'create content': 'Tambah Konten',
+        'edit content': 'Edit Konten',
+        'delete content': 'Hapus Konten',
+        'approve content': 'Setujui Konten',
+        'view teams': 'Lihat Tim',
+        'create teams': 'Tambah Tim',
+        'edit teams': 'Edit Tim',
+        'delete teams': 'Hapus Tim',
+        'manage team members': 'Kelola Anggota Tim',
+        'view calendar': 'Lihat Kalender',
+        'create calendar events': 'Tambah Event Kalender',
+        'edit calendar events': 'Edit Event Kalender',
+        'delete calendar events': 'Hapus Event Kalender',
+        'view assets': 'Lihat Aset',
+        'upload assets': 'Unggah Aset',
+        'edit assets': 'Edit Aset',
+        'delete assets': 'Hapus Aset',
+        'view reports': 'Lihat Laporan',
+        'export reports': 'Ekspor Laporan',
+        'view analytics': 'Lihat Analitik',
+        'access admin': 'Akses Admin',
+        'manage settings': 'Kelola Pengaturan',
+        'manage all': 'Kelola Semua'
+    };
+    return labels[action] || action;
+};
+
 const submit = () => {
-    form.post(route('admin.roles.store'));
+    // Validasi
+    if (!form.name) {
+        form.setError('name', 'Nama role wajib diisi');
+        return;
+    }
+
+    if (form.permissions.length === 0) {
+        form.setError('permissions', 'Minimal pilih satu permission');
+        return;
+    }
+
+    const formData = {
+        name: form.name,
+        permissions: form.permissions // Kirim permissions apa adanya karena sudah dalam format yang benar
+    };
+    
+    form.post(route('admin.roles.store'), formData, {
+        onSuccess: () => {
+            console.log('Role berhasil dibuat dengan permissions:', form.permissions);
+        },
+        onError: (errors) => {
+            console.error('Error saat membuat role:', errors);
+        }
+    });
 };
 </script> 
