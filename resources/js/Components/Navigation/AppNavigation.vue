@@ -49,6 +49,12 @@ const navigationConfig = {
             permission: 'view tasks'
         },
         {
+            name: "Calendar",
+            href: route('calendar.index'),
+            icon: CalendarIcon,
+            permission: 'view content'
+        },
+        {
             name: "Tasks",
             href: route('tasks.index'),
             icon: ClipboardDocumentListIcon,
@@ -59,18 +65,6 @@ const navigationConfig = {
             href: route('teams.index'),
             icon: UsersIcon,
             permission: 'view tasks'
-        },
-        {
-            name: "News Feed",
-            href: route('news-feeds.index'),
-            icon: NewspaperIcon,
-            permission: 'view content'
-        },
-        {
-            name: "Social Media Reports",
-            href: route('social-media-reports.index'),
-            icon: ChartBarIcon,
-            permission: 'view content'
         },
         {
             name: "Categories",
@@ -85,9 +79,15 @@ const navigationConfig = {
             permission: 'view content'
         },
         {
-            name: "Calendar",
-            href: route('calendar.index'),
-            icon: CalendarIcon,
+            name: "News Feed",
+            href: route('news-feeds.index'),
+            icon: NewspaperIcon,
+            permission: 'view content'
+        },
+        {
+            name: "Social Media Reports",
+            href: route('social-media-reports.index'),
+            icon: ChartBarIcon,
             permission: 'view content'
         }
     ],
