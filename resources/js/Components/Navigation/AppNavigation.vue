@@ -59,11 +59,7 @@ const navigationConfig = {
             href: route('teams.index'),
             icon: UsersIcon,
             permission: 'view tasks'
-        }
-    ],
-    
-    // Menu untuk content management
-    content: [
+        },
         {
             name: "News Feed",
             href: route('news-feeds.index'),
@@ -125,11 +121,6 @@ const getNavigationMenus = computed(() => {
         user: navigationConfig.user.filter(menu => hasPermission(menu.permission))
     };
 
-    // Menu content untuk Content Manager dan Admin
-    if (isAdmin.value || isContentManager.value) {
-        menus.content = navigationConfig.content.filter(menu => hasPermission(menu.permission));
-    }
-
     // Menu admin khusus untuk Super Admin
     if (isAdmin.value) {
         menus.admin = navigationConfig.admin.filter(menu => hasPermission(menu.permission));
@@ -155,27 +146,6 @@ const getNavigationMenus = computed(() => {
                     :href="item.href"
                     class="flex items-center px-3 py-2 text-sm text-light-text dark:text-dark-text hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-colors"
                     :class="{ 'bg-primary-50 dark:bg-primary-500/10 text-primary-500': route().current(item.href) }"
-                >
-                    <component :is="item.icon" class="h-5 w-5 mr-2" />
-                    {{ item.name }}
-                </Link>
-            </div>
-        </div>
-
-        <!-- Content Management Section -->
-        <div v-if="getNavigationMenus.content && getNavigationMenus.content.length > 0">
-            <div class="px-3 mb-2">
-                <p class="text-xs font-medium text-light-text/60 dark:text-dark-text/60 uppercase tracking-wider">
-                    Content Management
-                </p>
-            </div>
-            <div class="space-y-1">
-                <Link
-                    v-for="item in getNavigationMenus.content"
-                    :key="item.name"
-                    :href="item.href"
-                    class="flex items-center px-3 py-2 text-sm text-light-text dark:text-dark-text hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-colors"
-                    :class="{ 'bg-primary-50 dark:bg-primary-500/10 text-primary-500': route().current(item.name.toLowerCase().replace(' ', '-') + '.*') }"
                 >
                     <component :is="item.icon" class="h-5 w-5 mr-2" />
                     {{ item.name }}
