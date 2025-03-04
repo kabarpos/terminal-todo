@@ -64,6 +64,12 @@ const navigationConfig = {
             permission: 'view content'
         },
         {
+            name: "Social Media Reports",
+            href: route('social-media-reports.index'),
+            icon: ChartBarIcon,
+            permission: 'view content'
+        },
+        {
             name: "Categories",
             href: route('categories.index'),
             icon: TagIcon,

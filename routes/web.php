@@ -71,3 +71,15 @@ Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
     Route::post('news-feeds/preview', [NewsFeedController::class, 'preview'])->name('news-feeds.preview');
     Route::post('/news-feeds/fetch-metadata', [NewsFeedController::class, 'fetchMetadata'])->name('news-feeds.fetch-metadata');
 });
+
+// Social Media Reports Routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('social-media-reports', \App\Http\Controllers\SocialMediaReportController::class)
+        ->middleware('permission:view content')
+        ->except(['show']);
+    
+    // Export route
+    Route::get('social-media-reports/export', [\App\Http\Controllers\SocialMediaReportController::class, 'export'])
+        ->name('social-media-reports.export')
+        ->middleware('permission:view content');
+});
