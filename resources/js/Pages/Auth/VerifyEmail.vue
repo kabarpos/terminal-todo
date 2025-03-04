@@ -23,7 +23,6 @@ const verificationLinkSent = computed(
 </script>
 
 <template>
-    <GuestLayout>
         <Head title="Verifikasi Email" />
 
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -72,7 +71,6 @@ const verificationLinkSent = computed(
                 </form>
             </div>
         </div>
-    </GuestLayout>
 </template>
 
 <style scoped>
