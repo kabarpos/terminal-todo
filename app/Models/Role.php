@@ -2,21 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Spatie\Permission\Models\Role as SpatieRole;
 
-class Role extends Model
+class Role extends SpatieRole
 {
-    use HasFactory;
-
     protected $fillable = [
         'name',
-        'description'
+        'slug',
+        'description',
+        'is_system',
+        'guard_name',
     ];
 
-    public function users(): BelongsToMany
+    protected static function boot()
     {
-        return $this->belongsToMany(User::class);
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->slug)) {
+                $model->slug = str($model->name)->slug();
+            }
+        });
     }
 }

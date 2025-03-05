@@ -15,6 +15,13 @@ class SuperAdminSeeder extends Seeder
     {
         DB::beginTransaction();
         try {
+            // Hapus data yang terkait dengan user admin
+            DB::table('tasks')->where('created_by', function($query) {
+                $query->select('id')
+                    ->from('users')
+                    ->where('email', 'admin@example.com');
+            })->delete();
+
             // Hapus user admin yang mungkin sudah ada
             User::where('email', 'admin@example.com')->delete();
 
@@ -29,7 +36,10 @@ class SuperAdminSeeder extends Seeder
             ]);
 
             // Get or create the Super Admin role
-            $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin']);
+            $superAdminRole = Role::firstOrCreate([
+                'name' => 'Super Admin',
+                'guard_name' => 'web'
+            ]);
 
             // Get all permissions
             $permissions = Permission::all();

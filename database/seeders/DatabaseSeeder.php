@@ -9,8 +9,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            RoleAndPermissionSeeder::class, // Jalankan ini dulu untuk membuat role dan permission
-            SuperAdminSeeder::class, // Kemudian buat super admin dengan role dan permission
+            NewPermissionSeeder::class,
+            SuperAdminSeeder::class,
             SettingsSeeder::class,
             CategorySeeder::class,
             PlatformSeeder::class,

@@ -49,61 +49,61 @@ const navigationConfig = {
             name: "Dashboard",
             href: route('dashboard'),
             icon: HomeIcon,
-            permission: "view dashboard"
+            permission: "view-dashboard"
         },
         {
             name: "Calendar",
             href: route('calendar.index'),
             icon: CalendarIcon,
-            permission: "view calendar"
+            permission: "view-calendar"
         },
         {
             name: "Tasks",
             href: route('tasks.index'),
             icon: ClipboardDocumentListIcon,
-            permission: "view task"
+            permission: "view-task"
         },
         {
             name: "Teams",
             href: route('teams.index'),
             icon: UserGroupIcon,
-            permission: "view team"
+            permission: "view-team"
         },
         {
             name: "Categories",
             href: route('categories.index'),
             icon: TagIcon,
-            permission: "view category"
+            permission: "view-category"
         },
         {
             name: "Platforms",
             href: route('platforms.index'),
             icon: GlobeAltIcon,
-            permission: "view platform"
+            permission: "view-platform"
         },
         {
             name: "News Feed",
             href: route('news-feeds.index'),
             icon: NewspaperIcon,
-            permission: "view newsfeed"
+            permission: "view-newsfeed"
         },
         {
             name: "Social Media Reports",
             href: route('social-media-reports.index'),
             icon: ChartBarIcon,
-            permission: "view social media report"
+            permission: "view-social-media-report"
         },
         {
             name: "Assets",
             href: route('assets.index'),
             icon: PhotoIcon,
-            permission: "view asset"
+            permission: "view-asset"
         },
         {
             name: "Analytics",
             href: route('analytics.index'),
             icon: ChartPieIcon,
-            permission: "view analytics"
+            permission: "view-analytics"
         }
     ],
 
@@ -113,19 +113,19 @@ const navigationConfig = {
             name: "User Management",
             href: route('admin.users.index'),
             icon: UserGroupIcon,
-            permission: 'view users'
+            permission: 'view-users'
         },
         {
             name: "Role Management",
             href: route('admin.roles.index'),
             icon: ShieldCheckIcon,
-            permission: 'view roles'
+            permission: 'view-roles'
         },
         {
             name: "Settings",
             href: route('admin.settings.index'),
             icon: Cog6ToothIcon,
-            permission: 'manage settings'
+            permission: 'manage-settings'
         }
     ]
 };
