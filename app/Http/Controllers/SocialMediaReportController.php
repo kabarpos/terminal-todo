@@ -9,9 +9,21 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SocialMediaReportsExport;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class SocialMediaReportController extends Controller
 {
+    use AuthorizesRequests;
+
+    public function __construct()
+    {
+        $this->middleware(['auth', 'verified']);
+        $this->middleware('permission:view social media report')->except(['create', 'store', 'edit', 'update', 'destroy']);
+        $this->middleware('permission:create social media report')->only(['create', 'store']);
+        $this->middleware('permission:edit social media report')->only(['edit', 'update']);
+        $this->middleware('permission:delete social media report')->only('destroy');
+    }
+
     public function index()
     {
         return Inertia::render('SocialMediaReports/Index', [
@@ -19,7 +31,7 @@ class SocialMediaReportController extends Controller
                 ->orderBy('posting_date', 'desc')
                 ->get(),
             'categories' => Category::where('type', 'content')->get(),
-            'users' => User::permission('create content')->get(),
+            'users' => User::permission('create social media report')->get(),
         ]);
     }
 

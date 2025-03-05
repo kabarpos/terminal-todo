@@ -12,7 +12,10 @@ import {
     ShareIcon,
     CalendarIcon,
     NewspaperIcon,
-    UsersIcon
+    UsersIcon,
+    PhotoIcon,
+    ChartPieIcon,
+    GlobeAltIcon
 } from "@heroicons/vue/24/outline";
 
 const props = defineProps({
@@ -46,49 +49,61 @@ const navigationConfig = {
             name: "Dashboard",
             href: route('dashboard'),
             icon: HomeIcon,
-            permission: 'view tasks'
+            permission: "view dashboard"
         },
         {
             name: "Calendar",
             href: route('calendar.index'),
             icon: CalendarIcon,
-            permission: 'view content'
+            permission: "view calendar"
         },
         {
             name: "Tasks",
             href: route('tasks.index'),
             icon: ClipboardDocumentListIcon,
-            permission: 'view tasks'
+            permission: "view task"
         },
         {
             name: "Teams",
             href: route('teams.index'),
-            icon: UsersIcon,
-            permission: 'view tasks'
+            icon: UserGroupIcon,
+            permission: "view team"
         },
         {
             name: "Categories",
             href: route('categories.index'),
             icon: TagIcon,
-            permission: 'view content'
+            permission: "view category"
         },
         {
             name: "Platforms",
             href: route('platforms.index'),
-            icon: ShareIcon,
-            permission: 'view content'
+            icon: GlobeAltIcon,
+            permission: "view platform"
         },
         {
             name: "News Feed",
             href: route('news-feeds.index'),
             icon: NewspaperIcon,
-            permission: 'view content'
+            permission: "view newsfeed"
         },
         {
             name: "Social Media Reports",
             href: route('social-media-reports.index'),
             icon: ChartBarIcon,
-            permission: 'view content'
+            permission: "view social media report"
+        },
+        {
+            name: "Assets",
+            href: route('assets.index'),
+            icon: PhotoIcon,
+            permission: "view asset"
+        },
+        {
+            name: "Analytics",
+            href: route('analytics.index'),
+            icon: ChartPieIcon,
+            permission: "view analytics"
         }
     ],
 

@@ -13,6 +13,8 @@ use App\Http\Controllers\CalendarCommentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NewsFeedController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\AssetController;
+use App\Http\Controllers\AnalyticsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -77,16 +79,24 @@ Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
     Route::post('teams/{team}/members', [TeamController::class, 'addMember'])->name('teams.members.add');
     Route::delete('teams/{team}/members', [TeamController::class, 'removeMember'])->name('teams.members.remove');
     Route::put('teams/{team}/members', [TeamController::class, 'updateMemberRole'])->name('teams.members.update-role');
-});
 
-// Social Media Reports Routes
-Route::middleware(['auth', 'verified'])->group(function () {
+    // Assets Routes
+    Route::get('/assets', [AssetController::class, 'index'])->name('assets.index');
+    Route::post('/assets', [AssetController::class, 'store'])->name('assets.store');
+    Route::delete('/assets/{asset}', [AssetController::class, 'destroy'])->name('assets.destroy');
+
+    // Analytics Routes
+    Route::get('analytics', [AnalyticsController::class, 'index'])
+        ->name('analytics.index')
+        ->middleware('permission:view analytics');
+
+    // Social Media Reports Routes
     Route::resource('social-media-reports', \App\Http\Controllers\SocialMediaReportController::class)
-        ->middleware('permission:view content')
+        ->middleware('permission:view social media report')
         ->except(['show']);
     
     // Export route
     Route::get('social-media-reports/export', [\App\Http\Controllers\SocialMediaReportController::class, 'export'])
         ->name('social-media-reports.export')
-        ->middleware('permission:view content');
+        ->middleware('permission:view social media report');
 });
