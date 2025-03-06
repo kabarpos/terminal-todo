@@ -132,23 +132,17 @@ const navigationConfig = {
 
 // Mendapatkan menu berdasarkan role dan permission
 const getNavigationMenus = computed(() => {
-    let menus = {
-        user: navigationConfig.user.filter(menu => hasPermission(menu.permission))
+    return {
+        user: navigationConfig.user,
+        admin: navigationConfig.admin
     };
-
-    // Menu admin khusus untuk Super Admin
-    if (isAdmin.value) {
-        menus.admin = navigationConfig.admin.filter(menu => hasPermission(menu.permission));
-    }
-
-    return menus;
 });
 </script>
 
 <template>
     <nav class="space-y-6">
         <!-- User Menu Section -->
-        <div v-if="getNavigationMenus.user.length > 0">
+        <div>
             <div class="px-3 mb-2">
                 <p class="text-xs font-medium text-light-text/60 dark:text-dark-text/60 uppercase tracking-wider">
                     Menu
@@ -169,7 +163,7 @@ const getNavigationMenus = computed(() => {
         </div>
 
         <!-- Admin Menu Section -->
-        <div v-if="getNavigationMenus.admin && getNavigationMenus.admin.length > 0">
+        <div>
             <div class="px-3 mb-2">
                 <p class="text-xs font-medium text-light-text/60 dark:text-dark-text/60 uppercase tracking-wider">
                     Admin Area

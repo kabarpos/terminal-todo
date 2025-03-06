@@ -12,10 +12,9 @@ class AssetController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['auth', 'verified', 'user_status']);
-        $this->middleware('permission:view asset')->only(['index']);
-        $this->middleware('permission:create asset')->only(['store']);
-        $this->middleware('permission:delete asset')->only(['destroy']);
+        $this->middleware(['auth', 'verified']);
+        $this->middleware('permission:view-asset')->only(['index']);
+        $this->middleware('permission:manage-asset')->only(['store', 'destroy']);
     }
 
     public function index()

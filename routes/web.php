@@ -27,11 +27,11 @@ Route::get('/', function () {
 require __DIR__.'/auth.php';
 
 // Protected Routes
-Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard Routes
     Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard')
-        ->middleware('permission:view-dashboard');
+        ->middleware('permission:view-dashboard')
+        ->name('dashboard');
 
     // Tasks Routes
     Route::resource('tasks', TaskController::class)
@@ -165,28 +165,32 @@ Route::middleware(['auth', 'verified', 'user_status'])->group(function () {
     // Assets Routes
     Route::get('/assets', [AssetController::class, 'index'])
         ->name('assets.index')
-        ->middleware('permission:view-asset');
+        ->middleware(['permission:view-asset']);
     
     Route::post('/assets', [AssetController::class, 'store'])
         ->name('assets.store')
-        ->middleware('permission:create-asset');
+        ->middleware(['permission:manage-asset']);
     
     Route::delete('/assets/{asset}', [AssetController::class, 'destroy'])
         ->name('assets.destroy')
-        ->middleware('permission:delete-asset');
+        ->middleware(['permission:manage-asset']);
 
     // Analytics Routes
     Route::get('analytics', [AnalyticsController::class, 'index'])
         ->name('analytics.index')
-        ->middleware('permission:view-analytics');
+        ->middleware(['permission:view-analytics']);
 
     // Social Media Reports Routes
     Route::resource('social-media-reports', \App\Http\Controllers\SocialMediaReportController::class)
         ->middleware('permission:view-social-media-report')
-        ->except(['show']);
+        ->except(['create', 'store', 'edit', 'update', 'destroy', 'show']);
+
+    Route::resource('social-media-reports', \App\Http\Controllers\SocialMediaReportController::class)
+        ->middleware('permission:manage-social-media-report')
+        ->only(['create', 'store', 'edit', 'update', 'destroy']);
     
     // Export route
     Route::get('social-media-reports/export', [\App\Http\Controllers\SocialMediaReportController::class, 'export'])
         ->name('social-media-reports.export')
-        ->middleware('permission:export-analytics');
+        ->middleware(['permission:export-analytics']);
 });

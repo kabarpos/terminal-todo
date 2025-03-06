@@ -9,7 +9,7 @@ class AnalyticsController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:view analytics');
+        $this->middleware('permission:view-analytics');
     }
 
     public function index()

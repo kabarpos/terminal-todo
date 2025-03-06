@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SocialMediaReportsExport;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Models\Platform;
 
 class SocialMediaReportController extends Controller
 {
@@ -18,20 +19,19 @@ class SocialMediaReportController extends Controller
     public function __construct()
     {
         $this->middleware(['auth', 'verified']);
-        $this->middleware('permission:view social media report')->except(['create', 'store', 'edit', 'update', 'destroy']);
-        $this->middleware('permission:create social media report')->only(['create', 'store']);
-        $this->middleware('permission:edit social media report')->only(['edit', 'update']);
-        $this->middleware('permission:delete social media report')->only('destroy');
+        $this->middleware('permission:view-social-media-report')->except(['create', 'store', 'edit', 'update', 'destroy']);
+        $this->middleware('permission:manage-social-media-report')->only(['create', 'store', 'edit', 'update', 'destroy']);
     }
 
     public function index()
     {
         return Inertia::render('SocialMediaReports/Index', [
-            'reports' => SocialMediaReport::with(['category', 'user'])
+            'reports' => SocialMediaReport::with(['category', 'creator', 'platform'])
                 ->orderBy('posting_date', 'desc')
                 ->get(),
             'categories' => Category::where('type', 'content')->get(),
-            'users' => User::permission('create social media report')->get(),
+            'users' => User::permission('manage-social-media-report')->get(),
+            'platforms' => Platform::all(),
         ]);
     }
 
@@ -39,20 +39,21 @@ class SocialMediaReportController extends Controller
     {
         return Inertia::render('SocialMediaReports/Create', [
             'categories' => Category::where('type', 'content')->get(),
+            'platforms' => Platform::all(),
         ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'posting_date' => 'required|date',
+            'title' => 'required|string|max:255',
+            'posting_date' => 'required|date_format:Y-m-d',
             'category_id' => 'required|exists:categories,id',
+            'platform_id' => 'required|exists:platforms,id',
             'url' => 'required|url',
         ]);
 
-        $report = new SocialMediaReport($validated);
-        $report->user_id = auth()->id();
-        $report->save();
+        SocialMediaReport::create($validated);
 
         return redirect()->route('social-media-reports.index')
             ->with('message', 'Laporan berhasil ditambahkan');
@@ -61,16 +62,19 @@ class SocialMediaReportController extends Controller
     public function edit(SocialMediaReport $socialMediaReport)
     {
         return Inertia::render('SocialMediaReports/Edit', [
-            'report' => $socialMediaReport->load(['category', 'user']),
+            'report' => $socialMediaReport->load(['category', 'creator', 'platform']),
             'categories' => Category::where('type', 'content')->get(),
+            'platforms' => Platform::all(),
         ]);
     }
 
     public function update(Request $request, SocialMediaReport $socialMediaReport)
     {
         $validated = $request->validate([
-            'posting_date' => 'required|date',
+            'title' => 'required|string|max:255',
+            'posting_date' => 'required|date_format:Y-m-d',
             'category_id' => 'required|exists:categories,id',
+            'platform_id' => 'required|exists:platforms,id',
             'url' => 'required|url',
         ]);
 

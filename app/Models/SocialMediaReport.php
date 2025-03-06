@@ -10,15 +10,40 @@ class SocialMediaReport extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (!$model->created_by && auth()->check()) {
+                $model->created_by = auth()->id();
+            }
+        });
+    }
+
     protected $fillable = [
-        'posting_date',
+        'title',
         'category_id',
+        'platform_id',
         'url',
-        'user_id',
+        'description',
+        'posting_date',
+        'reach',
+        'impressions',
+        'engagement',
+        'engagement_rate',
+        'likes',
+        'comments',
+        'shares',
+        'additional_metrics',
+        'insights',
+        'created_by',
     ];
 
     protected $casts = [
         'posting_date' => 'date',
+        'additional_metrics' => 'json',
+        'engagement_rate' => 'decimal:2',
     ];
 
     public function category()
@@ -26,8 +51,13 @@ class SocialMediaReport extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function user()
+    public function platform()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Platform::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 } 
