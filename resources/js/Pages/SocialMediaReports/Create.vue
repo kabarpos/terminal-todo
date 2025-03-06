@@ -1,11 +1,15 @@
 <template>
-    <Head title="Create Social Media Report" />
+    <Head title="Social Media Reports" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Create Report">
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                Create Social Media Report
-            </h2>
+            <div class="w-full">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg md:text-xl font-semibold text-[var(--text-primary)] truncate">
+                        Create Social Media Report
+                    </h2>
+                </div>
+            </div>
         </template>
 
         <div class="py-12">
@@ -82,14 +86,16 @@
                             </div>
 
                             <div class="flex items-center justify-end mt-4">
-                                <SecondaryButton
+                                <Link
                                     :href="route('social-media-reports.index')"
-                                    class="mr-2"
+                                    class="inline-flex items-center px-4 py-2 bg-gray-300 dark:bg-gray-700 border border-transparent rounded-md font-semibold text-xs text-gray-700 dark:text-gray-300 uppercase tracking-widest hover:bg-gray-400 dark:hover:bg-gray-600 focus:bg-gray-400 dark:focus:bg-gray-600 active:bg-gray-500 dark:active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 mr-3"
                                 >
                                     Cancel
-                                </SecondaryButton>
-                                <PrimaryButton 
-                                    :class="{ 'opacity-25': form.processing }" 
+                                </Link>
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
+                                    :class="{ 'opacity-25': form.processing }"
                                     :disabled="form.processing"
                                 >
                                     <svg
@@ -114,7 +120,7 @@
                                         />
                                     </svg>
                                     {{ form.processing ? 'Creating...' : 'Create Report' }}
-                                </PrimaryButton>
+                                </button>
                             </div>
                         </form>
                     </div>

@@ -1,11 +1,11 @@
 <template>
     <Head title="Social Media Reports" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Social Media Reports Management">
         <template #header>
             <div class="w-full">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-lg md:text-xl font-semibold text-gray-800 dark:text-gray-200 truncate">
+                    <h2 class="text-lg md:text-xl font-semibold text-[var(--text-primary)] truncate">
                         Social Media Reports
                     </h2>
                     
@@ -69,20 +69,20 @@
                                             <div class="text-sm text-gray-900 dark:text-gray-100 break-words">{{ report.creator?.name }}</div>
                                         </td>
                                         <td class="px-4 py-4 text-right space-x-2">
-                                            <SecondaryButton
+                                            <Link
                                                 :href="route('social-media-reports.edit', report.id)"
-                                                class="bg-white dark:bg-gray-800"
+                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
                                             >
                                                 <PencilSquareIcon class="w-4 h-4 mr-1" />
                                                 Edit
-                                            </SecondaryButton>
-                                            <DangerButton
-                                                @click="deleteReport(report)"
-                                                class="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"
+                                            </Link>
+                                            <button
+                                                @click="confirmReportDeletion(report)"
+                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200"
                                             >
                                                 <TrashIcon class="w-4 h-4 mr-1" />
                                                 Delete
-                                            </DangerButton>
+                                            </button>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -92,12 +92,41 @@
                 </div>
             </div>
         </div>
+
+        <!-- Delete Confirmation Modal -->
+        <Modal :show="confirmingReportDeletion" @close="closeModal">
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    Delete Report
+                </h2>
+
+                <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                    Are you sure you want to delete this report? This action cannot be undone.
+                </p>
+
+                <div class="mt-6 flex justify-end gap-4">
+                    <SecondaryButton @click="closeModal">
+                        Cancel
+                    </SecondaryButton>
+
+                    <DangerButton
+                        :class="{ 'opacity-25': form.processing }"
+                        :disabled="form.processing"
+                        @click="deleteReport"
+                    >
+                        Delete Report
+                    </DangerButton>
+                </div>
+            </div>
+        </Modal>
     </AuthenticatedLayout>
 </template>
 
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import Modal from '@/Components/Modal.vue';
 import { format } from 'date-fns';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
@@ -125,13 +154,32 @@ const props = defineProps({
     },
 });
 
+const confirmingReportDeletion = ref(false);
+const reportToDelete = ref(null);
+
+const form = useForm({});
+
 const formatDate = (date) => {
     return date ? format(new Date(date), 'dd MMM yyyy') : '';
 };
 
-const deleteReport = (report) => {
-    if (confirm('Are you sure you want to delete this report?')) {
-        router.delete(route('social-media-reports.destroy', report.id));
+const confirmReportDeletion = (report) => {
+    reportToDelete.value = report;
+    confirmingReportDeletion.value = true;
+};
+
+const closeModal = () => {
+    confirmingReportDeletion.value = false;
+    reportToDelete.value = null;
+};
+
+const deleteReport = () => {
+    if (reportToDelete.value) {
+        form.delete(route('social-media-reports.destroy', reportToDelete.value.id), {
+            preserveScroll: true,
+            onSuccess: () => closeModal(),
+            onError: () => closeModal(),
+        });
     }
 };
 
