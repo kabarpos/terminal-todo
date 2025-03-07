@@ -68,21 +68,23 @@
                                         <td class="px-4 py-4">
                                             <div class="text-sm text-gray-900 dark:text-gray-100 break-words">{{ report.creator?.name }}</div>
                                         </td>
-                                        <td class="px-4 py-4 text-right space-x-2">
-                                            <Link
-                                                :href="route('social-media-reports.edit', report.id)"
-                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-                                            >
-                                                <PencilSquareIcon class="w-4 h-4 mr-1" />
-                                                Edit
-                                            </Link>
-                                            <button
-                                                @click="confirmReportDeletion(report)"
-                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200"
-                                            >
-                                                <TrashIcon class="w-4 h-4 mr-1" />
-                                                Delete
-                                            </button>
+                                        <td class="px-4 py-4 text-right">
+                                            <div class="inline-flex rounded-md">
+                                                <Link
+                                                    :href="route('social-media-reports.edit', report.id)"
+                                                    class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-medium rounded-l-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                                                >
+                                                    <PencilSquareIcon class="w-4 h-4 mr-1" />
+                                                    Edit
+                                                </Link>
+                                                <button
+                                                    @click="confirmReportDeletion(report)"
+                                                    class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white text-xs sm:text-sm font-medium rounded-r-lg border-l-0 transition-colors duration-200"
+                                                >
+                                                    <TrashIcon class="w-4 h-4 mr-1" />
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>

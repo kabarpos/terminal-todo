@@ -89,19 +89,23 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex justify-end gap-3">
-                                        <Link
-                                            :href="route('admin.roles.edit', role.id)"
-                                            class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200"
-                                        >
-                                            Edit
-                                        </Link>
-                                        <button
-                                            v-if="role.name !== 'admin'"
-                                            @click="confirmRoleDeletion(role)"
-                                            class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white text-xs sm:text-sm font-medium rounded-lg transition-colors duration-200"
-                                        >
-                                            Delete
-                                        </button>
+                                        <div class="inline-flex rounded-md">
+                                            <Link
+                                                :href="route('admin.roles.edit', role.id)"
+                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs sm:text-sm font-medium rounded-l-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                                            >
+                                                <PencilSquareIcon class="w-4 h-4 mr-1" />
+                                                Edit
+                                            </Link>
+                                            <button
+                                                v-if="role.name !== 'admin'"
+                                                @click="confirmRoleDeletion(role)"
+                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white text-xs sm:text-sm font-medium rounded-r-lg border-l-0 transition-colors duration-200"
+                                            >
+                                                <TrashIcon class="w-4 h-4 mr-1" />
+                                                Hapus
+                                            </button>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -155,6 +159,7 @@ import DangerButton from '@/Components/DangerButton.vue';
 import Card from '@/Components/Card.vue';
 import Badge from '@/Components/Badge.vue';
 import TextInput from '@/Components/TextInput.vue';
+import { PencilSquareIcon, TrashIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
     auth: {
