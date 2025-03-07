@@ -13,7 +13,6 @@ import {
     CalendarIcon,
     NewspaperIcon,
     UsersIcon,
-    PhotoIcon,
     ChartPieIcon,
     GlobeAltIcon
 } from "@heroicons/vue/24/outline";
@@ -92,12 +91,6 @@ const navigationConfig = {
             href: route('social-media-reports.index'),
             icon: ChartBarIcon,
             permission: "view-social-media-report"
-        },
-        {
-            name: "Assets",
-            href: route('assets.index'),
-            icon: PhotoIcon,
-            permission: "view-asset"
         },
         {
             name: "Analytics",

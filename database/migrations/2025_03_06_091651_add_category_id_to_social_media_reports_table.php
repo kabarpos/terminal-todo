@@ -12,9 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('social_media_reports', function (Blueprint $table) {
-            $table->foreignId('category_id')->after('id')->constrained('categories')->onDelete('cascade');
-            $table->string('url')->after('category_id');
-            $table->timestamp('posting_date')->after('url');
+            $table->foreignId('category_id')->after('id')->constrained();
         });
     }
 
@@ -25,7 +23,7 @@ return new class extends Migration
     {
         Schema::table('social_media_reports', function (Blueprint $table) {
             $table->dropForeign(['category_id']);
-            $table->dropColumn(['category_id', 'url', 'posting_date']);
+            $table->dropColumn('category_id');
         });
     }
 };

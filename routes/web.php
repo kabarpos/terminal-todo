@@ -13,7 +13,6 @@ use App\Http\Controllers\CalendarCommentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NewsFeedController;
 use App\Http\Controllers\TeamController;
-use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AnalyticsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -161,19 +160,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('teams/{team}/members', [TeamController::class, 'updateMemberRole'])
         ->name('teams.members.update-role')
         ->middleware('permission:manage-team');
-
-    // Assets Routes
-    Route::get('/assets', [AssetController::class, 'index'])
-        ->name('assets.index')
-        ->middleware(['permission:view-asset']);
-    
-    Route::post('/assets', [AssetController::class, 'store'])
-        ->name('assets.store')
-        ->middleware(['permission:manage-asset']);
-    
-    Route::delete('/assets/{asset}', [AssetController::class, 'destroy'])
-        ->name('assets.destroy')
-        ->middleware(['permission:manage-asset']);
 
     // Analytics Routes
     Route::get('analytics', [AnalyticsController::class, 'index'])

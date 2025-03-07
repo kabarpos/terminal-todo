@@ -13,9 +13,4 @@ class Permission extends SpatiePermission
         'description',
         'guard_name',
     ];
-
-    public function getNameAttribute($value)
-    {
-        return $this->attributes['slug'];
-    }
 } 
