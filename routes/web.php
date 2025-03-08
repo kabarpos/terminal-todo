@@ -14,6 +14,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NewsFeedController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -160,6 +161,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('teams/{team}/members', [TeamController::class, 'updateMemberRole'])
         ->name('teams.members.update-role')
         ->middleware('permission:manage-team');
+
+    // Media Routes
+    Route::get('media', [MediaController::class, 'index'])->name('media.index');
+    Route::post('media', [MediaController::class, 'store'])->name('media.store');
+    Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
 
     // Analytics Routes
     Route::get('analytics', [AnalyticsController::class, 'index'])

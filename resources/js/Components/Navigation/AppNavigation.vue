@@ -14,7 +14,8 @@ import {
     NewspaperIcon,
     UsersIcon,
     ChartPieIcon,
-    GlobeAltIcon
+    GlobeAltIcon,
+    PhotoIcon
 } from "@heroicons/vue/24/outline";
 
 const props = defineProps({
@@ -91,6 +92,12 @@ const navigationConfig = {
             href: route('social-media-reports.index'),
             icon: ChartBarIcon,
             permission: "view-social-media-report"
+        },
+        {
+            name: "Media Library",
+            href: route('media.index'),
+            icon: PhotoIcon,
+            permission: "view-media"
         },
         {
             name: "Analytics",

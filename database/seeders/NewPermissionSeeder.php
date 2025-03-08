@@ -72,6 +72,10 @@ class NewPermissionSeeder extends Seeder
                 'view-analytics' => 'Melihat analytics',
                 'export-analytics' => 'Mengekspor data analytics',
             ],
+            'media' => [
+                'view-media' => 'Melihat media library',
+                'manage-media' => 'Mengelola media library',
+            ],
             'user' => [
                 'view-users' => 'Melihat pengguna',
                 'manage-users' => 'Mengelola pengguna',
