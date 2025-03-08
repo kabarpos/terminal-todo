@@ -1,15 +1,26 @@
 <template>
     <Head title="Media Library" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Media Library">
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                Media Library
-            </h2>
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
+                    Media Library
+                </h2>
+            </div>
         </template>
 
         <div class="py-6">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <!-- Alert Message -->
+                <div v-if="$page.props.flash.message" class="mb-6">
+                    <Alert
+                        :type="$page.props.flash.type || 'success'"
+                        :message="$page.props.flash.message"
+                        class="mb-6"
+                    />
+                </div>
+
                 <!-- Actions and Filters -->
                 <div class="mb-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
                     <div class="flex flex-col space-y-4">
@@ -271,6 +282,40 @@
                 </div>
             </div>
         </Modal>
+
+        <!-- Delete Confirmation Modal -->
+        <Modal :show="confirmingMediaDeletion" @close="closeDeleteModal">
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-[var(--text-primary)]">
+                    Hapus Media
+                </h2>
+
+                <p class="mt-3 text-sm text-[var(--text-secondary)]">
+                    Apakah Anda yakin ingin menghapus media ini? Media yang sudah dihapus tidak dapat dikembalikan.
+                </p>
+
+                <div class="mt-6 flex justify-end gap-4">
+                    <SecondaryButton 
+                        @click="closeDeleteModal"
+                        variant="outline"
+                        type="button"
+                        class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                    >
+                        Batal
+                    </SecondaryButton>
+
+                    <PrimaryButton
+                        variant="danger"
+                        :class="{ 'opacity-25': processing }"
+                        :disabled="processing"
+                        @click="deleteMedia"
+                        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-25"
+                    >
+                        {{ processing ? 'Menghapus...' : 'Hapus Media' }}
+                    </PrimaryButton>
+                </div>
+            </div>
+        </Modal>
     </AuthenticatedLayout>
 </template>
 
@@ -282,6 +327,9 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Modal from '@/Components/Modal.vue'
 import LoadingSpinner from '@/Components/LoadingSpinner.vue'
 import Pagination from '@/Components/Pagination.vue'
+import Alert from '@/Components/Alert.vue'
+import SecondaryButton from '@/Components/SecondaryButton.vue'
+import PrimaryButton from '@/Components/PrimaryButton.vue'
 import { 
     CloudArrowUpIcon,
     DocumentIcon,
@@ -296,11 +344,18 @@ import {
 const props = defineProps({
     media: Object,
     can: Object,
-    filters: Object
+    filters: Object,
+    auth: {
+        type: Object,
+        required: true
+    }
 })
 
 const uploading = ref(false)
 const previewItem = ref(null)
+const selectedMedia = ref(null)
+const confirmingMediaDeletion = ref(false)
+const processing = ref(false)
 
 const filters = ref({
     type: props.filters.type,
@@ -340,11 +395,41 @@ const downloadFile = (file) => {
     window.open(file.url, '_blank')
 }
 
-const deleteFile = (file) => {
-    if (confirm('Are you sure you want to delete this file?')) {
-        router.delete(`/media/${file.id}`)
+const closeDeleteModal = () => {
+    confirmingMediaDeletion.value = false;
+    selectedMedia.value = null;
+    processing.value = false;
+};
+
+const confirmDelete = (file) => {
+    selectedMedia.value = file;
+    confirmingMediaDeletion.value = true;
+};
+
+const deleteMedia = () => {
+    if (selectedMedia.value) {
+        processing.value = true;
+        router.delete(`/media/${selectedMedia.value.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                closeDeleteModal();
+                if (previewItem.value?.id === selectedMedia.value.id) {
+                    closePreview();
+                }
+            },
+            onError: () => {
+                processing.value = false;
+            },
+            onFinish: () => {
+                processing.value = false;
+            }
+        });
     }
-}
+};
+
+const deleteFile = (file) => {
+    confirmDelete(file);
+};
 
 const previewFile = (file) => {
     previewItem.value = file
