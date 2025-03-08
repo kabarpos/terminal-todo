@@ -45,35 +45,30 @@
                         </div>
 
                         <!-- Filters -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <div class="flex-1">
+                                <TextInput
+                                    v-model="filters.search"
+                                    type="search"
+                                    class="w-full"
+                                    placeholder="Cari media..."
+                                    @input="applyFilters"
+                                />
+                            </div>
+                            <div class="w-full sm:w-48">
                                 <select 
                                     v-model="filters.type" 
                                     @change="applyFilters" 
                                     class="w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                                 >
-                                    <option value="all">All Types</option>
-                                    <option value="image">Images</option>
-                                    <option value="document">Documents</option>
-                                    <option value="spreadsheet">Spreadsheets</option>
-                                    <option value="presentation">Presentations</option>
-                                    <option value="video">Videos</option>
+                                    <option value="">Semua Tipe</option>
+                                    <option value="image">Gambar</option>
+                                    <option value="document">Dokumen</option>
+                                    <option value="spreadsheet">Spreadsheet</option>
+                                    <option value="presentation">Presentasi</option>
+                                    <option value="video">Video</option>
                                     <option value="audio">Audio</option>
-                                    <option value="other">Others</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Collection</label>
-                                <select 
-                                    v-model="filters.collection" 
-                                    @change="applyFilters" 
-                                    class="w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                >
-                                    <option value="all">All Collections</option>
-                                    <option value="content">Content</option>
-                                    <option value="social">Social Media</option>
-                                    <option value="documents">Documents</option>
+                                    <option value="other">Lainnya</option>
                                 </select>
                             </div>
                         </div>
@@ -100,7 +95,7 @@
 
                         <!-- Media Grid -->
                         <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                            <div v-for="item in media.data" :key="item.id" class="relative group">
+                            <div v-for="item in filteredMedia" :key="item.id" class="relative group">
                                 <!-- Preview Card -->
                                 <div class="relative aspect-w-10 aspect-h-7 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
                                     <!-- Image Preview -->
@@ -270,13 +265,16 @@
                             @click="closePreview"
                             class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
                         >
-                            Close
+                            Tutup
                         </button>
                         <button
                             @click="downloadFile(previewItem)"
-                            class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
+                            :disabled="processing"
+                            class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 disabled:opacity-25"
                         >
-                            Download
+                            <ArrowDownTrayIcon v-if="!processing" class="w-5 h-5 mr-2" />
+                            <LoadingSpinner v-else class="w-5 h-5 mr-2" />
+                            {{ processing ? 'Mengunduh...' : 'Unduh' }}
                         </button>
                     </div>
                 </div>
@@ -330,6 +328,7 @@ import Pagination from '@/Components/Pagination.vue'
 import Alert from '@/Components/Alert.vue'
 import SecondaryButton from '@/Components/SecondaryButton.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
+import TextInput from '@/Components/TextInput.vue'
 import { 
     CloudArrowUpIcon,
     DocumentIcon,
@@ -344,7 +343,13 @@ import {
 const props = defineProps({
     media: Object,
     can: Object,
-    filters: Object,
+    filters: {
+        type: Object,
+        default: () => ({
+            type: '',
+            search: ''
+        })
+    },
     auth: {
         type: Object,
         required: true
@@ -358,19 +363,44 @@ const confirmingMediaDeletion = ref(false)
 const processing = ref(false)
 
 const filters = ref({
-    type: props.filters.type,
-    collection: props.filters.collection
+    type: '',
+    search: props.filters.search || ''
 })
+
+const filteredMedia = computed(() => {
+    let result = props.media.data;
+    
+    // Filter berdasarkan pencarian
+    if (filters.value.search) {
+        const searchTerm = filters.value.search.toLowerCase();
+        result = result.filter(item => {
+            const fileName = item.file_name?.toLowerCase() || '';
+            const displayName = item.name?.toLowerCase() || '';
+            const originalName = item.original_name?.toLowerCase() || '';
+            
+            return fileName.includes(searchTerm) || 
+                   displayName.includes(searchTerm) || 
+                   originalName.includes(searchTerm);
+        });
+    }
+    
+    // Filter berdasarkan tipe
+    if (filters.value.type) {
+        result = result.filter(item => item.type === filters.value.type);
+    }
+    
+    return result;
+});
 
 const applyFilters = () => {
     router.get('/media', {
         type: filters.value.type,
-        collection: filters.value.collection
+        search: filters.value.search
     }, {
         preserveState: true,
         preserveScroll: true
-    })
-}
+    });
+};
 
 const handleFileUpload = (event) => {
     const files = event.target.files
@@ -380,7 +410,6 @@ const handleFileUpload = (event) => {
     Array.from(files).forEach(file => {
         formData.append('files[]', file)
     })
-    formData.append('collection', filters.value.collection !== 'all' ? filters.value.collection : '')
 
     uploading.value = true
     router.post('/media', formData, {
@@ -391,9 +420,35 @@ const handleFileUpload = (event) => {
     })
 }
 
-const downloadFile = (file) => {
-    window.open(file.url, '_blank')
-}
+const downloadFile = async (file) => {
+    try {
+        // Tampilkan loading state
+        processing.value = true;
+
+        // Fetch file dari URL
+        const response = await fetch(file.url);
+        const blob = await response.blob();
+
+        // Buat URL objek untuk blob
+        const blobUrl = window.URL.createObjectURL(blob);
+
+        // Buat element anchor untuk download
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        // Gunakan original_name jika ada, jika tidak gunakan name sebagai fallback
+        link.download = file.original_name || file.name;
+        document.body.appendChild(link);
+        link.click();
+
+        // Cleanup
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+        console.error('Error downloading file:', error);
+    } finally {
+        processing.value = false;
+    }
+};
 
 const closeDeleteModal = () => {
     confirmingMediaDeletion.value = false;
