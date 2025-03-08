@@ -82,6 +82,12 @@ const navigationConfig = {
             permission: "view-platform"
         },
         {
+            name: "Social Accounts",
+            href: route('social-accounts.index'),
+            icon: UsersIcon,
+            permission: "view-social-account"
+        },
+        {
             name: "News Feed",
             href: route('news-feeds.index'),
             icon: NewspaperIcon,
@@ -101,7 +107,7 @@ const navigationConfig = {
         },
         {
             name: "Analytics",
-            href: route('analytics.index'),
+            href: route('social-analytics.index'),
             icon: ChartPieIcon,
             permission: "view-analytics"
         }

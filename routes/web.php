@@ -15,6 +15,9 @@ use App\Http\Controllers\NewsFeedController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\SocialPlatformController;
+use App\Http\Controllers\SocialAccountController;
+use App\Http\Controllers\MetricDataController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -185,4 +188,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('social-media-reports/export', [\App\Http\Controllers\SocialMediaReportController::class, 'export'])
         ->name('social-media-reports.export')
         ->middleware(['permission:export-analytics']);
+
+    // Routes untuk Social Media Analytics
+    Route::resource('social-platforms', SocialPlatformController::class);
+
+    // Account Routes
+    Route::resource('social-accounts', SocialAccountController::class);
+    Route::put('social-accounts/{id}/toggle-status', [SocialAccountController::class, 'toggleStatus'])
+        ->name('social-accounts.toggle-status');
+
+    // Metric Data Routes
+    Route::resource('metric-data', MetricDataController::class);
+    Route::get('metric-report', [MetricDataController::class, 'report'])->name('metric-data.report');
+
+    // Analytics Dashboard
+    Route::get('social-analytics', [MetricDataController::class, 'analytics'])
+        ->name('social-analytics.index')
+        ->middleware('permission:view-analytics');
 });
