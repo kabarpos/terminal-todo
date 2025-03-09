@@ -4,73 +4,167 @@ namespace App\Http\Controllers;
 
 use App\Models\MetricData;
 use App\Models\SocialAccount;
-use App\Models\Metric;
+use App\Models\SocialPlatform;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
-use App\Models\SocialPlatform;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\MetricDataImport;
+use App\Exports\MetricDataExport;
+use App\Exports\MetricDataTemplateExport;
 
 class MetricDataController extends Controller
 {
     public function index(Request $request)
     {
-        $query = MetricData::with(['account.platform', 'metric'])
+        $query = MetricData::with(['account.platform'])
             ->when($request->account_id, function ($query, $accountId) {
-                return $query->where('account_id', $accountId);
+                return $query->where('social_account_id', $accountId);
             })
-            ->when($request->metric_id, function ($query, $metricId) {
-                return $query->where('metric_id', $metricId);
-            })
-            ->when($request->year, function ($query, $year) {
-                return $query->where('year', $year);
-            })
-            ->when($request->month, function ($query, $month) {
-                return $query->where('month', $month);
-            })
-            ->when($request->week, function ($query, $week) {
-                return $query->where('week_number', $week);
+            ->when($request->date_range, function ($query, $range) {
+                if ($range === 'custom' && request()->filled(['start_date', 'end_date'])) {
+                    return $query->whereBetween('date', [request('start_date'), request('end_date')]);
+                }
+                
+                $endDate = now();
+                $startDate = $endDate->copy()->subDays($range);
+                return $query->whereBetween('date', [$startDate, $endDate]);
             });
 
-        $metricData = $query->latest('recorded_at')->paginate(10);
+        $metrics = $query->latest('date')->paginate(10);
+
+        // Calculate stats
+        $stats = [
+            'total_followers' => $query->sum('followers_count'),
+            'follower_growth' => $this->calculateGrowth($query->clone(), 'followers_count'),
+            'average_engagement' => round($query->avg('engagement_rate'), 2),
+            'engagement_growth' => $this->calculateGrowth($query->clone(), 'engagement_rate'),
+            'total_reach' => $query->sum('reach'),
+            'reach_growth' => $this->calculateGrowth($query->clone(), 'reach'),
+            'total_interactions' => $query->sum('likes') + $query->sum('comments') + $query->sum('shares'),
+            'interactions_growth' => $this->calculateInteractionsGrowth($query->clone())
+        ];
 
         return Inertia::render('MetricData/Index', [
-            'metricData' => $metricData,
+            'metrics' => $metrics,
             'accounts' => SocialAccount::active()->with('platform')->get(),
-            'metrics' => Metric::active()->with('platform')->get(),
-            'filters' => $request->only(['account_id', 'metric_id', 'year', 'month', 'week'])
+            'stats' => $stats,
+            'filters' => $request->only(['account_id', 'date_range', 'start_date', 'end_date'])
         ]);
+    }
+
+    private function calculateGrowth($query, $field)
+    {
+        $current = $query->latest('date')->first()?->$field ?? 0;
+        $previous = $query->latest('date')->skip(1)->first()?->$field ?? 0;
+
+        if ($previous == 0) return 0;
+        return round((($current - $previous) / $previous) * 100, 2);
+    }
+
+    private function calculateInteractionsGrowth($query)
+    {
+        $current = $query->latest('date')->first();
+        $previous = $query->latest('date')->skip(1)->first();
+
+        if (!$current || !$previous) return 0;
+
+        $currentTotal = $current->likes + $current->comments + $current->shares;
+        $previousTotal = $previous->likes + $previous->comments + $previous->shares;
+
+        if ($previousTotal == 0) return 0;
+        return round((($currentTotal - $previousTotal) / $previousTotal) * 100, 2);
     }
 
     public function create()
     {
         return inertia('MetricData/Create', [
-            'platforms' => SocialPlatform::active()->get(),
-            'accounts' => SocialAccount::active()->get(),
-            'metrics' => Metric::all()
+            'accounts' => SocialAccount::active()->with('platform')->get(),
+            'auth' => [
+                'user' => auth()->user()
+            ]
         ]);
     }
 
     public function store(Request $request)
     {
+        // Validasi dasar dengan range
         $validated = $request->validate([
-            'platform_id' => 'required|exists:social_platforms,id',
-            'account_id' => 'required|exists:social_accounts,id',
-            'metric_id' => 'required|exists:metrics,id',
-            'value' => 'required|numeric',
-            'recorded_at' => 'required|date'
+            'social_account_id' => 'required|exists:social_accounts,id',
+            'date' => [
+                'required',
+                'date',
+                function ($attribute, $value, $fail) use ($request) {
+                    // Cek apakah kombinasi social_account_id dan date sudah ada
+                    $exists = MetricData::where('social_account_id', $request->social_account_id)
+                        ->whereDate('date', $value)
+                        ->exists();
+                    
+                    if ($exists) {
+                        $fail('Data metrik untuk akun dan tanggal ini sudah ada.');
+                    }
+                }
+            ],
+            'followers_count' => 'required|integer|min:0|max:1000000000',
+            'engagement_rate' => 'required|numeric|between:0,100',
+            'reach' => [
+                'required',
+                'integer',
+                'min:0',
+                'max:1000000000',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($value > $request->impressions) {
+                        $fail('Reach tidak boleh lebih besar dari impressions.');
+                    }
+                }
+            ],
+            'impressions' => 'required|integer|min:0|max:1000000000',
+            'likes' => [
+                'required',
+                'integer',
+                'min:0',
+                'max:1000000000',
+                function ($attribute, $value, $fail) use ($request) {
+                    $totalEngagement = $value + ($request->comments ?? 0) + ($request->shares ?? 0);
+                    if ($totalEngagement > $request->impressions) {
+                        $fail('Total engagement (likes + comments + shares) tidak boleh lebih besar dari impressions.');
+                    }
+                }
+            ],
+            'comments' => 'required|integer|min:0|max:1000000000',
+            'shares' => 'required|integer|min:0|max:1000000000'
+        ], [
+            'followers_count.max' => 'Jumlah followers terlalu besar (max: 1 miliar)',
+            'reach.max' => 'Jumlah reach terlalu besar (max: 1 miliar)',
+            'impressions.max' => 'Jumlah impressions terlalu besar (max: 1 miliar)',
+            'likes.max' => 'Jumlah likes terlalu besar (max: 1 miliar)',
+            'comments.max' => 'Jumlah comments terlalu besar (max: 1 miliar)',
+            'shares.max' => 'Jumlah shares terlalu besar (max: 1 miliar)',
         ]);
 
-        MetricData::create($validated);
-
-        return redirect()->back()->with('success', 'Data metrik berhasil disimpan');
+        try {
+            MetricData::create($validated);
+            return redirect()->route('metric-data.index')
+                ->with('message', 'Data metrik berhasil disimpan');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Terjadi kesalahan saat menyimpan data. ' . $e->getMessage()]);
+        }
     }
 
-    public function show(MetricData $metricData)
+    public function show($id)
     {
-        $metricData->load(['account.platform', 'metric']);
-        
+        $metricData = MetricData::with(['account' => function($query) {
+            $query->withTrashed();
+        }, 'account.platform'])->findOrFail($id);
+
         return Inertia::render('MetricData/Show', [
-            'metricData' => $metricData
+            'metricData' => $metricData,
+            'auth' => [
+                'user' => auth()->user()
+            ]
         ]);
     }
 
@@ -78,31 +172,48 @@ class MetricDataController extends Controller
     {
         return Inertia::render('MetricData/Edit', [
             'metricData' => $metricData,
-            'accounts' => SocialAccount::active()->with('platform')->get(),
-            'metrics' => Metric::active()->with('platform')->get()
+            'accounts' => SocialAccount::active()->with('platform')->get()
         ]);
     }
 
     public function update(Request $request, MetricData $metricData)
     {
+        // Validasi dasar
         $validated = $request->validate([
-            'account_id' => 'required|exists:social_accounts,id',
-            'metric_id' => 'required|exists:metrics,id',
-            'value' => 'required|numeric',
-            'recorded_at' => 'required|date',
-            'metadata' => 'nullable|array',
+            'social_account_id' => 'required|exists:social_accounts,id',
+            'date' => [
+                'required',
+                'date',
+                function ($attribute, $value, $fail) use ($request, $metricData) {
+                    // Cek apakah kombinasi social_account_id dan date sudah ada (kecuali untuk data ini sendiri)
+                    $exists = MetricData::where('social_account_id', $request->social_account_id)
+                        ->whereDate('date', $value)
+                        ->where('id', '!=', $metricData->id)
+                        ->exists();
+                    
+                    if ($exists) {
+                        $fail('Data metrik untuk akun dan tanggal ini sudah ada.');
+                    }
+                }
+            ],
+            'followers_count' => 'required|integer',
+            'engagement_rate' => 'required|numeric|between:0,100',
+            'reach' => 'required|integer',
+            'impressions' => 'required|integer',
+            'likes' => 'required|integer',
+            'comments' => 'required|integer',
+            'shares' => 'required|integer'
         ]);
 
-        $recordedAt = Carbon::parse($validated['recorded_at']);
-        
-        $validated['year'] = $recordedAt->year;
-        $validated['month'] = $recordedAt->month;
-        $validated['week_number'] = $recordedAt->week;
-
-        $metricData->update($validated);
-
-        return redirect()->route('metric-data.index')
-            ->with('message', 'Data metrik berhasil diperbarui');
+        try {
+            $metricData->update($validated);
+            return redirect()->route('metric-data.index')
+                ->with('message', 'Data metrik berhasil diperbarui');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Terjadi kesalahan saat memperbarui data. ' . $e->getMessage()]);
+        }
     }
 
     public function destroy(MetricData $metricData)
@@ -111,31 +222,6 @@ class MetricDataController extends Controller
 
         return redirect()->route('metric-data.index')
             ->with('message', 'Data metrik berhasil dihapus');
-    }
-
-    public function report(Request $request)
-    {
-        $query = MetricData::with(['account.platform', 'metric'])
-            ->when($request->account_id, function ($query, $accountId) {
-                return $query->where('account_id', $accountId);
-            })
-            ->when($request->platform_id, function ($query, $platformId) {
-                return $query->whereHas('account', function ($q) use ($platformId) {
-                    $q->where('platform_id', $platformId);
-                });
-            })
-            ->when($request->start_date && $request->end_date, function ($query) use ($request) {
-                return $query->betweenDates($request->start_date, $request->end_date);
-            });
-
-        $report = $query->get()->groupBy(['account.platform.name', 'metric.name']);
-
-        return Inertia::render('MetricData/Report', [
-            'report' => $report,
-            'accounts' => SocialAccount::active()->with('platform')->get(),
-            'platforms' => SocialPlatform::active()->get(),
-            'filters' => $request->only(['account_id', 'platform_id', 'start_date', 'end_date'])
-        ]);
     }
 
     public function analytics(Request $request)
@@ -153,24 +239,16 @@ class MetricDataController extends Controller
         }
 
         // Query base untuk metrik
-        $query = MetricData::with(['account.platform', 'metric'])
-            ->whereBetween('recorded_at', [$startDate, $endDate])
+        $query = MetricData::with(['account.platform'])
+            ->whereBetween('date', [$startDate, $endDate])
             ->when($request->platform_id, function ($query, $platformId) {
                 return $query->whereHas('account', function ($q) use ($platformId) {
                     $q->where('platform_id', $platformId);
                 });
             })
             ->when($request->account_id, function ($query, $accountId) {
-                return $query->where('account_id', $accountId);
+                return $query->where('social_account_id', $accountId);
             });
-
-        // Mengambil data metrik
-        $metrics = [
-            'followers' => $this->getMetricData($query->clone(), 'followers'),
-            'engagement' => $this->getMetricData($query->clone(), 'engagement_rate'),
-            'interactions' => $this->getMetricData($query->clone(), 'total_interactions'),
-            'reach' => $this->getMetricData($query->clone(), 'reach'),
-        ];
 
         // Mengambil data per platform
         $platformMetrics = $platforms->map(function ($platform) use ($query) {
@@ -182,66 +260,79 @@ class MetricDataController extends Controller
                 'id' => $platform->id,
                 'name' => $platform->name,
                 'icon' => $platform->icon,
-                'followers' => $this->getLatestMetricValue($platformQuery->clone(), 'followers'),
-                'followersTrend' => $this->calculateTrend($platformQuery->clone(), 'followers'),
-                'engagementRate' => $this->getLatestMetricValue($platformQuery->clone(), 'engagement_rate'),
-                'engagementTrend' => $this->calculateTrend($platformQuery->clone(), 'engagement_rate'),
-                'interactions' => $this->getLatestMetricValue($platformQuery->clone(), 'total_interactions'),
-                'interactionsTrend' => $this->calculateTrend($platformQuery->clone(), 'total_interactions'),
-                'reach' => $this->getLatestMetricValue($platformQuery->clone(), 'reach'),
-                'reachTrend' => $this->calculateTrend($platformQuery->clone(), 'reach'),
+                'followers' => $platformQuery->latest('date')->first()?->followers_count ?? 0,
+                'followersTrend' => $this->calculateGrowth($platformQuery, 'followers_count'),
+                'engagementRate' => round($platformQuery->avg('engagement_rate'), 2),
+                'engagementTrend' => $this->calculateGrowth($platformQuery, 'engagement_rate'),
+                'reach' => $platformQuery->sum('reach'),
+                'reachTrend' => $this->calculateGrowth($platformQuery, 'reach'),
+                'interactions' => $platformQuery->sum('likes') + $platformQuery->sum('comments') + $platformQuery->sum('shares'),
+                'interactionsTrend' => $this->calculateInteractionsGrowth($platformQuery)
             ];
         });
-
-        $metrics['platforms'] = $platformMetrics;
 
         return Inertia::render('SocialMedia/Analytics', [
             'platforms' => $platforms,
             'accounts' => $accounts,
-            'metrics' => $metrics,
+            'analytics' => [
+                'platforms' => $platformMetrics,
+                'dates' => $query->pluck('date'),
+                'followers' => $query->pluck('followers_count'),
+                'engagement_rates' => $query->pluck('engagement_rate'),
+                'reach' => $query->pluck('reach'),
+                'impressions' => $query->pluck('impressions'),
+                'likes' => $query->pluck('likes'),
+                'comments' => $query->pluck('comments'),
+                'shares' => $query->pluck('shares')
+            ]
         ]);
     }
 
-    private function getMetricData($query, $metricKey)
+    public function import(Request $request)
     {
-        $data = $query->whereHas('metric', function ($q) use ($metricKey) {
-            $q->where('key', $metricKey);
-        })->orderBy('recorded_at')->get();
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
 
-        $current = $data->last()?->value ?? 0;
-        $previous = $data->reverse()->skip(1)->first()?->value ?? 0;
-        $trend = $previous > 0 ? (($current - $previous) / $previous) * 100 : 0;
-
-        return [
-            'current' => $current,
-            'trend' => round($trend, 2),
-            'history' => $data->map(function ($item) {
-                return [
-                    'recorded_at' => $item->recorded_at,
-                    'value' => $item->value,
-                ];
-            }),
-        ];
+        try {
+            Excel::import(new MetricDataImport, $request->file('file'));
+            return redirect()->back()->with('message', 'Data berhasil diimport');
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            $errors = collect($failures)->map(function ($failure) {
+                return "Baris {$failure->row()}: {$failure->errors()[0]}";
+            })->join('<br>');
+            
+            return redirect()->back()->withErrors(['error' => "Gagal import data:<br>{$errors}"]);
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Gagal import data: ' . $e->getMessage()]);
+        }
     }
 
-    private function getLatestMetricValue($query, $metricKey)
+    public function export(Request $request)
     {
-        return $query->whereHas('metric', function ($q) use ($metricKey) {
-            $q->where('key', $metricKey);
-        })->latest('recorded_at')->first()?->value ?? 0;
+        $request->validate([
+            'account_id' => 'nullable|exists:social_accounts,id',
+            'start_date' => 'required_with:end_date|date',
+            'end_date' => 'required_with:start_date|date|after_or_equal:start_date'
+        ]);
+
+        $fileName = 'metric-data-' . now()->format('Y-m-d') . '.xlsx';
+        
+        return Excel::download(
+            new MetricDataExport(
+                $request->account_id,
+                $request->start_date,
+                $request->end_date
+            ),
+            $fileName
+        );
     }
 
-    private function calculateTrend($query, $metricKey)
+    public function downloadTemplate()
     {
-        $data = $query->whereHas('metric', function ($q) use ($metricKey) {
-            $q->where('key', $metricKey);
-        })->orderBy('recorded_at', 'desc')->take(2)->get();
-
-        if ($data->count() < 2) return 0;
-
-        $current = $data->first()->value;
-        $previous = $data->last()->value;
-
-        return $previous > 0 ? round((($current - $previous) / $previous) * 100, 2) : 0;
+        $fileName = 'template-import-metric-data.xlsx';
+        
+        return Excel::download(new MetricDataTemplateExport(), $fileName);
     }
 } 

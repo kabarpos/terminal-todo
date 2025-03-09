@@ -1,144 +1,149 @@
 <template>
-    <Head title="Analisis Media Sosial" />
+    <Head title="Analytics" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Analytics">
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                Analisis Media Sosial
-            </h2>
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
+                    Analytics
+                </h2>
+            </div>
         </template>
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <!-- Filters -->
-                <MetricFilter
-                    :platforms="platforms"
-                    :accounts="accounts"
-                    :initial-filters="filters"
-                    @update:filters="updateFilters"
-                    class="mb-6"
-                />
+                <!-- Filter Section -->
+                <div class="mb-6 p-6 bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <InputLabel for="platform_id" value="Platform" />
+                            <select
+                                id="platform_id"
+                                v-model="filters.platform_id"
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+                                @change="filter"
+                            >
+                                <option value="">Semua Platform</option>
+                                <option v-for="platform in platforms" :key="platform.id" :value="platform.id">
+                                    {{ platform.name }}
+                                </option>
+                            </select>
+                        </div>
 
-                <!-- Overview Cards -->
-                <div class="grid grid-cols-1 gap-6 mb-6 sm:grid-cols-2 lg:grid-cols-4">
-                    <MetricCard
-                        title="Total Pengikut"
-                        :value="totalFollowers"
-                        :trend="followersTrend"
-                        icon="UserGroupIcon"
-                        color="blue"
-                    />
-                    <MetricCard
-                        title="Rata-rata Engagement"
-                        :value="avgEngagement"
-                        :trend="engagementTrend"
-                        unit="percentage"
-                        icon="ChartBarIcon"
-                        color="purple"
-                    />
-                    <MetricCard
-                        title="Total Interaksi"
-                        :value="totalInteractions"
-                        :trend="interactionsTrend"
-                        icon="ChatBubbleLeftIcon"
-                        color="green"
-                    />
-                    <MetricCard
-                        title="Total Jangkauan"
-                        :value="totalReach"
-                        :trend="reachTrend"
-                        icon="GlobeAltIcon"
-                        color="yellow"
-                    />
+                        <div>
+                            <InputLabel for="account_id" value="Akun" />
+                            <select
+                                id="account_id"
+                                v-model="filters.account_id"
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+                                @change="filter"
+                            >
+                                <option value="">Semua Akun</option>
+                                <option v-for="account in accounts" :key="account.id" :value="account.id">
+                                    {{ account.name }}
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <InputLabel for="date_range" value="Rentang Waktu" />
+                            <select
+                                id="date_range"
+                                v-model="filters.date_range"
+                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+                                @change="filter"
+                            >
+                                <option value="7">7 Hari Terakhir</option>
+                                <option value="30">30 Hari Terakhir</option>
+                                <option value="90">90 Hari Terakhir</option>
+                                <option value="custom">Kustom</option>
+                            </select>
+                        </div>
+
+                        <div v-if="filters.date_range === 'custom'" class="grid grid-cols-2 gap-4">
+                            <div>
+                                <InputLabel for="start_date" value="Tanggal Mulai" />
+                                <TextInput
+                                    id="start_date"
+                                    v-model="filters.start_date"
+                                    type="date"
+                                    class="mt-1 block w-full"
+                                    @input="filter"
+                                />
+                            </div>
+                            <div>
+                                <InputLabel for="end_date" value="Tanggal Akhir" />
+                                <TextInput
+                                    id="end_date"
+                                    v-model="filters.end_date"
+                                    type="date"
+                                    class="mt-1 block w-full"
+                                    @input="filter"
+                                />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Charts -->
-                <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    <MetricChart
-                        title="Pertumbuhan Pengikut"
-                        :data="followersData"
-                    />
-                    <MetricChart
-                        title="Engagement Rate"
-                        :data="engagementData"
-                    />
+                <!-- Charts Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <!-- Followers Growth Chart -->
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Pertumbuhan Followers</h3>
+                        <Line
+                            :chart-data="followersChartData"
+                            :chart-options="chartOptions"
+                        />
+                    </div>
+
+                    <!-- Engagement Rate Chart -->
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Engagement Rate</h3>
+                        <Line
+                            :chart-data="engagementChartData"
+                            :chart-options="chartOptions"
+                        />
+                    </div>
+
+                    <!-- Reach & Impressions Chart -->
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Reach & Impressions</h3>
+                        <Line
+                            :chart-data="reachChartData"
+                            :chart-options="chartOptions"
+                        />
+                    </div>
+
+                    <!-- Interactions Chart -->
+                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Interaksi</h3>
+                        <Bar
+                            :chart-data="interactionsChartData"
+                            :chart-options="chartOptions"
+                        />
+                    </div>
                 </div>
 
-                <!-- Platform Performance -->
-                <div class="mt-6">
-                    <h3 class="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">
-                        Performa per Platform
-                    </h3>
-                    <div class="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Platform
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Pengikut
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Engagement Rate
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Total Interaksi
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Jangkauan
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                <tr v-for="platform in platformPerformance" :key="platform.id">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="flex-shrink-0 h-10 w-10">
-                                                <img :src="platform.icon" :alt="platform.name" class="h-10 w-10 rounded-full">
-                                            </div>
-                                            <div class="ml-4">
-                                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                    {{ platform.name }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900 dark:text-gray-100">
-                                            {{ formatNumber(platform.followers) }}
-                                        </div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">
-                                            {{ formatTrend(platform.followersTrend) }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900 dark:text-gray-100">
-                                            {{ formatNumber(platform.engagementRate, '%') }}
-                                        </div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">
-                                            {{ formatTrend(platform.engagementTrend) }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900 dark:text-gray-100">
-                                            {{ formatNumber(platform.interactions) }}
-                                        </div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">
-                                            {{ formatTrend(platform.interactionsTrend) }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900 dark:text-gray-100">
-                                            {{ formatNumber(platform.reach) }}
-                                        </div>
-                                        <div class="text-sm text-gray-500 dark:text-gray-400">
-                                            {{ formatTrend(platform.reachTrend) }}
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Insights Section -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Insights & Rekomendasi</h3>
+                    
+                    <div class="space-y-4">
+                        <div v-for="(insight, index) in insights" :key="index" class="p-4 rounded-lg" :class="getInsightClass(insight.type)">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <component :is="getInsightIcon(insight.type)" class="h-6 w-6" />
+                                </div>
+                                <div class="ml-3">
+                                    <h4 class="text-sm font-medium" :class="getInsightTextClass(insight.type)">
+                                        {{ insight.title }}
+                                    </h4>
+                                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                        {{ insight.description }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -148,17 +153,39 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Head } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import MetricFilter from '@/Components/SocialMedia/MetricFilter.vue'
-import MetricCard from '@/Components/SocialMedia/MetricCard.vue'
-import MetricChart from '@/Components/SocialMedia/MetricChart.vue'
+import InputLabel from '@/Components/InputLabel.vue'
+import TextInput from '@/Components/TextInput.vue'
+import { Line, Bar } from 'vue-chartjs'
 import {
-    UserGroupIcon,
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend
+} from 'chart.js'
+import {
     ChartBarIcon,
-    ChatBubbleLeftIcon,
-    GlobeAltIcon
+    ArrowTrendingUpIcon,
+    ExclamationTriangleIcon,
+    LightBulbIcon
 } from '@heroicons/vue/24/outline'
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend
+)
 
 const props = defineProps({
     platforms: {
@@ -169,7 +196,15 @@ const props = defineProps({
         type: Array,
         required: true
     },
-    metrics: {
+    analytics: {
+        type: Object,
+        required: true
+    },
+    insights: {
+        type: Array,
+        required: true
+    },
+    auth: {
         type: Object,
         required: true
     }
@@ -178,41 +213,130 @@ const props = defineProps({
 const filters = ref({
     platform_id: '',
     account_id: '',
+    date_range: '30',
     start_date: '',
-    end_date: '',
-    metric_type: '',
-    group_by: 'weekly'
+    end_date: ''
 })
 
-// Computed properties untuk overview cards
-const totalFollowers = computed(() => props.metrics.followers.current)
-const followersTrend = computed(() => props.metrics.followers.trend)
-const avgEngagement = computed(() => props.metrics.engagement.current)
-const engagementTrend = computed(() => props.metrics.engagement.trend)
-const totalInteractions = computed(() => props.metrics.interactions.current)
-const interactionsTrend = computed(() => props.metrics.interactions.trend)
-const totalReach = computed(() => props.metrics.reach.current)
-const reachTrend = computed(() => props.metrics.reach.trend)
+// Chart Data
+const followersChartData = computed(() => ({
+    labels: props.analytics.dates,
+    datasets: [
+        {
+            label: 'Followers',
+            data: props.analytics.followers,
+            borderColor: '#3b82f6',
+            tension: 0.1
+        }
+    ]
+}))
 
-// Data untuk grafik
-const followersData = computed(() => props.metrics.followers.history)
-const engagementData = computed(() => props.metrics.engagement.history)
+const engagementChartData = computed(() => ({
+    labels: props.analytics.dates,
+    datasets: [
+        {
+            label: 'Engagement Rate (%)',
+            data: props.analytics.engagement_rates,
+            borderColor: '#10b981',
+            tension: 0.1
+        }
+    ]
+}))
 
-// Data performa platform
-const platformPerformance = computed(() => props.metrics.platforms)
+const reachChartData = computed(() => ({
+    labels: props.analytics.dates,
+    datasets: [
+        {
+            label: 'Reach',
+            data: props.analytics.reach,
+            borderColor: '#8b5cf6',
+            tension: 0.1
+        },
+        {
+            label: 'Impressions',
+            data: props.analytics.impressions,
+            borderColor: '#6366f1',
+            tension: 0.1
+        }
+    ]
+}))
 
-// Methods
-const updateFilters = (newFilters) => {
-    filters.value = newFilters
+const interactionsChartData = computed(() => ({
+    labels: props.analytics.dates,
+    datasets: [
+        {
+            label: 'Likes',
+            data: props.analytics.likes,
+            backgroundColor: '#ef4444'
+        },
+        {
+            label: 'Comments',
+            data: props.analytics.comments,
+            backgroundColor: '#f59e0b'
+        },
+        {
+            label: 'Shares',
+            data: props.analytics.shares,
+            backgroundColor: '#3b82f6'
+        }
+    ]
+}))
+
+const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: 'top'
+        }
+    }
 }
 
-const formatNumber = (value, suffix = '') => {
-    return new Intl.NumberFormat('id-ID').format(value) + suffix
+// Insights styling
+const getInsightClass = (type) => {
+    const classes = {
+        success: 'bg-green-50 dark:bg-green-900/20',
+        warning: 'bg-yellow-50 dark:bg-yellow-900/20',
+        danger: 'bg-red-50 dark:bg-red-900/20',
+        info: 'bg-blue-50 dark:bg-blue-900/20'
+    }
+    return classes[type] || classes.info
 }
 
-const formatTrend = (value) => {
-    if (!value) return '-'
-    const prefix = value > 0 ? '+' : ''
-    return `${prefix}${value}%`
+const getInsightTextClass = (type) => {
+    const classes = {
+        success: 'text-green-800 dark:text-green-200',
+        warning: 'text-yellow-800 dark:text-yellow-200',
+        danger: 'text-red-800 dark:text-red-200',
+        info: 'text-blue-800 dark:text-blue-200'
+    }
+    return classes[type] || classes.info
 }
+
+const getInsightIcon = (type) => {
+    const icons = {
+        success: ArrowTrendingUpIcon,
+        warning: ExclamationTriangleIcon,
+        danger: ExclamationTriangleIcon,
+        info: LightBulbIcon
+    }
+    return icons[type] || LightBulbIcon
+}
+
+// Filter function
+const debounce = (fn, delay) => {
+    let timeoutId
+    return (...args) => {
+        clearTimeout(timeoutId)
+        timeoutId = setTimeout(() => fn(...args), delay)
+    }
+}
+
+const filter = debounce(() => {
+    router.get(route('social-media.analytics'), filters.value, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true
+    })
+}, 300)
 </script> 

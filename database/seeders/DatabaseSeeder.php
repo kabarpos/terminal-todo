@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
             TaskSeeder::class,
             SocialPlatformSeeder::class,
             MetricSeeder::class,
+            SocialAccountSeeder::class,
+            MetricDataSeeder::class
         ]);
     }
 }

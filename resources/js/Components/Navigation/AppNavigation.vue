@@ -110,6 +110,12 @@ const navigationConfig = {
             href: route('social-analytics.index'),
             icon: ChartPieIcon,
             permission: "view-analytics"
+        },
+        {
+            name: "Input Metrik",
+            href: route('metric-data.create'),
+            icon: ChartBarIcon,
+            permission: "create-metric"
         }
     ],
 

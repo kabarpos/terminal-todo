@@ -1,100 +1,147 @@
 <template>
     <Head title="Input Data Metrik" />
 
-    <AuthenticatedLayout>
+    <AuthenticatedLayout :auth="auth" title="Input Data Metrik">
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                Input Data Metrik
-            </h2>
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
+                    Input Data Metrik
+                </h2>
+                <Link
+                    :href="route('metric-data.index')"
+                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                    <ArrowLeftIcon class="w-5 h-5 mr-2" />
+                    Kembali
+                </Link>
+            </div>
         </template>
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div class="overflow-hidden bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
-                    <form @submit.prevent="submit" class="p-6 space-y-6">
-                        <!-- Platform & Account Selection -->
-                        <div class="grid grid-cols-1 gap-6 mt-4 md:grid-cols-2">
+                <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
+                    <form @submit.prevent="submit" class="p-6">
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             <div>
-                                <InputLabel for="platform_id" value="Platform" />
+                                <InputLabel for="social_account_id" value="Akun" />
                                 <select
-                                    id="platform_id"
-                                    v-model="form.platform_id"
+                                    id="social_account_id"
+                                    v-model="form.social_account_id"
                                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                                    @change="loadAccounts"
-                                >
-                                    <option value="">Pilih Platform</option>
-                                    <option v-for="platform in platforms" :key="platform.id" :value="platform.id">
-                                        {{ platform.name }}
-                                    </option>
-                                </select>
-                                <InputError :message="form.errors.platform_id" class="mt-2" />
-                            </div>
-
-                            <div>
-                                <InputLabel for="account_id" value="Akun" />
-                                <select
-                                    id="account_id"
-                                    v-model="form.account_id"
-                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                                    @change="loadMetrics"
                                 >
                                     <option value="">Pilih Akun</option>
-                                    <option v-for="account in filteredAccounts" :key="account.id" :value="account.id">
-                                        {{ account.name }}
+                                    <option v-for="account in accounts" :key="account.id" :value="account.id">
+                                        {{ account.name }} ({{ account.platform.name }})
                                     </option>
                                 </select>
-                                <InputError :message="form.errors.account_id" class="mt-2" />
-                            </div>
-                        </div>
-
-                        <!-- Metric Selection & Value -->
-                        <div class="grid grid-cols-1 gap-6 mt-4 md:grid-cols-2">
-                            <div>
-                                <InputLabel for="metric_id" value="Jenis Metrik" />
-                                <select
-                                    id="metric_id"
-                                    v-model="form.metric_id"
-                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                                >
-                                    <option value="">Pilih Metrik</option>
-                                    <option v-for="metric in availableMetrics" :key="metric.id" :value="metric.id">
-                                        {{ metric.name }}
-                                    </option>
-                                </select>
-                                <InputError :message="form.errors.metric_id" class="mt-2" />
+                                <InputError :message="form.errors.social_account_id" class="mt-2" />
                             </div>
 
                             <div>
-                                <InputLabel for="value" value="Nilai" />
+                                <InputLabel for="date" value="Tanggal" />
                                 <TextInput
-                                    id="value"
-                                    type="number"
-                                    v-model="form.value"
-                                    class="mt-1 block w-full"
-                                    step="0.01"
-                                />
-                                <InputError :message="form.errors.value" class="mt-2" />
-                            </div>
-                        </div>
-
-                        <!-- Date Selection -->
-                        <div class="grid grid-cols-1 gap-6 mt-4 md:grid-cols-2">
-                            <div>
-                                <InputLabel for="recorded_at" value="Tanggal" />
-                                <TextInput
-                                    id="recorded_at"
+                                    id="date"
                                     type="date"
-                                    v-model="form.recorded_at"
+                                    v-model="form.date"
                                     class="mt-1 block w-full"
                                 />
-                                <InputError :message="form.errors.recorded_at" class="mt-2" />
+                                <InputError :message="form.errors.date" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="followers_count" value="Jumlah Followers *" />
+                                <TextInput
+                                    id="followers_count"
+                                    type="number"
+                                    v-model="form.followers_count"
+                                    class="mt-1 block w-full"
+                                    required
+                                />
+                                <InputError :message="form.errors.followers_count" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="engagement_rate" value="Engagement Rate (%)" />
+                                <TextInput
+                                    id="engagement_rate"
+                                    type="number"
+                                    step="0.01"
+                                    v-model="form.engagement_rate"
+                                    class="mt-1 block w-full"
+                                />
+                                <InputError :message="form.errors.engagement_rate" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="reach" value="Reach" />
+                                <TextInput
+                                    id="reach"
+                                    type="number"
+                                    v-model="form.reach"
+                                    class="mt-1 block w-full"
+                                />
+                                <InputError :message="form.errors.reach" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="impressions" value="Impressions" />
+                                <TextInput
+                                    id="impressions"
+                                    type="number"
+                                    v-model="form.impressions"
+                                    class="mt-1 block w-full"
+                                />
+                                <InputError :message="form.errors.impressions" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="likes" value="Likes" />
+                                <TextInput
+                                    id="likes"
+                                    type="number"
+                                    v-model="form.likes"
+                                    class="mt-1 block w-full"
+                                />
+                                <InputError :message="form.errors.likes" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="comments" value="Comments" />
+                                <TextInput
+                                    id="comments"
+                                    type="number"
+                                    v-model="form.comments"
+                                    class="mt-1 block w-full"
+                                />
+                                <InputError :message="form.errors.comments" class="mt-2" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="shares" value="Shares" />
+                                <TextInput
+                                    id="shares"
+                                    type="number"
+                                    v-model="form.shares"
+                                    class="mt-1 block w-full"
+                                />
+                                <InputError :message="form.errors.shares" class="mt-2" />
                             </div>
                         </div>
 
-                        <!-- Submit Button -->
-                        <div class="flex items-center justify-end mt-6">
-                            <PrimaryButton :disabled="form.processing">
-                                Simpan Data
+                        <div class="flex items-center justify-end gap-4 mt-6">
+                            <Link
+                                :href="route('metric-data.index')"
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                            >
+                                Batal
+                            </Link>
+
+                            <PrimaryButton
+                                :class="{ 'opacity-25': form.processing }"
+                                :disabled="form.processing"
+                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700"
+                            >
+                                {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
                             </PrimaryButton>
                         </div>
                     </form>
@@ -105,52 +152,38 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { Head, useForm } from '@inertiajs/vue3'
+import { Head, Link, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputError from '@/Components/InputError.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
+import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
-    platforms: {
-        type: Array,
-        required: true
-    },
     accounts: {
         type: Array,
         required: true
     },
-    metrics: {
-        type: Array,
+    auth: {
+        type: Object,
         required: true
     }
 })
 
 const form = useForm({
-    platform_id: '',
-    account_id: '',
-    metric_id: '',
-    value: '',
-    recorded_at: new Date().toISOString().split('T')[0],
-})
-
-const filteredAccounts = computed(() => {
-    if (!form.platform_id) return []
-    return props.accounts.filter(account => account.platform_id === form.platform_id)
-})
-
-const availableMetrics = computed(() => {
-    if (!form.platform_id) return []
-    return props.metrics.filter(metric => metric.platform_id === form.platform_id)
+    social_account_id: '',
+    date: '',
+    followers_count: '',
+    engagement_rate: '',
+    reach: '',
+    impressions: '',
+    likes: '',
+    comments: '',
+    shares: ''
 })
 
 const submit = () => {
-    form.post(route('metric-data.store'), {
-        onSuccess: () => {
-            form.reset()
-        }
-    })
+    form.post(route('metric-data.store'))
 }
 </script> 

@@ -205,4 +205,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('social-analytics', [MetricDataController::class, 'analytics'])
         ->name('social-analytics.index')
         ->middleware('permission:view-analytics');
+
+    // Metric Data Import/Export Routes
+    Route::post('metric-data/import', [MetricDataController::class, 'import'])->name('metric-data.import');
+    Route::get('metric-data/export', [MetricDataController::class, 'export'])->name('metric-data.export');
+    Route::get('metric-data/template', [MetricDataController::class, 'downloadTemplate'])->name('metric-data.template');
 });

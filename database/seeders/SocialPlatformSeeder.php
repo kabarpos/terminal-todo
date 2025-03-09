@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\SocialPlatform;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\SocialPlatform;
 
 class SocialPlatformSeeder extends Seeder
 {
@@ -16,46 +15,40 @@ class SocialPlatformSeeder extends Seeder
         $platforms = [
             [
                 'name' => 'Instagram',
-                'icon' => 'instagram',
+                'icon' => 'fab fa-instagram',
                 'description' => 'Platform berbagi foto dan video',
-                'is_active' => true,
+                'is_active' => true
             ],
             [
                 'name' => 'Facebook',
-                'icon' => 'facebook',
-                'description' => 'Platform jejaring sosial terbesar',
-                'is_active' => true,
+                'icon' => 'fab fa-facebook',
+                'description' => 'Platform jejaring sosial',
+                'is_active' => true
             ],
             [
-                'name' => 'X (Twitter)',
-                'icon' => 'twitter',
+                'name' => 'Twitter',
+                'icon' => 'fab fa-twitter',
                 'description' => 'Platform microblogging',
-                'is_active' => true,
+                'is_active' => true
             ],
             [
                 'name' => 'TikTok',
-                'icon' => 'tiktok',
+                'icon' => 'fab fa-tiktok',
                 'description' => 'Platform berbagi video pendek',
-                'is_active' => true,
+                'is_active' => true
             ],
             [
                 'name' => 'YouTube',
-                'icon' => 'youtube',
+                'icon' => 'fab fa-youtube',
                 'description' => 'Platform berbagi video',
-                'is_active' => true,
+                'is_active' => true
             ],
             [
                 'name' => 'LinkedIn',
-                'icon' => 'linkedin',
+                'icon' => 'fab fa-linkedin',
                 'description' => 'Platform jejaring profesional',
-                'is_active' => true,
-            ],
-            [
-                'name' => 'Threads',
-                'icon' => 'threads',
-                'description' => 'Platform microblogging dari Meta',
-                'is_active' => true,
-            ],
+                'is_active' => true
+            ]
         ];
 
         foreach ($platforms as $platform) {

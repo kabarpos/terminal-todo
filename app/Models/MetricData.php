@@ -5,41 +5,41 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MetricData extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'metric_data';
+
     protected $fillable = [
-        'account_id',
-        'metric_id',
-        'value',
-        'week_number',
-        'month',
-        'year',
-        'recorded_at',
-        'metadata',
+        'social_account_id',
+        'date',
+        'followers_count',
+        'engagement_rate',
+        'reach',
+        'impressions',
+        'likes',
+        'comments',
+        'shares'
     ];
 
     protected $casts = [
-        'value' => 'decimal:2',
-        'metadata' => 'array',
-        'recorded_at' => 'datetime',
-        'week_number' => 'integer',
-        'month' => 'integer',
-        'year' => 'integer',
+        'date' => 'date',
+        'followers_count' => 'integer',
+        'engagement_rate' => 'float',
+        'reach' => 'integer',
+        'impressions' => 'integer',
+        'likes' => 'integer',
+        'comments' => 'integer',
+        'shares' => 'integer'
     ];
 
     // Relasi dengan account
-    public function account()
+    public function account(): BelongsTo
     {
-        return $this->belongsTo(SocialAccount::class, 'account_id');
-    }
-
-    // Relasi dengan metric
-    public function metric()
-    {
-        return $this->belongsTo(Metric::class, 'metric_id');
+        return $this->belongsTo(SocialAccount::class, 'social_account_id')->withTrashed();
     }
 
     // Scope untuk filter berdasarkan periode
