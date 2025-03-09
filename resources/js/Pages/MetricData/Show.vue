@@ -9,7 +9,7 @@
                 </h2>
                 <Link
                     :href="route('metric-data.index')"
-                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800"
+                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                     <ArrowLeftIcon class="w-5 h-5 mr-2" />
                     Kembali
@@ -20,106 +20,130 @@
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
-                    <div class="p-6 space-y-6">
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            <div>
-                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Informasi Akun</h3>
-                                <div class="mt-4 space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Platform</label>
-                                        <div class="mt-1 text-gray-900 dark:text-gray-100">
-                                            {{ props.metricData.account?.platform?.name || '-' }}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nama Akun</label>
-                                        <div class="mt-1 text-gray-900 dark:text-gray-100">
-                                            {{ props.metricData.account?.name || '-' }}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tanggal</label>
-                                        <div class="mt-1 text-gray-900 dark:text-gray-100">
-                                            {{ formatDate(props.metricData.date) }}
-                                        </div>
-                                    </div>
+                    <div class="p-6">
+                        <!-- Informasi Akun -->
+                        <div class="mb-8">
+                            <div class="flex items-center mb-6">
+                                <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full" 
+                                    :class="getPlatformClass(props.metricData.account?.platform?.name?.toLowerCase())">
+                                    <i :class="getPlatformIcon(props.metricData.account?.platform?.name?.toLowerCase())" class="text-lg"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                        {{ props.metricData.account?.name || '-' }}
+                                    </h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        {{ props.metricData.account?.platform?.name || '-' }} • {{ formatDate(props.metricData.date) }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Metrik Cards -->
+                        <div class="grid grid-cols-1 gap-6 mb-8 sm:grid-cols-2 lg:grid-cols-4">
+                            <!-- Followers Card -->
+                            <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Followers</div>
+                                <div class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                    {{ formatNumber(props.metricData.followers_count) }}
                                 </div>
                             </div>
 
-                            <div>
-                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Metrik Utama</h3>
-                                <div class="mt-4 space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Followers</label>
-                                        <div class="mt-1 text-gray-900 dark:text-gray-100">
-                                            {{ formatNumber(props.metricData.followers_count) }}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Engagement Rate</label>
-                                        <div class="mt-1 text-gray-900 dark:text-gray-100">
-                                            {{ props.metricData.engagement_rate }}%
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Reach</label>
-                                        <div class="mt-1 text-gray-900 dark:text-gray-100">
-                                            {{ formatNumber(props.metricData.reach) }}
-                                        </div>
-                                    </div>
+                            <!-- Engagement Rate Card -->
+                            <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Engagement Rate</div>
+                                <div class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                    {{ props.metricData.engagement_rate }}%
                                 </div>
                             </div>
 
-                            <div>
-                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Interaksi</h3>
-                                <div class="mt-4 space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Likes</label>
-                                        <div class="mt-1 text-gray-900 dark:text-gray-100">
+                            <!-- Reach Card -->
+                            <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Reach</div>
+                                <div class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                    {{ formatNumber(props.metricData.reach) }}
+                                </div>
+                            </div>
+
+                            <!-- Total Interactions Card -->
+                            <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Interactions</div>
+                                <div class="mt-1 text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                    {{ formatNumber(getTotalInteractions()) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detail Metrics -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <!-- Interactions Section -->
+                            <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Interaksi Detail</h3>
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                        <div class="flex items-center">
+                                            <HeartIcon class="w-5 h-5 text-red-500 mr-2" />
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Likes</span>
+                                        </div>
+                                        <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                                             {{ formatNumber(props.metricData.likes) }}
-                                        </div>
+                                        </span>
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Comments</label>
-                                        <div class="mt-1 text-gray-900 dark:text-gray-100">
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                        <div class="flex items-center">
+                                            <ChatBubbleLeftIcon class="w-5 h-5 text-blue-500 mr-2" />
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Comments</span>
+                                        </div>
+                                        <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                                             {{ formatNumber(props.metricData.comments) }}
-                                        </div>
+                                        </span>
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Shares</label>
-                                        <div class="mt-1 text-gray-900 dark:text-gray-100">
-                                            {{ formatNumber(props.metricData.shares) }}
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                        <div class="flex items-center">
+                                            <ShareIcon class="w-5 h-5 text-green-500 mr-2" />
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Shares</span>
                                         </div>
+                                        <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                            {{ formatNumber(props.metricData.shares) }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div>
-                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Jangkauan</h3>
-                                <div class="mt-4 space-y-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Impressions</label>
-                                        <div class="mt-1 text-gray-900 dark:text-gray-100">
-                                            {{ formatNumber(props.metricData.impressions) }}
+                            <!-- Reach & Impressions Section -->
+                            <div class="p-4">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Jangkauan & Impresi</h3>
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                        <div class="flex items-center">
+                                            <EyeIcon class="w-5 h-5 text-purple-500 mr-2" />
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Reach</span>
                                         </div>
+                                        <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                            {{ formatNumber(props.metricData.reach) }}
+                                        </span>
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Total Interaksi</label>
-                                        <div class="mt-1 text-gray-900 dark:text-gray-100">
-                                            {{ formatNumber(getTotalInteractions()) }}
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                                        <div class="flex items-center">
+                                            <ChartBarIcon class="w-5 h-5 text-yellow-500 mr-2" />
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Impressions</span>
                                         </div>
+                                        <span class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                            {{ formatNumber(props.metricData.impressions) }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Action Buttons -->
                         <div class="flex items-center justify-end gap-4 mt-6">
                             <Link
                                 v-if="props.metricData?.id"
                                 :href="`/metric-data/${props.metricData.id}/edit`"
-                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150"
                             >
-                                <PencilSquareIcon class="w-5 h-5 mr-2" />
+                                <PencilSquareIcon class="w-4 h-4 mr-2" />
                                 Edit Data
                             </Link>
                         </div>
@@ -133,7 +157,15 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { ArrowLeftIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
+import { 
+    ArrowLeftIcon, 
+    PencilSquareIcon,
+    HeartIcon,
+    ChatBubbleLeftIcon,
+    ShareIcon,
+    EyeIcon,
+    ChartBarIcon
+} from '@heroicons/vue/24/outline'
 
 const props = defineProps({
     metricData: {
@@ -171,5 +203,33 @@ const formatDate = (date) => {
 const getTotalInteractions = () => {
     const { likes = 0, comments = 0, shares = 0 } = props.metricData
     return likes + comments + shares
+}
+
+const getPlatformIcon = (platform) => {
+    const icons = {
+        instagram: 'fab fa-instagram',
+        facebook: 'fab fa-facebook',
+        twitter: 'fab fa-twitter',
+        tiktok: 'fab fa-tiktok',
+        youtube: 'fab fa-youtube',
+        linkedin: 'fab fa-linkedin',
+        pinterest: 'fab fa-pinterest',
+        default: 'fab fa-globe'
+    }
+    return icons[platform] || icons.default
+}
+
+const getPlatformClass = (platform) => {
+    const classes = {
+        instagram: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white',
+        facebook: 'bg-blue-600 text-white',
+        twitter: 'bg-blue-400 text-white',
+        tiktok: 'bg-black text-white',
+        youtube: 'bg-red-600 text-white',
+        linkedin: 'bg-blue-700 text-white',
+        pinterest: 'bg-red-700 text-white',
+        default: 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+    }
+    return classes[platform] || classes.default
 }
 </script> 
