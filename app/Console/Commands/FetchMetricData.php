@@ -15,77 +15,82 @@ class FetchMetricData extends Command
     public function handle()
     {
         $accounts = SocialAccount::with('platform')->get();
-        $date = now()->format('Y-m-d');
-
+        
         foreach ($accounts as $account) {
-            $this->info("Mengambil data untuk {$account->platform->name} - {$account->name}");
-
-            // Cek apakah data untuk hari ini sudah ada
-            $exists = MetricData::where('social_account_id', $account->id)
-                ->whereDate('date', $date)
-                ->exists();
-
-            if ($exists) {
-                $this->warn("Data untuk {$account->name} tanggal {$date} sudah ada, melewati...");
-                continue;
-            }
-
+            $this->info("Memproses akun {$account->name} ({$account->platform->name})");
+            
             try {
-                // Di sini Anda bisa menambahkan logika untuk mengambil data dari masing-masing platform
-                // Contoh implementasi untuk masing-masing platform:
-                switch ($account->platform->name) {
-                    case 'Instagram':
-                        $data = $this->fetchInstagramData($account);
+                $data = null;
+                
+                // Proses berdasarkan platform
+                switch (strtolower($account->platform->name)) {
+                    case 'instagram':
+                        $data = $this->fetchInstagramMetrics($account);
                         break;
-                    case 'Facebook':
-                        $data = $this->fetchFacebookData($account);
+                    case 'facebook':
+                        $data = $this->fetchFacebookMetrics($account);
                         break;
-                    case 'Twitter':
-                        $data = $this->fetchTwitterData($account);
+                    case 'twitter':
+                        $data = $this->fetchTwitterMetrics($account);
                         break;
-                    // Tambahkan platform lain sesuai kebutuhan
+                    case 'tiktok':
+                        $data = $this->fetchTiktokMetrics($account);
+                        break;
                     default:
                         $this->warn("Platform {$account->platform->name} belum didukung");
-                        continue;
+                        break;
                 }
 
                 if ($data) {
                     MetricData::create([
                         'social_account_id' => $account->id,
-                        'date' => $date,
+                        'date' => Carbon::now()->toDateString(),
                         'followers_count' => $data['followers_count'] ?? 0,
                         'engagement_rate' => $data['engagement_rate'] ?? 0,
                         'reach' => $data['reach'] ?? 0,
                         'impressions' => $data['impressions'] ?? 0,
                         'likes' => $data['likes'] ?? 0,
                         'comments' => $data['comments'] ?? 0,
-                        'shares' => $data['shares'] ?? 0
+                        'shares' => $data['shares'] ?? 0,
                     ]);
-
-                    $this->info("✓ Data berhasil disimpan untuk {$account->name}");
+                    
+                    $this->info("Berhasil menyimpan data untuk {$account->name}");
                 }
             } catch (\Exception $e) {
-                $this->error("Gagal mengambil data untuk {$account->name}: " . $e->getMessage());
+                $this->error("Gagal memproses {$account->name}: " . $e->getMessage());
             }
         }
     }
 
-    protected function fetchInstagramData($account)
+    protected function fetchInstagramMetrics($account)
     {
-        // Implementasi pengambilan data dari Instagram API
-        // Anda perlu mengimplementasikan ini sesuai dengan API yang Anda gunakan
+        // Implementasi pengambilan data Instagram
+        return [
+            'followers_count' => 0,
+            'engagement_rate' => 0,
+            'reach' => 0,
+            'impressions' => 0,
+            'likes' => 0,
+            'comments' => 0,
+            'shares' => 0,
+        ];
+    }
+
+    protected function fetchFacebookMetrics($account)
+    {
+        // Implementasi pengambilan data Facebook
         return null;
     }
 
-    protected function fetchFacebookData($account)
+    protected function fetchTwitterMetrics($account)
     {
-        // Implementasi pengambilan data dari Facebook API
+        // Implementasi pengambilan data Twitter
         return null;
     }
 
-    protected function fetchTwitterData($account)
+    protected function fetchTiktokMetrics($account)
     {
-        // Implementasi pengambilan data dari Twitter API
+        // Implementasi pengambilan data TikTok
         return null;
     }
 } 
