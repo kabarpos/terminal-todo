@@ -168,12 +168,22 @@ class MetricDataController extends Controller
         ]);
     }
 
-    public function edit(MetricData $metricData)
+    public function edit($id)
     {
-        return Inertia::render('MetricData/Edit', [
-            'metricData' => $metricData,
-            'accounts' => SocialAccount::active()->with('platform')->get()
-        ]);
+        try {
+            $metricData = MetricData::with(['account.platform'])->findOrFail($id);
+
+            return Inertia::render('MetricData/Edit', [
+                'metricData' => $metricData,
+                'accounts' => SocialAccount::active()->with('platform')->get(),
+                'auth' => [
+                    'user' => auth()->user()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return redirect()->route('metric-data.index')
+                ->with('error', 'Data metrik tidak ditemukan');
+        }
     }
 
     public function update(Request $request, MetricData $metricData)
