@@ -179,19 +179,34 @@ const props = defineProps({
     }
 })
 
+// Format tanggal untuk input date
+const formatDateForInput = (dateString) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    return date.toISOString().split('T')[0]
+}
+
 const form = useForm({
-    social_account_id: String(props.metricData.social_account_id),
-    date: props.metricData.date,
-    followers_count: String(props.metricData.followers_count),
-    engagement_rate: String(props.metricData.engagement_rate),
-    reach: String(props.metricData.reach),
-    impressions: String(props.metricData.impressions),
-    likes: String(props.metricData.likes),
-    comments: String(props.metricData.comments),
-    shares: String(props.metricData.shares)
+    social_account_id: props.metricData.social_account_id?.toString() || '',
+    date: formatDateForInput(props.metricData.date),
+    followers_count: props.metricData.followers_count?.toString() || '',
+    engagement_rate: props.metricData.engagement_rate?.toString() || '',
+    reach: props.metricData.reach?.toString() || '',
+    impressions: props.metricData.impressions?.toString() || '',
+    likes: props.metricData.likes?.toString() || '',
+    comments: props.metricData.comments?.toString() || '',
+    shares: props.metricData.shares?.toString() || ''
 })
 
 const submit = () => {
-    form.put(route('metric-data.update', props.metricData.id))
+    form.put(route('metric-data.update', props.metricData.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Optional: Tambahkan notifikasi sukses jika diperlukan
+        },
+        onError: () => {
+            // Optional: Tangani error jika diperlukan
+        }
+    })
 }
 </script> 

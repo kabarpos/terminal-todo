@@ -94,7 +94,7 @@ const navigationConfig = {
             permission: "view-newsfeed"
         },
         {
-            name: "Social Media Reports",
+            name: "Reports",
             href: route('social-media-reports.index'),
             icon: ChartBarIcon,
             permission: "view-social-media-report"
@@ -106,16 +106,16 @@ const navigationConfig = {
             permission: "view-media"
         },
         {
+            name: "Input Metrik",
+            href: route('metric-data.index'),
+            icon: ChartBarIcon,
+            permission: "view-metric"
+        },
+        {
             name: "Analytics",
             href: route('social-analytics.index'),
             icon: ChartPieIcon,
             permission: "view-analytics"
-        },
-        {
-            name: "Input Metrik",
-            href: route('metric-data.create'),
-            icon: ChartBarIcon,
-            permission: "create-metric"
         }
     ],
 

@@ -18,6 +18,7 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\SocialPlatformController;
 use App\Http\Controllers\SocialAccountController;
 use App\Http\Controllers\MetricDataController;
+use App\Http\Controllers\SocialMediaAnalyticsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -202,7 +203,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('metric-report', [MetricDataController::class, 'report'])->name('metric-data.report');
 
     // Analytics Dashboard
-    Route::get('social-analytics', [MetricDataController::class, 'analytics'])
+    Route::get('social-analytics', [SocialMediaAnalyticsController::class, 'index'])
         ->name('social-analytics.index')
         ->middleware('permission:view-analytics');
 

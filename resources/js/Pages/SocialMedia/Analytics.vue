@@ -87,63 +87,162 @@
 
                 <!-- Charts Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <!-- Followers Growth Chart -->
+                    <!-- Menghapus card analytics sedang dalam pengembangan -->
+                </div>
+
+                <!-- Overview Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <!-- Followers Card -->
                     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Pertumbuhan Followers</h3>
-                        <Line
-                            :chart-data="followersChartData"
-                            :chart-options="chartOptions"
-                        />
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                    Total Followers
+                                </p>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                    {{ formatNumber(analytics?.total_followers || 0) }}
+                                </h3>
+                                <p class="mt-1 text-sm" :class="[
+                                    analytics?.followers_growth > 0 
+                                        ? 'text-green-600 dark:text-green-400' 
+                                        : 'text-red-600 dark:text-red-400'
+                                ]">
+                                    <span v-if="analytics?.followers_growth > 0">+</span>
+                                    {{ analytics?.followers_growth || 0 }}%
+                                </p>
+                            </div>
+                            <div class="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-full">
+                                <UsersIcon class="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Engagement Rate Chart -->
+                    <!-- Engagement Rate Card -->
                     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Engagement Rate</h3>
-                        <Line
-                            :chart-data="engagementChartData"
-                            :chart-options="chartOptions"
-                        />
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                    Rata-rata Engagement
+                                </p>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                    {{ analytics?.avg_engagement?.toFixed(2) || '0.00' }}%
+                                </h3>
+                                <p class="mt-1 text-sm" :class="[
+                                    analytics?.engagement_growth > 0 
+                                        ? 'text-green-600 dark:text-green-400' 
+                                        : 'text-red-600 dark:text-red-400'
+                                ]">
+                                    <span v-if="analytics?.engagement_growth > 0">+</span>
+                                    {{ analytics?.engagement_growth || 0 }}%
+                                </p>
+                            </div>
+                            <div class="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-full">
+                                <ChartBarIcon class="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Reach & Impressions Chart -->
+                    <!-- Reach Card -->
                     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Reach & Impressions</h3>
-                        <Line
-                            :chart-data="reachChartData"
-                            :chart-options="chartOptions"
-                        />
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                    Total Reach
+                                </p>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                    {{ formatNumber(analytics?.total_reach || 0) }}
+                                </h3>
+                                <p class="mt-1 text-sm" :class="[
+                                    analytics?.reach_growth > 0 
+                                        ? 'text-green-600 dark:text-green-400' 
+                                        : 'text-red-600 dark:text-red-400'
+                                ]">
+                                    <span v-if="analytics?.reach_growth > 0">+</span>
+                                    {{ analytics?.reach_growth || 0 }}%
+                                </p>
+                            </div>
+                            <div class="p-3 bg-green-100 dark:bg-green-900/20 rounded-full">
+                                <GlobeAltIcon class="w-6 h-6 text-green-600 dark:text-green-400" />
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Interactions Chart -->
+                    <!-- Interactions Card -->
                     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Interaksi</h3>
-                        <Bar
-                            :chart-data="interactionsChartData"
-                            :chart-options="chartOptions"
-                        />
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                    Total Interaksi
+                                </p>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                    {{ formatNumber(analytics?.total_interactions || 0) }}
+                                </h3>
+                                <p class="mt-1 text-sm" :class="[
+                                    analytics?.interactions_growth > 0 
+                                        ? 'text-green-600 dark:text-green-400' 
+                                        : 'text-red-600 dark:text-red-400'
+                                ]">
+                                    <span v-if="analytics?.interactions_growth > 0">+</span>
+                                    {{ analytics?.interactions_growth || 0 }}%
+                                </p>
+                            </div>
+                            <div class="p-3 bg-orange-100 dark:bg-orange-900/20 rounded-full">
+                                <HandRaisedIcon class="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detail Stats -->
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-6">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Detail Interaksi</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Likes</p>
+                                    <p class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                                        {{ formatNumber(analytics?.total_likes || 0) }}
+                                    </p>
+                                </div>
+                                <HeartIcon class="w-5 h-5 text-red-500" />
+                            </div>
+                        </div>
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Comments</p>
+                                    <p class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                                        {{ formatNumber(analytics?.total_comments || 0) }}
+                                    </p>
+                                </div>
+                                <ChatBubbleLeftIcon class="w-5 h-5 text-blue-500" />
+                            </div>
+                        </div>
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Shares</p>
+                                    <p class="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                                        {{ formatNumber(analytics?.total_shares || 0) }}
+                                    </p>
+                                </div>
+                                <ShareIcon class="w-5 h-5 text-green-500" />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Insights Section -->
                 <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Insights & Rekomendasi</h3>
-                    
-                    <div class="space-y-4">
-                        <div v-for="(insight, index) in insights" :key="index" class="p-4 rounded-lg" :class="getInsightClass(insight.type)">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0">
-                                    <component :is="getInsightIcon(insight.type)" class="h-6 w-6" />
-                                </div>
-                                <div class="ml-3">
-                                    <h4 class="text-sm font-medium" :class="getInsightTextClass(insight.type)">
-                                        {{ insight.title }}
-                                    </h4>
-                                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                        {{ insight.description }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="text-center py-8">
+                        <LightBulbIcon class="mx-auto h-12 w-12 text-gray-400" />
+                        <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-gray-100">
+                            Insights Akan Segera Hadir
+                        </h3>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Kami akan segera menghadirkan insights yang membantu Anda menganalisis performa media sosial Anda.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -153,56 +252,49 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Head, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
-import { Line, Bar } from 'vue-chartjs'
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend
-} from 'chart.js'
 import {
     ChartBarIcon,
-    ArrowTrendingUpIcon,
-    ExclamationTriangleIcon,
-    LightBulbIcon
+    LightBulbIcon,
+    ArrowLeftIcon,
+    UsersIcon,
+    GlobeAltIcon,
+    HandRaisedIcon,
+    HeartIcon,
+    ChatBubbleLeftIcon,
+    ShareIcon
 } from '@heroicons/vue/24/outline'
-
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    BarElement,
-    Title,
-    Tooltip,
-    Legend
-)
 
 const props = defineProps({
     platforms: {
         type: Array,
-        required: true
+        required: true,
+        default: () => []
     },
     accounts: {
         type: Array,
-        required: true
+        required: true,
+        default: () => []
     },
     analytics: {
         type: Object,
-        required: true
-    },
-    insights: {
-        type: Array,
-        required: true
+        required: true,
+        default: () => ({
+            total_followers: 0,
+            followers_growth: 0,
+            avg_engagement: 0,
+            engagement_growth: 0,
+            total_reach: 0,
+            reach_growth: 0,
+            total_interactions: 0,
+            interactions_growth: 0,
+            total_likes: 0,
+            total_comments: 0,
+            total_shares: 0
+        })
     },
     auth: {
         type: Object,
@@ -218,109 +310,15 @@ const filters = ref({
     end_date: ''
 })
 
-// Chart Data
-const followersChartData = computed(() => ({
-    labels: props.analytics.dates,
-    datasets: [
-        {
-            label: 'Followers',
-            data: props.analytics.followers,
-            borderColor: '#3b82f6',
-            tension: 0.1
-        }
-    ]
-}))
-
-const engagementChartData = computed(() => ({
-    labels: props.analytics.dates,
-    datasets: [
-        {
-            label: 'Engagement Rate (%)',
-            data: props.analytics.engagement_rates,
-            borderColor: '#10b981',
-            tension: 0.1
-        }
-    ]
-}))
-
-const reachChartData = computed(() => ({
-    labels: props.analytics.dates,
-    datasets: [
-        {
-            label: 'Reach',
-            data: props.analytics.reach,
-            borderColor: '#8b5cf6',
-            tension: 0.1
-        },
-        {
-            label: 'Impressions',
-            data: props.analytics.impressions,
-            borderColor: '#6366f1',
-            tension: 0.1
-        }
-    ]
-}))
-
-const interactionsChartData = computed(() => ({
-    labels: props.analytics.dates,
-    datasets: [
-        {
-            label: 'Likes',
-            data: props.analytics.likes,
-            backgroundColor: '#ef4444'
-        },
-        {
-            label: 'Comments',
-            data: props.analytics.comments,
-            backgroundColor: '#f59e0b'
-        },
-        {
-            label: 'Shares',
-            data: props.analytics.shares,
-            backgroundColor: '#3b82f6'
-        }
-    ]
-}))
-
-const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-        legend: {
-            position: 'top'
-        }
+// Format number helper
+const formatNumber = (num) => {
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + 'M'
     }
-}
-
-// Insights styling
-const getInsightClass = (type) => {
-    const classes = {
-        success: 'bg-green-50 dark:bg-green-900/20',
-        warning: 'bg-yellow-50 dark:bg-yellow-900/20',
-        danger: 'bg-red-50 dark:bg-red-900/20',
-        info: 'bg-blue-50 dark:bg-blue-900/20'
+    if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'K'
     }
-    return classes[type] || classes.info
-}
-
-const getInsightTextClass = (type) => {
-    const classes = {
-        success: 'text-green-800 dark:text-green-200',
-        warning: 'text-yellow-800 dark:text-yellow-200',
-        danger: 'text-red-800 dark:text-red-200',
-        info: 'text-blue-800 dark:text-blue-200'
-    }
-    return classes[type] || classes.info
-}
-
-const getInsightIcon = (type) => {
-    const icons = {
-        success: ArrowTrendingUpIcon,
-        warning: ExclamationTriangleIcon,
-        danger: ExclamationTriangleIcon,
-        info: LightBulbIcon
-    }
-    return icons[type] || LightBulbIcon
+    return num.toString()
 }
 
 // Filter function
@@ -332,11 +330,29 @@ const debounce = (fn, delay) => {
     }
 }
 
+const handleDateRangeChange = () => {
+    if (filters.value.date_range === 'custom') {
+        return;
+    }
+
+    filters.value.start_date = '';
+    filters.value.end_date = '';
+
+    filter();
+}
+
 const filter = debounce(() => {
-    router.get(route('social-media.analytics'), filters.value, {
+    let params = { ...filters.value };
+    
+    if (params.date_range !== 'custom') {
+        delete params.start_date;
+        delete params.end_date;
+    }
+
+    router.get('/social-analytics', params, {
         preserveState: true,
         preserveScroll: true,
         replace: true
-    })
-}, 300)
+    });
+}, 300);
 </script> 

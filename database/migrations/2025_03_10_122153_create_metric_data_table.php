@@ -11,8 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::dropIfExists('metric_data');
-        
         Schema::create('metric_data', function (Blueprint $table) {
             $table->id();
             $table->foreignId('social_account_id')->constrained('social_accounts')->onDelete('cascade');
