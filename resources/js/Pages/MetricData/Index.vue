@@ -426,13 +426,17 @@ const closeModal = () => {
 
 const deleteMetric = () => {
     if (selectedMetric.value) {
-        form.delete(route('metric-data.destroy', selectedMetric.value.id), {
+        router.delete(route('metric-data.destroy', selectedMetric.value.id), {
             preserveScroll: true,
-            onSuccess: () => closeModal(),
-            onError: () => {
-                // Handle error
+            onSuccess: () => {
+                closeModal();
+                // Optional: Tambahkan notifikasi sukses jika diperlukan
+            },
+            onError: (errors) => {
+                console.error('Error deleting metric:', errors);
+                // Optional: Tambahkan notifikasi error jika diperlukan
             }
-        })
+        });
     }
 }
 

@@ -34,15 +34,28 @@ class MetricDataController extends Controller
 
         $metrics = $query->latest('date')->paginate(10);
 
-        // Calculate stats
+        // Ambil data terbaru untuk setiap akun menggunakan subquery
+        $latestDates = DB::table('metric_data')
+            ->select('social_account_id', DB::raw('MAX(date) as latest_date'))
+            ->whereNull('deleted_at')
+            ->groupBy('social_account_id');
+
+        $latestData = MetricData::joinSub($latestDates, 'latest_dates', function($join) {
+            $join->on('metric_data.social_account_id', '=', 'latest_dates.social_account_id')
+                 ->on('metric_data.date', '=', 'latest_dates.latest_date');
+        })->get();
+
+        // Hitung statistik berdasarkan data terbaru
         $stats = [
-            'total_followers' => $query->sum('followers_count'),
-            'follower_growth' => $this->calculateGrowth($query->clone(), 'followers_count'),
-            'average_engagement' => round($query->avg('engagement_rate'), 2),
-            'engagement_growth' => $this->calculateGrowth($query->clone(), 'engagement_rate'),
-            'total_reach' => $query->sum('reach'),
-            'reach_growth' => $this->calculateGrowth($query->clone(), 'reach'),
-            'total_interactions' => $query->sum('likes') + $query->sum('comments') + $query->sum('shares'),
+            'total_followers' => $latestData->sum('followers_count'),
+            'follower_growth' => $this->calculateGrowth($query->clone()),
+            'average_engagement' => round($latestData->avg('engagement_rate'), 2),
+            'engagement_growth' => $this->calculateEngagementGrowth($query->clone()),
+            'total_reach' => $latestData->sum('reach'),
+            'reach_growth' => $this->calculateReachGrowth($query->clone()),
+            'total_interactions' => $latestData->sum(function($metric) {
+                return $metric->likes + $metric->comments + $metric->shares;
+            }),
             'interactions_growth' => $this->calculateInteractionsGrowth($query->clone())
         ];
 
@@ -54,27 +67,137 @@ class MetricDataController extends Controller
         ]);
     }
 
-    private function calculateGrowth($query, $field)
+    private function calculateGrowth($query)
     {
-        $current = $query->latest('date')->first()?->$field ?? 0;
-        $previous = $query->latest('date')->skip(1)->first()?->$field ?? 0;
+        // Ambil data terbaru untuk setiap akun menggunakan subquery
+        $latestDates = DB::table('metric_data')
+            ->select('social_account_id', DB::raw('MAX(date) as latest_date'))
+            ->whereNull('deleted_at')
+            ->groupBy('social_account_id');
 
-        if ($previous == 0) return 0;
-        return round((($current - $previous) / $previous) * 100, 2);
+        $latestData = MetricData::joinSub($latestDates, 'latest_dates', function($join) {
+            $join->on('metric_data.social_account_id', '=', 'latest_dates.social_account_id')
+                 ->on('metric_data.date', '=', 'latest_dates.latest_date');
+        })->get();
+
+        $totalGrowth = 0;
+        $accountCount = 0;
+
+        foreach ($latestData as $currentData) {
+            $previousData = MetricData::where('social_account_id', $currentData->social_account_id)
+                ->where('date', '<', $currentData->date)
+                ->orderBy('date', 'desc')
+                ->first();
+
+            if ($previousData && $previousData->followers_count > 0) {
+                $growth = (($currentData->followers_count - $previousData->followers_count) / $previousData->followers_count) * 100;
+                $totalGrowth += $growth;
+                $accountCount++;
+            }
+        }
+
+        return $accountCount > 0 ? round($totalGrowth / $accountCount, 2) : 0;
+    }
+
+    private function calculateEngagementGrowth($query)
+    {
+        // Ambil data terbaru untuk setiap akun menggunakan subquery
+        $latestDates = DB::table('metric_data')
+            ->select('social_account_id', DB::raw('MAX(date) as latest_date'))
+            ->whereNull('deleted_at')
+            ->groupBy('social_account_id');
+
+        $latestData = MetricData::joinSub($latestDates, 'latest_dates', function($join) {
+            $join->on('metric_data.social_account_id', '=', 'latest_dates.social_account_id')
+                 ->on('metric_data.date', '=', 'latest_dates.latest_date');
+        })->get();
+
+        $totalGrowth = 0;
+        $accountCount = 0;
+
+        foreach ($latestData as $currentData) {
+            $previousData = MetricData::where('social_account_id', $currentData->social_account_id)
+                ->where('date', '<', $currentData->date)
+                ->orderBy('date', 'desc')
+                ->first();
+
+            if ($previousData && $previousData->engagement_rate > 0) {
+                $growth = (($currentData->engagement_rate - $previousData->engagement_rate) / $previousData->engagement_rate) * 100;
+                $totalGrowth += $growth;
+                $accountCount++;
+            }
+        }
+
+        return $accountCount > 0 ? round($totalGrowth / $accountCount, 2) : 0;
+    }
+
+    private function calculateReachGrowth($query)
+    {
+        // Ambil data terbaru untuk setiap akun menggunakan subquery
+        $latestDates = DB::table('metric_data')
+            ->select('social_account_id', DB::raw('MAX(date) as latest_date'))
+            ->whereNull('deleted_at')
+            ->groupBy('social_account_id');
+
+        $latestData = MetricData::joinSub($latestDates, 'latest_dates', function($join) {
+            $join->on('metric_data.social_account_id', '=', 'latest_dates.social_account_id')
+                 ->on('metric_data.date', '=', 'latest_dates.latest_date');
+        })->get();
+
+        $totalGrowth = 0;
+        $accountCount = 0;
+
+        foreach ($latestData as $currentData) {
+            $previousData = MetricData::where('social_account_id', $currentData->social_account_id)
+                ->where('date', '<', $currentData->date)
+                ->orderBy('date', 'desc')
+                ->first();
+
+            if ($previousData && $previousData->reach > 0) {
+                $growth = (($currentData->reach - $previousData->reach) / $previousData->reach) * 100;
+                $totalGrowth += $growth;
+                $accountCount++;
+            }
+        }
+
+        return $accountCount > 0 ? round($totalGrowth / $accountCount, 2) : 0;
     }
 
     private function calculateInteractionsGrowth($query)
     {
-        $current = $query->latest('date')->first();
-        $previous = $query->latest('date')->skip(1)->first();
+        // Ambil data terbaru untuk setiap akun menggunakan subquery
+        $latestDates = DB::table('metric_data')
+            ->select('social_account_id', DB::raw('MAX(date) as latest_date'))
+            ->whereNull('deleted_at')
+            ->groupBy('social_account_id');
 
-        if (!$current || !$previous) return 0;
+        $latestData = MetricData::joinSub($latestDates, 'latest_dates', function($join) {
+            $join->on('metric_data.social_account_id', '=', 'latest_dates.social_account_id')
+                 ->on('metric_data.date', '=', 'latest_dates.latest_date');
+        })->get();
 
-        $currentTotal = $current->likes + $current->comments + $current->shares;
-        $previousTotal = $previous->likes + $previous->comments + $previous->shares;
+        $totalGrowth = 0;
+        $accountCount = 0;
 
-        if ($previousTotal == 0) return 0;
-        return round((($currentTotal - $previousTotal) / $previousTotal) * 100, 2);
+        foreach ($latestData as $currentData) {
+            $previousData = MetricData::where('social_account_id', $currentData->social_account_id)
+                ->where('date', '<', $currentData->date)
+                ->orderBy('date', 'desc')
+                ->first();
+
+            if ($previousData) {
+                $currentInteractions = $currentData->likes + $currentData->comments + $currentData->shares;
+                $previousInteractions = $previousData->likes + $previousData->comments + $previousData->shares;
+
+                if ($previousInteractions > 0) {
+                    $growth = (($currentInteractions - $previousInteractions) / $previousInteractions) * 100;
+                    $totalGrowth += $growth;
+                    $accountCount++;
+                }
+            }
+        }
+
+        return $accountCount > 0 ? round($totalGrowth / $accountCount, 2) : 0;
     }
 
     public function create()
