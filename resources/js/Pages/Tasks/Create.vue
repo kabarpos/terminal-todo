@@ -141,7 +141,7 @@
                                     id="assignees"
                                     v-model="form.assignees"
                                     multiple
-                                    class="mt-1 block w-full px-4 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400"
+                                    class="mt-1 block w-full px-4 py-2 text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-400 focus:ring-primary-500 dark:focus:ring-primary-400 rounded-lg shadow-sm"
                                     required
                                 >
                                     <option v-for="user in users" :key="user.id" :value="user.id">

@@ -4,6 +4,9 @@
         :alt="alt"
         :class="className"
         loading="lazy"
+        decoding="async"
+        :width="width"
+        :height="height"
         @error="handleError"
         v-bind="$attrs"
     />
@@ -36,6 +39,10 @@ const props = defineProps({
     quality: {
         type: Number,
         default: 80
+    },
+    format: {
+        type: String,
+        default: 'webp'
     }
 });
 
@@ -54,6 +61,12 @@ const optimizedSrc = computed(() => {
     if (props.width) url.searchParams.append('w', props.width);
     if (props.height) url.searchParams.append('h', props.height);
     url.searchParams.append('q', props.quality);
+    url.searchParams.append('fm', props.format);
+    
+    // Tambahkan cache buster untuk development
+    if (process.env.NODE_ENV !== 'production') {
+        url.searchParams.append('t', Date.now());
+    }
     
     return url.toString();
 });

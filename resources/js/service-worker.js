@@ -1,73 +1,73 @@
 import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { CacheFirst, NetworkFirst } from 'workbox-strategies';
+import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
 // Pre-cache semua asset yang di-generate oleh build
 precacheAndRoute(self.__WB_MANIFEST);
 
-// Cache untuk font
+// Cache untuk static assets (images, styles, scripts)
 registerRoute(
-    ({url}) => url.origin === 'https://fonts.googleapis.com' || 
-               url.origin === 'https://fonts.gstatic.com',
+    ({ request }) => request.destination === 'image' ||
+                     request.destination === 'style' ||
+                     request.destination === 'script' ||
+                     request.destination === 'font',
     new CacheFirst({
-        cacheName: 'google-fonts',
+        cacheName: 'static-assets',
         plugins: [
-            new ExpirationPlugin({
-                maxEntries: 30,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 tahun
-            }),
             new CacheableResponsePlugin({
                 statuses: [0, 200]
             }),
-        ],
-    })
-);
-
-// Cache untuk gambar
-registerRoute(
-    ({request}) => request.destination === 'image',
-    new CacheFirst({
-        cacheName: 'images',
-        plugins: [
             new ExpirationPlugin({
                 maxEntries: 60,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 hari
-            }),
-        ],
+                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 hari
+            })
+        ]
     })
 );
 
 // Cache untuk API requests
 registerRoute(
-    ({url}) => url.pathname.startsWith('/api/'),
+    ({ request }) => request.url.includes('/api/'),
     new NetworkFirst({
         cacheName: 'api-cache',
         plugins: [
+            new CacheableResponsePlugin({
+                statuses: [0, 200]
+            }),
             new ExpirationPlugin({
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24, // 24 jam
-            }),
-        ],
+                maxAgeSeconds: 24 * 60 * 60 // 24 jam
+            })
+        ]
     })
 );
 
-// Cache untuk static assets
+// Cache untuk halaman HTML
 registerRoute(
-    ({request}) => 
-        request.destination === 'script' ||
-        request.destination === 'style',
-    new CacheFirst({
-        cacheName: 'static-resources',
+    ({ request }) => request.mode === 'navigate',
+    new StaleWhileRevalidate({
+        cacheName: 'pages-cache',
         plugins: [
-            new ExpirationPlugin({
-                maxEntries: 60,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 1 minggu
-            }),
-        ],
+            new CacheableResponsePlugin({
+                statuses: [0, 200]
+            })
+        ]
     })
 );
+
+// Offline fallback
+self.addEventListener('install', (event) => {
+    const offlinePage = new Request('/offline.html');
+    event.waitUntil(
+        fetch(offlinePage).then((response) => {
+            return caches.open('offline-cache').then((cache) => {
+                return cache.put(offlinePage, response);
+            });
+        })
+    );
+});
 
 // Event listener untuk skip waiting
 self.addEventListener('message', (event) => {

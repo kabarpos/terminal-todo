@@ -78,7 +78,7 @@ const props = defineProps({
     },
     icon: {
         type: [String, Object],
-        default: ChartBarIcon
+        default: () => ChartBarIcon
     },
     color: {
         type: String,
@@ -86,16 +86,16 @@ const props = defineProps({
     }
 })
 
-const iconColorClass = computed(() => {
-    const colors = {
-        blue: 'bg-blue-600',
-        red: 'bg-red-600',
-        green: 'bg-green-600',
-        yellow: 'bg-yellow-600',
-        purple: 'bg-purple-600',
-    }
-    return colors[props.color] || colors.blue
-})
+// Cached color mapping untuk menghindari rekomputasi
+const colorMap = {
+    blue: 'bg-blue-600',
+    red: 'bg-red-600',
+    green: 'bg-green-600',
+    yellow: 'bg-yellow-600',
+    purple: 'bg-purple-600',
+}
+
+const iconColorClass = computed(() => colorMap[props.color] || colorMap.blue)
 
 const trendColorClass = computed(() => {
     if (!props.trend) return ''
@@ -106,16 +106,18 @@ const trendColorClass = computed(() => {
 
 const trendIcon = computed(() => ArrowTrendingUpIcon)
 
+// Cached number formatter untuk menghindari pembuatan instance baru setiap kali
+const currencyFormatter = new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0
+})
+
+const numberFormatter = new Intl.NumberFormat('id-ID')
+
 const formattedValue = computed(() => {
-    if (props.unit === 'percentage') {
-        return `${props.value}%`
-    }
-    if (props.unit === 'currency') {
-        return new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR'
-        }).format(props.value)
-    }
-    return new Intl.NumberFormat('id-ID').format(props.value)
+    if (props.unit === 'percentage') return `${props.value}%`
+    if (props.unit === 'currency') return currencyFormatter.format(props.value)
+    return numberFormatter.format(props.value)
 })
 </script> 
