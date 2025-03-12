@@ -15,25 +15,17 @@ class SuperAdminSeeder extends Seeder
     {
         DB::beginTransaction();
         try {
-            // Hapus data yang terkait dengan user admin
-            DB::table('tasks')->where('created_by', function($query) {
-                $query->select('id')
-                    ->from('users')
-                    ->where('email', 'admin@example.com');
-            })->delete();
-
-            // Hapus user admin yang mungkin sudah ada
-            User::where('email', 'admin@example.com')->delete();
-
-            // Create super admin user
-            $superAdmin = User::create([
-                'name' => 'Super Admin',
-                'email' => 'admin@example.com',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-                'status' => 'active',
-                'approved_at' => now(),
-            ]);
+            // Cari atau buat super admin user
+            $superAdmin = User::firstOrCreate(
+                ['email' => 'admin@example.com'],
+                [
+                    'name' => 'Super Admin',
+                    'password' => Hash::make('password'),
+                    'email_verified_at' => now(),
+                    'status' => 'active',
+                    'approved_at' => now(),
+                ]
+            );
 
             // Get or create the Super Admin role
             $superAdminRole = Role::firstOrCreate([
@@ -48,15 +40,15 @@ class SuperAdminSeeder extends Seeder
             $superAdminRole->syncPermissions($permissions);
 
             // Assign role to super admin
-            $superAdmin->assignRole($superAdminRole);
+            $superAdmin->syncRoles([$superAdminRole]);
 
             // Log success
-            \Log::info('Super Admin created successfully with all permissions');
+            \Log::info('Super Admin updated successfully with all permissions');
             
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
-            \Log::error('Error creating Super Admin: ' . $e->getMessage());
+            \Log::error('Error updating Super Admin: ' . $e->getMessage());
             throw $e;
         }
     }

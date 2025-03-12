@@ -13,10 +13,26 @@ class MetricDataSeeder extends Seeder
      */
     public function run(): void
     {
+        // Truncate tables first
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::table('metric_data')->truncate();
+        DB::table('social_accounts')->truncate();
+        DB::table('social_platforms')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        // Create a test platform first
+        $platformId = DB::table('social_platforms')->insertGetId([
+            'name' => 'Instagram',
+            'icon' => 'instagram',
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+
         // Create a test social account
         $accountId = DB::table('social_accounts')->insertGetId([
             'name' => 'Test Instagram',
-            'platform' => 'instagram',
+            'username' => '@test.instagram.' . rand(1000, 9999),
+            'platform_id' => $platformId,
             'created_at' => now(),
             'updated_at' => now()
         ]);
@@ -25,7 +41,10 @@ class MetricDataSeeder extends Seeder
         $startDate = Carbon::now()->subDays(30);
         $followers = 1000; // Starting followers count
 
-        for ($i = 0; $i < 30; $i++) {
+        // Batch insert untuk performa lebih baik
+        $metrics = [];
+        
+        for ($i = 0; $i < 1000; $i++) { // Increased to 1000 days
             $date = $startDate->copy()->addDays($i);
             
             // Randomly increase followers (0-50 per day)
@@ -41,7 +60,7 @@ class MetricDataSeeder extends Seeder
             // Calculate engagement rate
             $engagementRate = (($likes + $comments + $shares) / $impressions) * 100;
 
-            DB::table('metric_data')->insert([
+            $metrics[] = [
                 'social_account_id' => $accountId,
                 'date' => $date->format('Y-m-d'),
                 'followers_count' => $followers,
@@ -53,7 +72,84 @@ class MetricDataSeeder extends Seeder
                 'shares' => $shares,
                 'created_at' => now(),
                 'updated_at' => now()
+            ];
+
+            // Insert in batches of 100
+            if (count($metrics) >= 100) {
+                DB::table('metric_data')->insert($metrics);
+                $metrics = [];
+            }
+        }
+
+        // Insert remaining metrics
+        if (!empty($metrics)) {
+            DB::table('metric_data')->insert($metrics);
+        }
+
+        // Generate more test accounts and their metrics
+        $platforms = [
+            ['name' => 'Facebook', 'icon' => 'facebook'],
+            ['name' => 'Twitter', 'icon' => 'twitter'],
+            ['name' => 'TikTok', 'icon' => 'tiktok'],
+            ['name' => 'YouTube', 'icon' => 'youtube']
+        ];
+
+        foreach ($platforms as $platform) {
+            $platformId = DB::table('social_platforms')->insertGetId([
+                'name' => $platform['name'],
+                'icon' => $platform['icon'],
+                'created_at' => now(),
+                'updated_at' => now()
             ]);
+
+            $accountId = DB::table('social_accounts')->insertGetId([
+                'name' => "Test {$platform['name']}",
+                'username' => "@test.{$platform['icon']}." . rand(1000, 9999),
+                'platform_id' => $platformId,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            $metrics = [];
+            $followers = rand(500, 5000); // Random starting followers
+
+            for ($i = 0; $i < 1000; $i++) { // Increased to 1000 days
+                $date = $startDate->copy()->addDays($i);
+                
+                // Randomly increase followers
+                $followers += rand(0, 100);
+                
+                $reach = rand(1000, 5000);
+                $impressions = $reach + rand(200, 1000);
+                $likes = rand(100, 500);
+                $comments = rand(20, 100);
+                $shares = rand(10, 50);
+                
+                $engagementRate = (($likes + $comments + $shares) / $impressions) * 100;
+
+                $metrics[] = [
+                    'social_account_id' => $accountId,
+                    'date' => $date->format('Y-m-d'),
+                    'followers_count' => $followers,
+                    'engagement_rate' => round($engagementRate, 2),
+                    'reach' => $reach,
+                    'impressions' => $impressions,
+                    'likes' => $likes,
+                    'comments' => $comments,
+                    'shares' => $shares,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+
+                if (count($metrics) >= 100) {
+                    DB::table('metric_data')->insert($metrics);
+                    $metrics = [];
+                }
+            }
+
+            if (!empty($metrics)) {
+                DB::table('metric_data')->insert($metrics);
+            }
         }
     }
 } 

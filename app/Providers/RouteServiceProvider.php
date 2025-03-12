@@ -24,6 +24,10 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Route::bind('metric-data', function ($value) {
+            return \App\Models\MetricData::withTrashed()->findOrFail($value);
+        });
+
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });

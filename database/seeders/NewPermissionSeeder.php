@@ -93,6 +93,11 @@ class NewPermissionSeeder extends Seeder
             'setting' => [
                 'manage-settings' => 'Mengelola pengaturan',
             ],
+            'metric-data' => [
+                'view-metric-data' => 'Melihat data metrik',
+                'manage-metric-data' => 'Mengelola data metrik',
+                'export-metric-data' => 'Mengekspor data metrik',
+            ],
         ];
 
         // Create permissions

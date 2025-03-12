@@ -19,45 +19,30 @@ class MetricDataController extends Controller
     public function index(Request $request)
     {
         $query = MetricData::with(['account.platform'])
-            ->when($request->account_id, function ($query, $accountId) {
-                return $query->where('social_account_id', $accountId);
-            })
-            ->when($request->date_range, function ($query, $range) {
-                if ($range === 'custom' && request()->filled(['start_date', 'end_date'])) {
-                    return $query->whereBetween('date', [request('start_date'), request('end_date')]);
-                }
-                
-                $endDate = now();
-                $startDate = $endDate->copy()->subDays($range);
-                return $query->whereBetween('date', [$startDate, $endDate]);
+            ->whereHas('account', function($q) {
+                $q->whereNull('deleted_at');
             });
 
-        $metrics = $query->latest('date')->paginate(10);
+        // Apply filters
+        if ($request->account_id) {
+            $query->where('social_account_id', $request->account_id);
+        }
 
-        // Ambil data terbaru untuk setiap akun menggunakan subquery
-        $latestDates = DB::table('metric_data')
-            ->select('social_account_id', DB::raw('MAX(date) as latest_date'))
-            ->whereNull('deleted_at')
-            ->groupBy('social_account_id');
+        if ($request->date_range) {
+            if ($request->date_range === 'custom' && $request->filled(['start_date', 'end_date'])) {
+                $query->whereBetween('date', [$request->start_date, $request->end_date]);
+            } else {
+                $endDate = now();
+                $startDate = $endDate->copy()->subDays($request->date_range);
+                $query->whereBetween('date', [$startDate, $endDate]);
+            }
+        }
 
-        $latestData = MetricData::joinSub($latestDates, 'latest_dates', function($join) {
-            $join->on('metric_data.social_account_id', '=', 'latest_dates.social_account_id')
-                 ->on('metric_data.date', '=', 'latest_dates.latest_date');
-        })->get();
+        // Get paginated results
+        $metrics = $query->orderByDesc('date')->paginate(10);
 
-        // Hitung statistik berdasarkan data terbaru
-        $stats = [
-            'total_followers' => $latestData->sum('followers_count'),
-            'follower_growth' => $this->calculateGrowth($query->clone()),
-            'average_engagement' => round($latestData->avg('engagement_rate'), 2),
-            'engagement_growth' => $this->calculateEngagementGrowth($query->clone()),
-            'total_reach' => $latestData->sum('reach'),
-            'reach_growth' => $this->calculateReachGrowth($query->clone()),
-            'total_interactions' => $latestData->sum(function($metric) {
-                return $metric->likes + $metric->comments + $metric->shares;
-            }),
-            'interactions_growth' => $this->calculateInteractionsGrowth($query->clone())
-        ];
+        // Get stats using efficient queries
+        $stats = $this->getOptimizedStats();
 
         return Inertia::render('MetricData/Index', [
             'metrics' => $metrics,
@@ -67,30 +52,55 @@ class MetricDataController extends Controller
         ]);
     }
 
-    private function calculateGrowth($query)
+    private function getOptimizedStats()
     {
-        // Ambil data terbaru untuk setiap akun menggunakan subquery
-        $latestDates = DB::table('metric_data')
-            ->select('social_account_id', DB::raw('MAX(date) as latest_date'))
-            ->whereNull('deleted_at')
-            ->groupBy('social_account_id');
+        // Get latest metrics for each account
+        $latestMetrics = DB::table('metric_data as md1')
+            ->join(DB::raw('(
+                SELECT social_account_id, MAX(date) as max_date
+                FROM metric_data
+                WHERE deleted_at IS NULL
+                GROUP BY social_account_id
+            ) as md2'), function($join) {
+                $join->on('md1.social_account_id', '=', 'md2.social_account_id')
+                     ->on('md1.date', '=', 'md2.max_date');
+            })
+            ->whereNull('md1.deleted_at')
+            ->get();
 
-        $latestData = MetricData::joinSub($latestDates, 'latest_dates', function($join) {
-            $join->on('metric_data.social_account_id', '=', 'latest_dates.social_account_id')
-                 ->on('metric_data.date', '=', 'latest_dates.latest_date');
-        })->get();
+        // Calculate stats
+        $stats = [
+            'total_followers' => $latestMetrics->sum('followers_count'),
+            'average_engagement' => round($latestMetrics->avg('engagement_rate'), 2),
+            'total_reach' => $latestMetrics->sum('reach'),
+            'total_interactions' => $latestMetrics->sum(function($metric) {
+                return $metric->likes + $metric->comments + $metric->shares;
+            })
+        ];
 
+        // Add growth calculations
+        $stats['follower_growth'] = $this->calculateOptimizedGrowth($latestMetrics, 'followers_count');
+        $stats['engagement_growth'] = $this->calculateOptimizedGrowth($latestMetrics, 'engagement_rate');
+        $stats['reach_growth'] = $this->calculateOptimizedGrowth($latestMetrics, 'reach');
+        $stats['interactions_growth'] = $this->calculateOptimizedInteractionsGrowth($latestMetrics);
+
+        return $stats;
+    }
+
+    private function calculateOptimizedGrowth($latestMetrics, $field)
+    {
         $totalGrowth = 0;
         $accountCount = 0;
 
-        foreach ($latestData as $currentData) {
-            $previousData = MetricData::where('social_account_id', $currentData->social_account_id)
-                ->where('date', '<', $currentData->date)
-                ->orderBy('date', 'desc')
+        foreach ($latestMetrics as $current) {
+            $previous = DB::table('metric_data')
+                ->where('social_account_id', $current->social_account_id)
+                ->where('date', '<', $current->date)
+                ->orderByDesc('date')
                 ->first();
 
-            if ($previousData && $previousData->followers_count > 0) {
-                $growth = (($currentData->followers_count - $previousData->followers_count) / $previousData->followers_count) * 100;
+            if ($previous && $previous->$field > 0) {
+                $growth = (($current->$field - $previous->$field) / $previous->$field) * 100;
                 $totalGrowth += $growth;
                 $accountCount++;
             }
@@ -99,95 +109,21 @@ class MetricDataController extends Controller
         return $accountCount > 0 ? round($totalGrowth / $accountCount, 2) : 0;
     }
 
-    private function calculateEngagementGrowth($query)
+    private function calculateOptimizedInteractionsGrowth($latestMetrics)
     {
-        // Ambil data terbaru untuk setiap akun menggunakan subquery
-        $latestDates = DB::table('metric_data')
-            ->select('social_account_id', DB::raw('MAX(date) as latest_date'))
-            ->whereNull('deleted_at')
-            ->groupBy('social_account_id');
-
-        $latestData = MetricData::joinSub($latestDates, 'latest_dates', function($join) {
-            $join->on('metric_data.social_account_id', '=', 'latest_dates.social_account_id')
-                 ->on('metric_data.date', '=', 'latest_dates.latest_date');
-        })->get();
-
         $totalGrowth = 0;
         $accountCount = 0;
 
-        foreach ($latestData as $currentData) {
-            $previousData = MetricData::where('social_account_id', $currentData->social_account_id)
-                ->where('date', '<', $currentData->date)
-                ->orderBy('date', 'desc')
+        foreach ($latestMetrics as $current) {
+            $previous = DB::table('metric_data')
+                ->where('social_account_id', $current->social_account_id)
+                ->where('date', '<', $current->date)
+                ->orderByDesc('date')
                 ->first();
 
-            if ($previousData && $previousData->engagement_rate > 0) {
-                $growth = (($currentData->engagement_rate - $previousData->engagement_rate) / $previousData->engagement_rate) * 100;
-                $totalGrowth += $growth;
-                $accountCount++;
-            }
-        }
-
-        return $accountCount > 0 ? round($totalGrowth / $accountCount, 2) : 0;
-    }
-
-    private function calculateReachGrowth($query)
-    {
-        // Ambil data terbaru untuk setiap akun menggunakan subquery
-        $latestDates = DB::table('metric_data')
-            ->select('social_account_id', DB::raw('MAX(date) as latest_date'))
-            ->whereNull('deleted_at')
-            ->groupBy('social_account_id');
-
-        $latestData = MetricData::joinSub($latestDates, 'latest_dates', function($join) {
-            $join->on('metric_data.social_account_id', '=', 'latest_dates.social_account_id')
-                 ->on('metric_data.date', '=', 'latest_dates.latest_date');
-        })->get();
-
-        $totalGrowth = 0;
-        $accountCount = 0;
-
-        foreach ($latestData as $currentData) {
-            $previousData = MetricData::where('social_account_id', $currentData->social_account_id)
-                ->where('date', '<', $currentData->date)
-                ->orderBy('date', 'desc')
-                ->first();
-
-            if ($previousData && $previousData->reach > 0) {
-                $growth = (($currentData->reach - $previousData->reach) / $previousData->reach) * 100;
-                $totalGrowth += $growth;
-                $accountCount++;
-            }
-        }
-
-        return $accountCount > 0 ? round($totalGrowth / $accountCount, 2) : 0;
-    }
-
-    private function calculateInteractionsGrowth($query)
-    {
-        // Ambil data terbaru untuk setiap akun menggunakan subquery
-        $latestDates = DB::table('metric_data')
-            ->select('social_account_id', DB::raw('MAX(date) as latest_date'))
-            ->whereNull('deleted_at')
-            ->groupBy('social_account_id');
-
-        $latestData = MetricData::joinSub($latestDates, 'latest_dates', function($join) {
-            $join->on('metric_data.social_account_id', '=', 'latest_dates.social_account_id')
-                 ->on('metric_data.date', '=', 'latest_dates.latest_date');
-        })->get();
-
-        $totalGrowth = 0;
-        $accountCount = 0;
-
-        foreach ($latestData as $currentData) {
-            $previousData = MetricData::where('social_account_id', $currentData->social_account_id)
-                ->where('date', '<', $currentData->date)
-                ->orderBy('date', 'desc')
-                ->first();
-
-            if ($previousData) {
-                $currentInteractions = $currentData->likes + $currentData->comments + $currentData->shares;
-                $previousInteractions = $previousData->likes + $previousData->comments + $previousData->shares;
+            if ($previous) {
+                $currentInteractions = $current->likes + $current->comments + $current->shares;
+                $previousInteractions = $previous->likes + $previous->comments + $previous->shares;
 
                 if ($previousInteractions > 0) {
                     $growth = (($currentInteractions - $previousInteractions) / $previousInteractions) * 100;
@@ -377,12 +313,54 @@ class MetricDataController extends Controller
         }
     }
 
-    public function destroy(MetricData $metricData)
+    public function destroy($id)
     {
-        $metricData->delete();
+        try {
+            DB::beginTransaction();
 
-        return redirect()->route('metric-data.index')
-            ->with('message', 'Data metrik berhasil dihapus');
+            $metricData = MetricData::withTrashed()
+                ->select('id', 'deleted_at') // Select hanya kolom yang diperlukan
+                ->findOrFail($id);
+
+            \Log::info('Destroy method called', [
+                'metric_id' => $metricData->id,
+                'user_id' => auth()->id(),
+                'request_method' => request()->method(),
+                'request_url' => request()->url(),
+                'metric_exists' => $metricData->exists,
+                'metric_trashed' => $metricData->trashed(),
+                'metric_deleted_at' => $metricData->deleted_at
+            ]);
+
+            // Gunakan query builder untuk performa lebih baik
+            $deleted = DB::table('metric_data')
+                ->where('id', $id)
+                ->whereNull('deleted_at')
+                ->update(['deleted_at' => now()]);
+
+            DB::commit();
+            
+            if (request()->wantsJson()) {
+                return response()->json(['success' => true]);
+            }
+            
+            return redirect()->route('metric-data.index')
+                ->with('message', 'Data metrik berhasil dihapus');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error in destroy method', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if (request()->wantsJson()) {
+                return response()->json(['error' => 'Terjadi kesalahan saat menghapus data'], 500);
+            }
+            
+            return redirect()->back()
+                ->withErrors(['error' => 'Terjadi kesalahan saat menghapus data']);
+        }
     }
 
     public function analytics(Request $request)
@@ -638,5 +616,86 @@ class MetricDataController extends Controller
         $fileName = 'template-import-metric-data.xlsx';
         
         return Excel::download(new MetricDataTemplateExport(), $fileName);
+    }
+
+    public function debugDelete($id)
+    {
+        try {
+            $metric = MetricData::withTrashed()->find($id);
+            
+            if (!$metric) {
+                return response()->json([
+                    'message' => 'Data tidak ditemukan',
+                    'id' => $id
+                ]);
+            }
+
+            $status = [
+                'id' => $metric->id,
+                'exists' => $metric->exists,
+                'trashed' => $metric->trashed(),
+                'deleted_at' => $metric->deleted_at,
+                'attributes' => $metric->getAttributes(),
+                'original' => $metric->getOriginal()
+            ];
+
+            return response()->json($status);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
+    }
+
+    public function forceDestroy($id)
+    {
+        try {
+            DB::beginTransaction();
+            
+            $metricData = MetricData::withTrashed()->find($id);
+            
+            if (!$metricData) {
+                throw new \Exception('Data metrik tidak ditemukan');
+            }
+
+            \Log::info('Attempting force delete:', [
+                'id' => $id,
+                'exists' => $metricData->exists,
+                'trashed' => $metricData->trashed(),
+                'deleted_at' => $metricData->deleted_at
+            ]);
+
+            $deleted = $metricData->forceDelete();
+            
+            DB::commit();
+            
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'message' => 'Data metrik berhasil dihapus permanen',
+                    'success' => true
+                ]);
+            }
+            
+            return redirect()->route('metric-data.index')
+                ->with('message', 'Data metrik berhasil dihapus permanen');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Force delete failed:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'message' => 'Gagal menghapus data secara permanen',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->back()
+                ->withErrors(['error' => 'Gagal menghapus data secara permanen: ' . $e->getMessage()]);
+        }
     }
 } 

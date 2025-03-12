@@ -197,15 +197,15 @@
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap">
                                         <div class="flex items-center">
-                                            <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-full" :class="getPlatformClass(metric.account.platform.name.toLowerCase())">
-                                                <i :class="getPlatformIcon(metric.account.platform.name.toLowerCase())" class="text-lg"></i>
+                                            <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-full" :class="getPlatformClass(metric.account?.platform?.name?.toLowerCase() || '')">
+                                                <i :class="getPlatformIcon(metric.account?.platform?.name?.toLowerCase() || '')" class="text-lg"></i>
                                             </div>
                                             <div class="ml-3">
                                                 <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                    {{ metric.account.name }}
+                                                    {{ metric.account?.name }}
                                                 </div>
                                                 <div class="text-sm text-gray-500 dark:text-gray-400">
-                                                    {{ metric.account.platform.name }}
+                                                    {{ metric.account?.platform?.name }}
                                                 </div>
                                             </div>
                                         </div>
@@ -282,14 +282,13 @@
                         Batal
                     </SecondaryButton>
 
-                    <PrimaryButton
-                        variant="danger"
+                    <DangerButton
                         :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
                         @click="deleteMetric"
                     >
                         {{ form.processing ? 'Menghapus...' : 'Hapus' }}
-                    </PrimaryButton>
+                    </DangerButton>
                 </div>
             </div>
         </Modal>
@@ -349,6 +348,7 @@ import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
 import SecondaryButton from '@/Components/SecondaryButton.vue'
+import DangerButton from '@/Components/DangerButton.vue'
 import Pagination from '@/Components/Pagination.vue'
 import Modal from '@/Components/Modal.vue'
 import SpinnerIcon from '@/Components/Icons/SpinnerIcon.vue'
@@ -409,6 +409,7 @@ const filter = debounce(() => {
 
 const selectedMetric = ref(null)
 const confirmingMetricDeletion = ref(false)
+const processing = ref(false)
 const form = useForm({})
 const showImportModal = ref(false)
 const importing = ref(false)
@@ -422,19 +423,34 @@ const confirmMetricDeletion = (metric) => {
 const closeModal = () => {
     confirmingMetricDeletion.value = false
     selectedMetric.value = null
+    processing.value = false
 }
 
 const deleteMetric = () => {
     if (selectedMetric.value) {
-        router.delete(route('metric-data.destroy', selectedMetric.value.id), {
+        form.delete(route('metric-data.destroy', selectedMetric.value.id), {
             preserveScroll: true,
+            preserveState: true,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            onBefore: () => {
+                processing.value = true;
+            },
             onSuccess: () => {
                 closeModal();
-                // Optional: Tambahkan notifikasi sukses jika diperlukan
+                router.reload();
             },
-            onError: (errors) => {
-                console.error('Error deleting metric:', errors);
-                // Optional: Tambahkan notifikasi error jika diperlukan
+            onError: (error) => {
+                if (error.response?.status === 419) {
+                    // Refresh halaman jika CSRF token expired
+                    window.location.reload();
+                } else {
+                    alert('Terjadi kesalahan saat menghapus data');
+                }
+            },
+            onFinish: () => {
+                processing.value = false;
             }
         });
     }

@@ -199,16 +199,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('social-accounts.toggle-status');
 
     // Metric Data Routes
-    Route::resource('metric-data', MetricDataController::class);
-    Route::get('metric-report', [MetricDataController::class, 'report'])->name('metric-data.report');
+    Route::resource('metric-data', MetricDataController::class)
+        ->middleware(['auth', 'verified', 'permission:manage-metric-data']);
+    Route::get('metric-report', [MetricDataController::class, 'report'])
+        ->name('metric-data.report')
+        ->middleware(['auth', 'verified', 'permission:view-metric-data']);
+
+    // Metric Data Import/Export Routes
+    Route::post('metric-data/import', [MetricDataController::class, 'import'])
+        ->name('metric-data.import')
+        ->middleware(['auth', 'verified', 'permission:manage-metric-data']);
+    Route::get('metric-data/export', [MetricDataController::class, 'export'])
+        ->name('metric-data.export')
+        ->middleware(['auth', 'verified', 'permission:export-metric-data']);
+    Route::get('metric-data/template', [MetricDataController::class, 'downloadTemplate'])
+        ->name('metric-data.template')
+        ->middleware(['auth', 'verified', 'permission:manage-metric-data']);
 
     // Analytics Dashboard
     Route::get('social-analytics', [SocialMediaAnalyticsController::class, 'index'])
         ->name('social-analytics.index')
         ->middleware('permission:view-analytics');
 
-    // Metric Data Import/Export Routes
-    Route::post('metric-data/import', [MetricDataController::class, 'import'])->name('metric-data.import');
-    Route::get('metric-data/export', [MetricDataController::class, 'export'])->name('metric-data.export');
-    Route::get('metric-data/template', [MetricDataController::class, 'downloadTemplate'])->name('metric-data.template');
+    Route::get('/metric-data/{id}/debug', [MetricDataController::class, 'debugDelete'])->name('metric-data.debug');
+
+    Route::delete('metric-data/{id}/force', [MetricDataController::class, 'forceDestroy'])
+        ->name('metric-data.force-destroy')
+        ->middleware(['auth', 'verified', 'permission:manage-metric-data']);
 });

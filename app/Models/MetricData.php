@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Log;
 
 class MetricData extends Model
 {
@@ -33,13 +34,46 @@ class MetricData extends Model
         'impressions' => 'integer',
         'likes' => 'integer',
         'comments' => 'integer',
-        'shares' => 'integer'
+        'shares' => 'integer',
+        'deleted_at' => 'datetime'
     ];
+
+    protected $dates = [
+        'deleted_at'
+    ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($metric) {
+            Log::info('MetricData deleting event triggered', [
+                'id' => $metric->id,
+                'exists' => $metric->exists,
+                'is_force_deleting' => $metric->isForceDeleting(),
+                'attributes' => $metric->getAttributes(),
+                'deleted_at' => $metric->deleted_at,
+                'user_id' => auth()->id(),
+                'request_method' => request()->method(),
+                'request_url' => request()->url()
+            ]);
+        });
+
+        static::deleted(function ($metric) {
+            Log::info('MetricData deleted event completed', [
+                'id' => $metric->id,
+                'exists' => $metric->exists,
+                'trashed' => $metric->trashed(),
+                'deleted_at' => $metric->deleted_at,
+                'user_id' => auth()->id()
+            ]);
+        });
+    }
 
     // Relasi dengan account
     public function account(): BelongsTo
     {
-        return $this->belongsTo(SocialAccount::class, 'social_account_id')->withTrashed();
+        return $this->belongsTo(SocialAccount::class, 'social_account_id');
     }
 
     // Scope untuk filter berdasarkan periode
@@ -61,6 +95,6 @@ class MetricData extends Model
     // Scope untuk filter berdasarkan rentang tanggal
     public function scopeBetweenDates($query, $startDate, $endDate)
     {
-        return $query->whereBetween('recorded_at', [$startDate, $endDate]);
+        return $query->whereBetween('date', [$startDate, $endDate]);
     }
 } 
