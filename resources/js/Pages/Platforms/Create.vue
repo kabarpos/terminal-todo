@@ -55,22 +55,86 @@
 
                             <div>
                                 <InputLabel for="settings" value="Pengaturan Platform" />
+                                <div class="mb-2">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        Pengaturan platform berisi konfigurasi khusus untuk setiap platform media sosial, seperti:
+                                    </p>
+                                    <ul class="mt-2 ml-4 list-disc text-sm text-gray-500 dark:text-gray-400">
+                                        <li>Jenis postingan yang didukung (feed, story, reels, dll)</li>
+                                        <li>Ukuran gambar yang direkomendasikan</li>
+                                        <li>Batasan karakter</li>
+                                        <li>Dan pengaturan khusus lainnya</li>
+                                    </ul>
+                                </div>
                                 <TextArea
                                     id="settings"
                                     v-model="form.settings"
                                     class="mt-1 block w-full font-mono"
-                                    rows="5"
-                                    placeholder="{
-  &quot;post_types&quot;: [&quot;feed&quot;, &quot;story&quot;],
-  &quot;image_dimensions&quot;: {
-    &quot;feed&quot;: &quot;1080x1080&quot;,
-    &quot;story&quot;: &quot;1080x1920&quot;
+                                    rows="8"
+                                    placeholder='{
+  "post_types": ["feed", "story", "reels"],
+  "image_dimensions": {
+    "feed": "1080x1080",
+    "story": "1080x1920",
+    "reels": "1080x1920"
+  },
+  "character_limits": {
+    "caption": 2200,
+    "hashtags": 30
   }
-}"
+}'
                                 />
-                                <p class="mt-1 text-sm text-gray-500">
-                                    Masukkan pengaturan platform dalam format JSON.
-                                </p>
+                                <div class="mt-2 space-y-2">
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        Contoh pengaturan untuk beberapa platform:
+                                    </p>
+                                    <div class="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+                                        <details class="cursor-pointer">
+                                            <summary class="font-medium">Instagram</summary>
+                                            <pre class="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-x-auto">{
+  "post_types": ["feed", "story", "reels"],
+  "image_dimensions": {
+    "feed": "1080x1080",
+    "story": "1080x1920",
+    "reels": "1080x1920"
+  },
+  "character_limits": {
+    "caption": 2200,
+    "hashtags": 30
+  }
+}</pre>
+                                        </details>
+                                        <details class="cursor-pointer">
+                                            <summary class="font-medium">Facebook</summary>
+                                            <pre class="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-x-auto">{
+  "post_types": ["feed", "story", "reels"],
+  "image_dimensions": {
+    "feed": "1200x630",
+    "story": "1080x1920",
+    "reels": "1080x1920"
+  },
+  "character_limits": {
+    "text": 63206
+  }
+}</pre>
+                                        </details>
+                                        <details class="cursor-pointer">
+                                            <summary class="font-medium">Twitter/X</summary>
+                                            <pre class="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-x-auto">{
+  "post_types": ["tweet"],
+  "image_dimensions": {
+    "tweet": "1600x900"
+  },
+  "character_limits": {
+    "tweet": 280
+  }
+}</pre>
+                                        </details>
+                                    </div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        Klik salah satu contoh di atas untuk menyalin dan menyesuaikan dengan kebutuhan Anda.
+                                    </p>
+                                </div>
                                 <InputError :message="form.errors.settings" class="mt-2" />
                             </div>
 

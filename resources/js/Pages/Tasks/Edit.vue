@@ -70,6 +70,21 @@
                                 </div>
 
                                 <div>
+                                    <InputLabel for="team_id" value="Tim" />
+                                    <SelectInput
+                                        id="team_id"
+                                        v-model="form.team_id"
+                                        class="mt-1 block w-full"
+                                    >
+                                        <option value="">Pilih Tim</option>
+                                        <option v-for="team in teams" :key="team.id" :value="team.id">
+                                            {{ team.name }}
+                                        </option>
+                                    </SelectInput>
+                                    <InputError :message="form.errors.team_id" class="mt-2" />
+                                </div>
+
+                                <div>
                                     <InputLabel for="priority" value="Prioritas" />
                                     <SelectInput
                                         id="priority"
@@ -202,6 +217,10 @@ const props = defineProps({
         type: Array,
         required: true
     },
+    teams: {
+        type: Array,
+        required: true
+    },
     users: {
         type: Array,
         required: true
@@ -248,6 +267,7 @@ const form = useForm({
     description: props.task.description,
     category_id: props.task.category_id,
     platform_id: props.task.platform_id,
+    team_id: props.task.team_id,
     priority: props.task.priority,
     status: props.task.status,
     start_date: props.task.start_date,

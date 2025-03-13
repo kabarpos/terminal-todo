@@ -41,13 +41,15 @@
                                 <div>
                                     <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Platform</h4>
                                     <div class="mt-1 flex items-center">
-                                        <div v-if="task.platform" class="flex items-center">
-                                            <div class="flex-shrink-0 h-6 w-6 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                                                <i :class="['text-lg fa-brands', `fa-${task.platform.icon}`]"></i>
-                                            </div>
-                                            <span class="ml-2">{{ task.platform.name }}</span>
-                                        </div>
-                                        <span v-else>-</span>
+                                        <i :class="['mr-2 text-xl fa-brands', `fa-${task.platform.icon}`]"></i>
+                                        <span>{{ task.platform.name }}</span>
+                                    </div>
+                                </div>
+
+                                <div v-if="task.team">
+                                    <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">Tim</h4>
+                                    <div class="mt-1">
+                                        <span class="text-gray-900 dark:text-gray-100">{{ task.team.name }}</span>
                                     </div>
                                 </div>
 

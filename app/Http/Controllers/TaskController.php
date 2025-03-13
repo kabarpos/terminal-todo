@@ -6,6 +6,7 @@ use App\Models\Task;
 use App\Models\User;
 use App\Models\Category;
 use App\Models\Platform;
+use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -14,7 +15,7 @@ class TaskController extends Controller
 {
     public function index(Request $request)
     {
-        $tasks = Task::with(['category', 'platform', 'assignees', 'creator'])
+        $tasks = Task::with(['category', 'platform', 'team', 'assignees', 'creator'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn ($task) => [
@@ -30,6 +31,10 @@ class TaskController extends Controller
                     'id' => $task->platform->id,
                     'name' => $task->platform->name,
                     'icon' => $task->platform->icon
+                ] : null,
+                'team' => $task->team ? [
+                    'id' => $task->team->id,
+                    'name' => $task->team->name
                 ] : null,
                 'priority' => $task->priority,
                 'status' => $task->status,
@@ -63,6 +68,7 @@ class TaskController extends Controller
         return Inertia::render('Tasks/Create', [
             'categories' => Category::where('type', 'task')->where('is_active', true)->get(),
             'platforms' => Platform::where('is_active', true)->get(),
+            'teams' => Team::where('is_active', true)->get(),
             'users' => User::where('status', 'active')->get()
         ]);
     }
@@ -74,6 +80,7 @@ class TaskController extends Controller
             'description' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
             'platform_id' => 'nullable|exists:platforms,id',
+            'team_id' => 'nullable|exists:teams,id',
             'priority' => 'required|in:low,medium,high,urgent',
             'status' => 'required|in:draft,in_progress,completed,cancelled',
             'start_date' => 'nullable|date',
@@ -87,6 +94,7 @@ class TaskController extends Controller
             'description' => $request->description,
             'category_id' => $request->category_id,
             'platform_id' => $request->platform_id,
+            'team_id' => $request->team_id,
             'priority' => $request->priority,
             'status' => $request->status,
             'start_date' => $request->start_date,
@@ -102,7 +110,7 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
-        $task->load(['category', 'platform', 'assignees', 'creator', 'comments.user']);
+        $task->load(['category', 'platform', 'team', 'assignees', 'creator', 'comments.user']);
 
         return Inertia::render('Tasks/Show', [
             'task' => [
@@ -118,6 +126,10 @@ class TaskController extends Controller
                     'id' => $task->platform->id,
                     'name' => $task->platform->name,
                     'icon' => $task->platform->icon
+                ] : null,
+                'team' => $task->team ? [
+                    'id' => $task->team->id,
+                    'name' => $task->team->name
                 ] : null,
                 'priority' => $task->priority,
                 'status' => $task->status,
@@ -151,7 +163,7 @@ class TaskController extends Controller
 
     public function edit(Task $task)
     {
-        $task->load(['category', 'platform', 'assignees']);
+        $task->load(['category', 'platform', 'team', 'assignees']);
 
         return Inertia::render('Tasks/Edit', [
             'task' => [
@@ -160,6 +172,7 @@ class TaskController extends Controller
                 'description' => $task->description,
                 'category_id' => $task->category_id,
                 'platform_id' => $task->platform_id,
+                'team_id' => $task->team_id,
                 'priority' => $task->priority,
                 'status' => $task->status,
                 'start_date' => $task->start_date?->format('Y-m-d\TH:i'),
@@ -171,6 +184,7 @@ class TaskController extends Controller
             ],
             'categories' => Category::where('type', 'task')->where('is_active', true)->get(),
             'platforms' => Platform::where('is_active', true)->get(),
+            'teams' => Team::where('is_active', true)->get(),
             'users' => User::where('status', 'active')->get()
         ]);
     }
@@ -182,6 +196,7 @@ class TaskController extends Controller
             'description' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
             'platform_id' => 'nullable|exists:platforms,id',
+            'team_id' => 'nullable|exists:teams,id',
             'priority' => 'required|in:low,medium,high,urgent',
             'status' => 'required|in:draft,in_progress,completed,cancelled',
             'start_date' => 'nullable|date',
@@ -195,6 +210,7 @@ class TaskController extends Controller
             'description' => $request->description,
             'category_id' => $request->category_id,
             'platform_id' => $request->platform_id,
+            'team_id' => $request->team_id,
             'priority' => $request->priority,
             'status' => $request->status,
             'start_date' => $request->start_date,

@@ -86,6 +86,21 @@
                 </SelectInput>
                 <InputError class="mt-2" :message="form.errors.category_id" />
             </div>
+
+            <div>
+                <InputLabel for="event-team_id" value="Tim" />
+                <SelectInput
+                    id="event-team_id"
+                    class="mt-1 block w-full"
+                    v-model="form.team_id"
+                >
+                    <option value="">Pilih Tim</option>
+                    <option v-for="team in teams" :key="team.id" :value="team.id">
+                        {{ team.name }}
+                    </option>
+                </SelectInput>
+                <InputError class="mt-2" :message="form.errors.team_id" />
+            </div>
         </div>
 
         <div>
@@ -143,6 +158,10 @@ const props = defineProps({
         type: Array,
         required: true
     },
+    teams: {
+        type: Array,
+        required: true
+    },
     users: {
         type: Array,
         required: true
@@ -162,6 +181,7 @@ const handleSubmit = (e) => {
         status: props.form.status,
         platform_id: props.form.platform_id,
         category_id: props.form.category_id,
+        team_id: props.form.team_id,
         assignees: props.form.assignees
     });
     emit('submit');

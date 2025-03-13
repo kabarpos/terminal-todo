@@ -17,6 +17,7 @@ class EditorialCalendar extends Model
         'description',
         'platform_id',
         'category_id',
+        'team_id',
         'created_by',
         'publish_date',
         'deadline',
@@ -39,6 +40,11 @@ class EditorialCalendar extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
     }
 
     public function creator()

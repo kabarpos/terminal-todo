@@ -15,6 +15,7 @@ class Task extends Model
         'description',
         'category_id',
         'platform_id',
+        'team_id',
         'created_by',
         'priority',
         'status',
@@ -40,6 +41,11 @@ class Task extends Model
     public function platform()
     {
         return $this->belongsTo(Platform::class);
+    }
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class);
     }
 
     public function creator()

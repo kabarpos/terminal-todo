@@ -6,6 +6,7 @@ use App\Models\EditorialCalendar;
 use App\Models\Platform;
 use App\Models\Category;
 use App\Models\User;
+use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -58,6 +59,7 @@ class EditorialCalendarController extends Controller
         return Inertia::render('Calendar/Create', [
             'platforms' => Platform::where('is_active', true)->get(),
             'categories' => Category::where('type', 'content')->where('is_active', true)->get(),
+            'teams' => Team::where('is_active', true)->get(),
             'users' => User::where('status', 'active')->get(),
             'prefilledDate' => $request->date ?? null
         ]);
@@ -70,6 +72,7 @@ class EditorialCalendarController extends Controller
             'description' => 'nullable|string',
             'platform_id' => 'required|exists:platforms,id',
             'category_id' => 'required|exists:categories,id',
+            'team_id' => 'nullable|exists:teams,id',
             'publish_date' => 'required|date',
             'deadline' => 'nullable|date|before_or_equal:publish_date',
             'status' => 'required|in:planned,in_progress,published,cancelled',
@@ -83,6 +86,7 @@ class EditorialCalendarController extends Controller
             'description' => $request->description,
             'platform_id' => $request->platform_id,
             'category_id' => $request->category_id,
+            'team_id' => $request->team_id,
             'publish_date' => $request->publish_date,
             'deadline' => $request->deadline,
             'status' => $request->status,
@@ -152,7 +156,7 @@ class EditorialCalendarController extends Controller
 
     public function edit(EditorialCalendar $calendar)
     {
-        $calendar->load(['platform', 'category', 'assignees']);
+        $calendar->load(['platform', 'category', 'team', 'assignees']);
 
         return Inertia::render('Calendar/Edit', [
             'event' => [
@@ -161,6 +165,7 @@ class EditorialCalendarController extends Controller
                 'description' => $calendar->description,
                 'platform_id' => $calendar->platform_id,
                 'category_id' => $calendar->category_id,
+                'team_id' => $calendar->team_id,
                 'publish_date' => $calendar->publish_date->format('Y-m-d\TH:i:s'),
                 'deadline' => $calendar->deadline?->format('Y-m-d\TH:i:s'),
                 'status' => $calendar->status,
@@ -174,6 +179,7 @@ class EditorialCalendarController extends Controller
             ],
             'platforms' => Platform::where('is_active', true)->get(),
             'categories' => Category::where('type', 'content')->where('is_active', true)->get(),
+            'teams' => Team::where('is_active', true)->get(),
             'users' => User::where('status', 'active')->get()
         ]);
     }
@@ -185,6 +191,7 @@ class EditorialCalendarController extends Controller
             'description' => 'nullable|string',
             'platform_id' => 'required|exists:platforms,id',
             'category_id' => 'required|exists:categories,id',
+            'team_id' => 'nullable|exists:teams,id',
             'publish_date' => 'required|date',
             'deadline' => 'nullable|date|before_or_equal:publish_date',
             'status' => 'required|in:planned,in_progress,published,cancelled',
@@ -198,6 +205,7 @@ class EditorialCalendarController extends Controller
             'description' => $request->description,
             'platform_id' => $request->platform_id,
             'category_id' => $request->category_id,
+            'team_id' => $request->team_id,
             'publish_date' => $request->publish_date,
             'deadline' => $request->deadline,
             'status' => $request->status,

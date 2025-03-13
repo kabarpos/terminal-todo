@@ -35,6 +35,7 @@
                                 :form="form"
                                 :platforms="platforms"
                                 :categories="categories"
+                                :teams="teams"
                                 :users="users"
                             />
 
@@ -114,6 +115,10 @@ const props = defineProps({
         type: Array,
         required: true
     },
+    teams: {
+        type: Array,
+        required: true
+    },
     users: {
         type: Array,
         required: true
@@ -135,6 +140,7 @@ const form = useForm({
     status: props.event.status,
     platform_id: props.event.platform_id,
     category_id: props.event.category_id,
+    team_id: props.event.team_id,
     assignees: Array.isArray(props.event.assignees) 
         ? props.event.assignees.map(assignee => assignee.id.toString())
         : []
@@ -171,6 +177,7 @@ const submit = () => {
         status: form.status,
         platform_id: form.platform_id,
         category_id: form.category_id,
+        team_id: form.team_id,
         assignees: form.assignees
     });
     console.log('Route:', route('calendar.update', props.event.id));

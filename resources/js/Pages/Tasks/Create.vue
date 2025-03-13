@@ -70,6 +70,21 @@
                                 </div>
 
                                 <div>
+                                    <InputLabel for="team_id" value="Tim" />
+                                    <SelectInput
+                                        id="team_id"
+                                        v-model="form.team_id"
+                                        class="mt-1 block w-full"
+                                    >
+                                        <option value="">Pilih Tim</option>
+                                        <option v-for="team in teams" :key="team.id" :value="team.id">
+                                            {{ team.name }}
+                                        </option>
+                                    </SelectInput>
+                                    <InputError :message="form.errors.team_id" class="mt-2" />
+                                </div>
+
+                                <div>
                                     <InputLabel for="priority" value="Prioritas" />
                                     <SelectInput
                                         id="priority"
@@ -84,31 +99,6 @@
                                         <option value="urgent">Urgent</option>
                                     </SelectInput>
                                     <InputError :message="form.errors.priority" class="mt-2" />
-                                </div>
-
-                                <div>
-                                    <InputLabel for="status" value="Status" />
-                                    <div class="mt-1 grid grid-cols-2 md:grid-cols-3 gap-3">
-                                        <button
-                                            type="button"
-                                            v-for="status in statuses"
-                                            :key="status.value"
-                                            @click="form.status = status.value"
-                                            class="p-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2"
-                                            :class="[
-                                                form.status === status.value
-                                                    ? status.activeClass
-                                                    : status.inactiveClass,
-                                                'hover:shadow-md'
-                                            ]"
-                                        >
-                                            <span :class="status.iconClass" v-if="status.icon">
-                                                <i :class="status.icon"></i>
-                                            </span>
-                                            {{ status.label }}
-                                        </button>
-                                    </div>
-                                    <InputError :message="form.errors.status" class="mt-2" />
                                 </div>
 
                                 <div>
@@ -133,6 +123,31 @@
                                     />
                                     <InputError :message="form.errors.due_date" class="mt-2" />
                                 </div>
+                            </div>
+
+                            <div>
+                                <InputLabel for="status" value="Status" />
+                                <div class="mt-1 grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <button
+                                        type="button"
+                                        v-for="status in statuses"
+                                        :key="status.value"
+                                        @click="form.status = status.value"
+                                        class="p-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                                        :class="[
+                                            form.status === status.value
+                                                ? status.activeClass
+                                                : status.inactiveClass,
+                                            'hover:shadow-md'
+                                        ]"
+                                    >
+                                        <span :class="status.iconClass" v-if="status.icon">
+                                            <i :class="status.icon"></i>
+                                        </span>
+                                        {{ status.label }}
+                                    </button>
+                                </div>
+                                <InputError :message="form.errors.status" class="mt-2" />
                             </div>
 
                             <div>
@@ -198,6 +213,10 @@ const props = defineProps({
         type: Array,
         required: true
     },
+    teams: {
+        type: Array,
+        required: true
+    },
     users: {
         type: Array,
         required: true
@@ -244,6 +263,7 @@ const form = useForm({
     description: '',
     category_id: '',
     platform_id: '',
+    team_id: '',
     priority: '',
     status: '',
     start_date: '',

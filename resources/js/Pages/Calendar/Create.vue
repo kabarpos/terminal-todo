@@ -26,6 +26,7 @@
                                 :form="form"
                                 :platforms="platforms"
                                 :categories="categories"
+                                :teams="teams"
                                 :users="users"
                             />
 
@@ -69,6 +70,10 @@ const props = defineProps({
         required: true
     },
     categories: {
+        type: Array,
+        required: true
+    },
+    teams: {
         type: Array,
         required: true
     },
@@ -117,6 +122,7 @@ const form = useForm({
     deadline: '',
     platform_id: '',
     category_id: '',
+    team_id: '',
     status: 'planned',
     assignees: []
 });

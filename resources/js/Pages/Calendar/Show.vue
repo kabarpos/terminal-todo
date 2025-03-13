@@ -48,6 +48,14 @@
                                         <span>{{ event.platform.name }}</span>
                                     </div>
                                 </div>
+
+                                <div v-if="event.team">
+                                    <h4 class="mb-2 font-semibold text-gray-700 dark:text-gray-300">Tim</h4>
+                                    <div class="flex items-center">
+                                        <span>{{ event.team.name }}</span>
+                                    </div>
+                                </div>
+
                                 <div>
                                     <h4 class="mb-2 font-semibold text-gray-700 dark:text-gray-300">Kategori</h4>
                                     <div class="flex items-center">

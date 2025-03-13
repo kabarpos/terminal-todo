@@ -20,8 +20,7 @@ class SocialAccountSeeder extends Seeder
                     'platform_id' => $platform->id,
                     'name' => 'Test Account ' . $platform->name,
                     'username' => 'test_' . strtolower($platform->name) . '_' . Str::random(8),
-                    'url' => 'https://' . strtolower($platform->name) . '.com/test_account',
-                    'description' => 'Test account for ' . $platform->name,
+                    'profile_url' => 'https://' . strtolower($platform->name) . '.com/test_account',
                     'is_active' => true
                 ]);
             }
