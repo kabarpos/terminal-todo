@@ -103,7 +103,7 @@ const props = defineProps({
 })
 
 const toggleStatus = (platform) => {
-    if (confirm(\`Apakah Anda yakin ingin \${platform.is_active ? 'menonaktifkan' : 'mengaktifkan'} platform ini?\`)) {
+    if (confirm(`Apakah Anda yakin ingin ${platform.is_active ? 'menonaktifkan' : 'mengaktifkan'} platform ini?`)) {
         router.put(route('social-platforms.toggle-status', platform.id))
     }
 }

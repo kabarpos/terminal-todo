@@ -39,12 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Tasks Routes
     Route::resource('tasks', TaskController::class)
-        ->middleware('permission:view-task')
-        ->except(['store', 'update', 'destroy']);
-    
-    Route::resource('tasks', TaskController::class)
-        ->middleware('permission:manage-task')
-        ->only(['store', 'update', 'destroy']);
+        ->middleware(['permission:view-task|manage-task']);
 
     Route::put('tasks/{task}/update-status', [TaskController::class, 'updateStatus'])
         ->name('tasks.update-status')
