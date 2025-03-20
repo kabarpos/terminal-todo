@@ -12,10 +12,10 @@
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <!-- Filter & Actions Section -->
                 <div class="mb-6">
-                    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <!-- Filter Dropdowns -->
                         <div class="flex flex-wrap items-center gap-4">
-                            <div class="w-64">
+                            <div class="w-full sm:w-64">
                                 <select
                                     v-model="filters.account_id"
                                     class="block w-full text-sm border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -28,7 +28,7 @@
                                 </select>
                             </div>
 
-                            <div class="w-48">
+                            <div class="w-full sm:w-48">
                                 <select
                                     v-model="filters.date_range"
                                     class="block w-full text-sm border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
@@ -62,39 +62,39 @@
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="flex items-center gap-2">
-                            <div class="flex items-center gap-2">
+                        <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+                            <div class="col-span-2 sm:col-auto grid grid-cols-3 gap-2">
                                 <Link
                                     :href="route('metric-data.template')"
-                                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                    class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                                 >
-                                    <DocumentArrowDownIcon class="w-5 h-5 mr-1.5" />
-                                    Template
+                                    <DocumentArrowDownIcon class="w-5 h-5 sm:mr-1.5" />
+                                    <span class="hidden sm:inline">Template</span>
                                 </Link>
                                 
                                 <button
                                     @click="showImportModal = true"
-                                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                    class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                                 >
-                                    <ArrowUpTrayIcon class="w-5 h-5 mr-1.5" />
-                                    Import
+                                    <ArrowUpTrayIcon class="w-5 h-5 sm:mr-1.5" />
+                                    <span class="hidden sm:inline">Import</span>
                                 </button>
 
                                 <Link
                                     :href="route('metric-data.export', filters)"
-                                    class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                    class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                                 >
-                                    <ArrowDownTrayIcon class="w-5 h-5 mr-1.5" />
-                                    Export
+                                    <ArrowDownTrayIcon class="w-5 h-5 sm:mr-1.5" />
+                                    <span class="hidden sm:inline">Export</span>
                                 </Link>
                             </div>
 
                             <Link
                                 :href="route('metric-data.create')"
-                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 border border-transparent rounded-lg transition-colors duration-200"
+                                class="col-span-2 sm:col-auto inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 border border-transparent rounded-lg transition-colors duration-200"
                             >
-                                <PlusIcon class="w-5 h-5 mr-1.5" />
-                                Tambah Data
+                                <PlusIcon class="w-5 h-5 sm:mr-1.5" />
+                                <span class="inline sm:inline">Tambah Data</span>
                             </Link>
                         </div>
                     </div>

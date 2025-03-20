@@ -6,7 +6,7 @@
             <div class="w-full">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg md:text-xl font-semibold text-[var(--text-primary)] truncate">
-                        Social Media Reports
+                        Account Reports
                     </h2>
                     
                     <div class="flex items-center gap-2">
