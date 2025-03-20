@@ -80,12 +80,78 @@ class MediaController extends Controller
         return back()->with('success', count($uploadedFiles) . ' file berhasil diunggah.');
     }
 
-    public function destroy(Media $media)
+    public function destroy(Media $media, Request $request)
     {
-        Storage::disk('public')->delete($media->file_path);
-        $media->delete();
+        $forceDelete = $request->input('force_delete', false);
+        
+        if ($forceDelete) {
+            // Hapus file dari storage
+            if (Storage::disk('public')->exists($media->file_path)) {
+                Storage::disk('public')->delete($media->file_path);
+            }
+            
+            // Hapus record secara permanen
+            $media->forceDelete();
+            
+            return back()->with('success', 'File berhasil dihapus permanen.');
+        } else {
+            // Soft delete (tetap simpan file fisik)
+            $media->delete();
+            
+            return back()->with('success', 'File telah dipindahkan ke sampah.');
+        }
+    }
 
-        return back()->with('success', 'File berhasil dihapus.');
+    public function trash()
+    {
+        return Inertia::render('Media/Trash', [
+            'media' => Media::onlyTrashed()
+                ->with('uploader')
+                ->latest('deleted_at')
+                ->paginate(12)
+                ->through(fn ($media) => [
+                    'id' => $media->id,
+                    'name' => $media->name,
+                    'type' => $this->getMediaType($media->mime_type),
+                    'size' => $media->file_size,
+                    'url' => $media->url,
+                    'created_at' => $media->created_at->format('Y-m-d H:i:s'),
+                    'deleted_at' => $media->deleted_at->format('Y-m-d H:i:s'),
+                    'uploader' => $media->uploader ? [
+                        'name' => $media->uploader->name,
+                        'avatar' => $media->uploader->avatar_url
+                    ] : null,
+                    'collection' => $media->collection,
+                    'metadata' => $media->metadata
+                ]),
+            'can' => [
+                'restore' => auth()->user()->can('manage-media'),
+                'force_delete' => auth()->user()->can('manage-media'),
+            ]
+        ]);
+    }
+    
+    public function restore($id)
+    {
+        $media = Media::onlyTrashed()->findOrFail($id);
+        $media->restore();
+        
+        return back()->with('success', 'File berhasil dipulihkan.');
+    }
+    
+    public function forceDelete($id)
+    {
+        $media = Media::onlyTrashed()->findOrFail($id);
+        
+        // Hapus file dari storage
+        if (Storage::disk('public')->exists($media->file_path)) {
+            Storage::disk('public')->delete($media->file_path);
+        }
+        
+        // Hapus record secara permanen
+        $media->forceDelete();
+        
+        return back()->with('success', 'File berhasil dihapus permanen.');
     }
 
     private function getMediaType($mimeType)

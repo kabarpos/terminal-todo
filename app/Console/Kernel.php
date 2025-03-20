@@ -21,6 +21,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('metrics:fetch')
             ->dailyAt('00:00')
             ->appendOutputTo(storage_path('logs/metrics-fetch.log'));
+
+        // Membersihkan media yang di-softdelete lebih dari 30 hari
+        $schedule->command('media:clean 30')->daily()->at('01:00');
     }
 
     /**

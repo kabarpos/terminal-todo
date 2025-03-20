@@ -165,6 +165,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('media', [MediaController::class, 'index'])->name('media.index');
     Route::post('media', [MediaController::class, 'store'])->name('media.store');
     Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+    // Media Trash Routes
+    Route::get('media/trash', [MediaController::class, 'trash'])->name('media.trash');
+    Route::post('media/restore/{id}', [MediaController::class, 'restore'])->name('media.restore');
+    Route::delete('media/force-delete/{id}', [MediaController::class, 'forceDelete'])->name('media.force-delete');
 
     // Analytics Routes
     Route::get('analytics', [AnalyticsController::class, 'index'])

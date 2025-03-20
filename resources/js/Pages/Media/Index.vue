@@ -7,6 +7,16 @@
                 <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
                     Media Library
                 </h2>
+                <div class="flex items-center space-x-2">
+                    <Link
+                        v-if="can.create"
+                        href="/media/trash"
+                        class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 transition-colors duration-200"
+                    >
+                        <TrashIcon class="w-5 h-5 mr-1" />
+                        Trash
+                    </Link>
+                </div>
             </div>
         </template>
 
@@ -289,8 +299,22 @@
                 </h2>
 
                 <p class="mt-3 text-sm text-[var(--text-secondary)]">
-                    Apakah Anda yakin ingin menghapus media ini? Media yang sudah dihapus tidak dapat dikembalikan.
+                    Apakah Anda yakin ingin menghapus media ini? Media yang sudah dihapus akan dipindahkan ke trash.
                 </p>
+                
+                <div class="mt-4">
+                    <div class="flex items-center">
+                        <input
+                            id="force-delete"
+                            v-model="forceDelete"
+                            type="checkbox"
+                            class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 dark:text-indigo-400 dark:border-gray-700 dark:bg-gray-800 dark:focus:ring-indigo-400"
+                        />
+                        <label for="force-delete" class="ml-2 block text-sm text-red-600 dark:text-red-400">
+                            Hapus permanen (tidak dapat dikembalikan)
+                        </label>
+                    </div>
+                </div>
 
                 <div class="mt-6 flex justify-end gap-4">
                     <SecondaryButton 
@@ -319,7 +343,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Head } from '@inertiajs/vue3'
+import { Head, Link } from '@inertiajs/vue3'
 import { router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import Modal from '@/Components/Modal.vue'
@@ -361,6 +385,7 @@ const previewItem = ref(null)
 const selectedMedia = ref(null)
 const confirmingMediaDeletion = ref(false)
 const processing = ref(false)
+const forceDelete = ref(false)
 
 const filters = ref({
     type: '',
@@ -454,17 +479,24 @@ const closeDeleteModal = () => {
     confirmingMediaDeletion.value = false;
     selectedMedia.value = null;
     processing.value = false;
+    forceDelete.value = false;
 };
 
 const confirmDelete = (file) => {
     selectedMedia.value = file;
+    forceDelete.value = false;
     confirmingMediaDeletion.value = true;
 };
 
 const deleteMedia = () => {
     if (selectedMedia.value) {
         processing.value = true;
+        
+        // Parameter untuk force delete
+        const params = { force_delete: forceDelete.value };
+        
         router.delete(`/media/${selectedMedia.value.id}`, {
+            data: params,
             preserveScroll: true,
             onSuccess: () => {
                 closeDeleteModal();
