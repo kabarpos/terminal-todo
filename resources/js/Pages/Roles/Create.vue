@@ -40,9 +40,27 @@
 
                 <!-- Permission Table -->
                 <div class="mt-6">
-                    <h3 class="text-lg font-medium text-[var(--text-primary)] mb-4">
-                        Permissions
-                    </h3>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium text-[var(--text-primary)]">
+                            Permissions
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <button
+                                type="button"
+                                @click="selectAllPermissions"
+                                class="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/50 dark:hover:bg-blue-900/75"
+                            >
+                                Select All
+                            </button>
+                            <button
+                                type="button"
+                                @click="unselectAllPermissions"
+                                class="px-3 py-1 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-900/75"
+                            >
+                                Unselect All
+                            </button>
+                        </div>
+                    </div>
                     
                     <!-- Search & Filter -->
                     <div class="mb-4">
@@ -67,27 +85,26 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(moduleConfig, moduleName) in modules" 
-                                    :key="moduleName" 
-                                    v-show="showModule(moduleName)" 
+                                <tr v-for="(permissions, group) in filteredPermissions" 
+                                    :key="group"
                                     class="border-b border-gray-200/50 dark:border-gray-700/25 hover:bg-[var(--bg-secondary)]/50"
                                 >
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-primary)]">
-                                        {{ moduleConfig.label }}
+                                        {{ formatGroupLabel(group) }}
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="flex flex-wrap gap-3">
-                                            <div v-for="action in moduleConfig.permissions" 
-                                                :key="action"
+                                            <div v-for="permission in permissions" 
+                                                :key="permission.id"
                                                 class="flex items-center gap-2"
                                             >
                                                 <Checkbox
                                                     v-model:checked="form.permissions"
-                                                    :value="getPermissionValue(moduleName, action)"
-                                                    :name="getPermissionValue(moduleName, action)"
+                                                    :value="permission.name"
+                                                    :name="permission.name"
                                                 />
                                                 <span class="text-sm text-[var(--text-primary)]">
-                                                    {{ formatPermissionLabel(action) }}
+                                                    {{ formatPermissionLabel(permission) }}
                                                 </span>
                                             </div>
                                         </div>
@@ -111,7 +128,7 @@
                         :disabled="form.processing"
                         class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-25"
                     >
-                        Simpan
+                        {{ form.processing ? 'Menyimpan...' : 'Simpan' }}
                     </button>
                 </div>
             </form>
@@ -135,6 +152,10 @@ const props = defineProps({
     auth: {
         type: Object,
         required: true
+    },
+    permissions: {
+        type: Object,
+        required: true
     }
 });
 
@@ -145,112 +166,49 @@ const form = useForm({
 
 const searchQuery = ref('');
 
-// Definisi modul dan permission yang tersedia
-const modules = {
-    users: {
-        label: 'Users',
-        permissions: ['view users', 'create users', 'edit users', 'delete users']
-    },
-    roles: {
-        label: 'Roles',
-        permissions: ['view roles', 'create roles', 'edit roles', 'delete roles']
-    },
-    tasks: {
-        label: 'Tasks',
-        permissions: ['view tasks', 'create tasks', 'edit tasks', 'delete tasks', 'assign tasks', 'change task status']
-    },
-    content: {
-        label: 'Content',
-        permissions: ['view content', 'create content', 'edit content', 'delete content', 'approve content']
-    },
-    teams: {
-        label: 'Teams',
-        permissions: ['view teams', 'create teams', 'edit teams', 'delete teams', 'manage team members']
-    },
-    calendar: {
-        label: 'Calendar',
-        permissions: ['view calendar', 'create calendar events', 'edit calendar events', 'delete calendar events']
-    },
-    assets: {
-        label: 'Assets',
-        permissions: ['view assets', 'upload assets', 'edit assets', 'delete assets']
-    },
-    reports: {
-        label: 'Reports',
-        permissions: ['view reports', 'export reports']
-    },
-    analytics: {
-        label: 'Analytics',
-        permissions: ['view analytics']
-    },
-    admin: {
-        label: 'Admin',
-        permissions: ['access admin', 'manage settings', 'manage all']
-    }
+// Filter permissions berdasarkan search query
+const filteredPermissions = computed(() => {
+    if (!searchQuery.value) return props.permissions;
+
+    const query = searchQuery.value.toLowerCase();
+    const filtered = {};
+
+    Object.entries(props.permissions).forEach(([group, permissions]) => {
+        const matchingPermissions = permissions.filter(permission => 
+            permission.name.toLowerCase().includes(query)
+        );
+
+        if (matchingPermissions.length > 0) {
+            filtered[group] = matchingPermissions;
+        }
+    });
+
+    return filtered;
+});
+
+// Format label permission untuk tampilan yang lebih baik
+const formatPermissionLabel = (permission) => {
+    const action = permission.name.split(' ').slice(1).join(' ');
+    return action.charAt(0).toUpperCase() + action.slice(1);
 };
 
-// Helper untuk format permission
-const formatPermission = (permission) => {
-    return permission; // Tidak perlu format khusus karena sudah dalam format yang benar
+// Format label group untuk tampilan yang lebih baik
+const formatGroupLabel = (group) => {
+    return group.charAt(0).toUpperCase() + group.slice(1);
 };
 
-// Method untuk filter module berdasarkan search query
-const showModule = (moduleName) => {
-    if (!searchQuery.value) return true;
-    return moduleName.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-           form.permissions.some(permission => 
-               permission.toLowerCase().includes(searchQuery.value.toLowerCase())
-           );
+// Tambahkan methods untuk select/unselect all
+const selectAllPermissions = () => {
+    // Pastikan mengambil semua permission name dari props
+    const allPermissions = Object.values(props.permissions)
+        .flat()
+        .map(permission => permission.name);
+    form.permissions = [...new Set(allPermissions)]; // Hapus duplikat jika ada
+    console.log('Selected all permissions:', form.permissions);
 };
 
-// Update checkbox values dengan format yang benar
-const getPermissionValue = (moduleName, action) => {
-    return action; // Gunakan action langsung karena sudah include nama module
-};
-
-// Tambahkan fungsi formatPermissionLabel
-const formatPermissionLabel = (action) => {
-    const labels = {
-        'view users': 'Lihat Pengguna',
-        'create users': 'Tambah Pengguna',
-        'edit users': 'Edit Pengguna',
-        'delete users': 'Hapus Pengguna',
-        'view roles': 'Lihat Role',
-        'create roles': 'Tambah Role',
-        'edit roles': 'Edit Role',
-        'delete roles': 'Hapus Role',
-        'view tasks': 'Lihat Tugas',
-        'create tasks': 'Tambah Tugas',
-        'edit tasks': 'Edit Tugas',
-        'delete tasks': 'Hapus Tugas',
-        'assign tasks': 'Tugaskan',
-        'change task status': 'Ubah Status Tugas',
-        'view content': 'Lihat Konten',
-        'create content': 'Tambah Konten',
-        'edit content': 'Edit Konten',
-        'delete content': 'Hapus Konten',
-        'approve content': 'Setujui Konten',
-        'view teams': 'Lihat Tim',
-        'create teams': 'Tambah Tim',
-        'edit teams': 'Edit Tim',
-        'delete teams': 'Hapus Tim',
-        'manage team members': 'Kelola Anggota Tim',
-        'view calendar': 'Lihat Kalender',
-        'create calendar events': 'Tambah Event Kalender',
-        'edit calendar events': 'Edit Event Kalender',
-        'delete calendar events': 'Hapus Event Kalender',
-        'view assets': 'Lihat Aset',
-        'upload assets': 'Unggah Aset',
-        'edit assets': 'Edit Aset',
-        'delete assets': 'Hapus Aset',
-        'view reports': 'Lihat Laporan',
-        'export reports': 'Ekspor Laporan',
-        'view analytics': 'Lihat Analitik',
-        'access admin': 'Akses Admin',
-        'manage settings': 'Kelola Pengaturan',
-        'manage all': 'Kelola Semua'
-    };
-    return labels[action] || action;
+const unselectAllPermissions = () => {
+    form.permissions = [];
 };
 
 const submit = () => {
@@ -265,17 +223,18 @@ const submit = () => {
         return;
     }
 
-    const formData = {
-        name: form.name,
-        permissions: form.permissions // Kirim permissions apa adanya karena sudah dalam format yang benar
-    };
-    
-    form.post(route('admin.roles.store'), formData, {
+    // Log untuk debugging
+    console.log('Submitting role with permissions:', form.permissions);
+
+    form.post(route('admin.roles.store'), {
+        preserveScroll: true,
         onSuccess: () => {
-            console.log('Role berhasil dibuat dengan permissions:', form.permissions);
+            form.reset();
+            // Redirect ke halaman index setelah berhasil
+            window.location = route('admin.roles.index');
         },
         onError: (errors) => {
-            console.error('Error saat membuat role:', errors);
+            console.error('Error creating role:', errors);
         }
     });
 };

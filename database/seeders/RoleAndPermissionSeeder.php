@@ -74,10 +74,12 @@ class RoleAndPermissionSeeder extends Seeder
                 // Assets
                 'view asset',
                 'create asset',
+                'edit asset',
                 'delete asset',
                 
                 // Analytics
                 'view analytics',
+                'export analytics',
                 
                 // Admin permissions
                 'view users',
@@ -92,9 +94,8 @@ class RoleAndPermissionSeeder extends Seeder
             ];
 
             // Create all permissions
-            $createdPermissions = [];
             foreach ($permissions as $permission) {
-                $createdPermissions[] = Permission::create(['name' => $permission, 'guard_name' => 'web']);
+                Permission::create(['name' => $permission]);
             }
 
             // Create roles and assign permissions
@@ -114,7 +115,7 @@ class RoleAndPermissionSeeder extends Seeder
                         'view platform', 'create platform', 'edit platform', 'delete platform',
                         'view newsfeed', 'create newsfeed', 'edit newsfeed', 'delete newsfeed',
                         'view social media report', 'create social media report', 'edit social media report', 'delete social media report',
-                        'view asset', 'create asset', 'delete asset',
+                        'view asset', 'create asset', 'edit asset', 'delete asset',
                         'view analytics'
                     ]
                 ],
@@ -153,15 +154,9 @@ class RoleAndPermissionSeeder extends Seeder
             ];
 
             foreach ($roles as $roleKey => $roleData) {
-                $role = Role::create(['name' => $roleData['name'], 'guard_name' => 'web']);
-                
-                // Get permissions for this role
-                $rolePermissions = Permission::whereIn('name', $roleData['permissions'])->get();
-                
-                // Assign permissions to role
-                $role->syncPermissions($rolePermissions);
-                
-                \Log::info("Created role {$roleData['name']} with " . count($rolePermissions) . " permissions");
+                $role = Role::create(['name' => $roleData['name']]);
+                $role->syncPermissions($roleData['permissions']);
+                \Log::info("Created role {$roleData['name']} with " . count($roleData['permissions']) . " permissions");
             }
 
             \Log::info('All roles and permissions created successfully');
