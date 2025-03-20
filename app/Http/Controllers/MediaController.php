@@ -27,7 +27,7 @@ class MediaController extends Controller
                     'name' => $media->name,
                     'type' => $this->getMediaType($media->mime_type),
                     'size' => $media->file_size,
-                    'url' => Storage::url($media->file_path),
+                    'url' => $media->url,
                     'created_at' => $media->created_at->format('Y-m-d H:i:s'),
                     'uploader' => $media->uploader ? [
                         'name' => $media->uploader->name,
@@ -57,7 +57,7 @@ class MediaController extends Controller
         $uploadedFiles = [];
 
         foreach ($request->file('files') as $file) {
-            $path = $file->store('media');
+            $path = $file->store('media', 'public');
             
             $media = Media::create([
                 'name' => $file->getClientOriginalName(),
@@ -82,7 +82,7 @@ class MediaController extends Controller
 
     public function destroy(Media $media)
     {
-        Storage::delete($media->file_path);
+        Storage::disk('public')->delete($media->file_path);
         $media->delete();
 
         return back()->with('success', 'File berhasil dihapus.');

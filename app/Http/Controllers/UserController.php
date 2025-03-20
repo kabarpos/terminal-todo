@@ -27,8 +27,7 @@ class UserController extends Controller
                     'status_reason' => $user->status_reason,
                     'approved_at' => $user->approved_at ? $user->approved_at->format('d M Y H:i') : null,
                     'created_at' => $user->created_at->format('d M Y'),
-                    'avatar' => $user->avatar,
-                    'avatar_url' => $user->avatar ? asset('storage/' . $user->avatar) : null
+                    'avatar_url' => $user->avatar_url
                 ]),
             'roles' => Role::all()->pluck('name'),
         ]);

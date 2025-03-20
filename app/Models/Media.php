@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Media extends Model
 {
@@ -25,6 +26,15 @@ class Media extends Model
         'metadata' => 'array',
         'file_size' => 'integer',
     ];
+
+    protected $appends = [
+        'url'
+    ];
+
+    public function getUrlAttribute()
+    {
+        return Storage::disk('public')->url($this->file_path);
+    }
 
     public function uploader()
     {

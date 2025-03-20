@@ -59,7 +59,7 @@ class User extends Authenticatable
         if ($this->avatar) {
             return Storage::disk('public')->url($this->avatar);
         }
-        return '/default-avatar.png';
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=random&color=fff';
     }
 
     public function getProfilePhotoUrlAttribute()
