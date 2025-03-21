@@ -13,44 +13,46 @@
                 <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <form @submit.prevent="submit" class="space-y-6">
-                            <div>
-                                <InputLabel for="name" value="Nama Kategori" />
-                                <TextInput
-                                    id="name"
-                                    v-model="form.name"
-                                    type="text"
-                                    class="mt-1 block w-full"
-                                    required
-                                    autofocus
-                                />
-                                <InputError :message="form.errors.name" class="mt-2" />
-                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div>
+                                    <InputLabel for="name" value="Nama Kategori" />
+                                    <TextInput
+                                        id="name"
+                                        v-model="form.name"
+                                        type="text"
+                                        class="mt-1 block w-full"
+                                        required
+                                        autofocus
+                                    />
+                                    <InputError :message="form.errors.name" class="mt-2" />
+                                </div>
 
-                            <div>
-                                <InputLabel for="type" value="Tipe" />
-                                <SelectInput
-                                    id="type"
-                                    v-model="form.type"
-                                    class="mt-1 block w-full"
-                                    required
-                                >
-                                    <option value="">Pilih Tipe</option>
-                                    <option value="content">Konten</option>
-                                    <option value="task">Task</option>
-                                </SelectInput>
-                                <InputError :message="form.errors.type" class="mt-2" />
-                            </div>
+                                <div>
+                                    <InputLabel for="type" value="Tipe" />
+                                    <SelectInput
+                                        id="type"
+                                        v-model="form.type"
+                                        class="mt-1 block w-full"
+                                        required
+                                    >
+                                        <option value="">Pilih Tipe</option>
+                                        <option value="content">Konten</option>
+                                        <option value="task">Task</option>
+                                    </SelectInput>
+                                    <InputError :message="form.errors.type" class="mt-2" />
+                                </div>
 
-                            <div>
-                                <InputLabel for="color" value="Warna" />
-                                <TextInput
-                                    id="color"
-                                    v-model="form.color"
-                                    type="color"
-                                    class="mt-1 block w-full h-10"
-                                    required
-                                />
-                                <InputError :message="form.errors.color" class="mt-2" />
+                                <div>
+                                    <InputLabel for="color" value="Warna" />
+                                    <TextInput
+                                        id="color"
+                                        v-model="form.color"
+                                        type="color"
+                                        class="mt-1 block w-full h-10"
+                                        required
+                                    />
+                                    <InputError :message="form.errors.color" class="mt-2" />
+                                </div>
                             </div>
 
                             <div>

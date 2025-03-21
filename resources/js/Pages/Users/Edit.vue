@@ -11,7 +11,18 @@
         </template>
 
         <Card class="max-w-2xl mx-auto">
-            <form @submit.prevent="submit" class="space-y-6">
+            <!-- Alert untuk aturan bisnis -->
+            <div class="mb-6 p-4 border rounded-md bg-yellow-50 border-yellow-300 text-yellow-800">
+                <div class="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="font-medium">Perhatian:</span>
+                </div>
+                <p class="ml-7">Untuk mengubah data user, Anda harus menonaktifkan user terlebih dahulu (ubah status menjadi 'Inactive').</p>
+            </div>
+
+            <form @submit.prevent="submitForm" class="space-y-6">
                 <div>
                     <InputLabel for="name" value="Nama Lengkap" />
                     <TextInput
@@ -52,17 +63,17 @@
                 <div>
                     <InputLabel for="roles" value="Role" />
                     <div class="mt-2 grid grid-cols-2 gap-4">
-                        <label v-for="role in roles" :key="role.id || role" class="relative flex items-start p-2 hover:bg-[var(--bg-secondary)]/50 rounded-lg cursor-pointer">
+                        <label v-for="role in roles" :key="role" class="relative flex items-start p-2 hover:bg-[var(--bg-secondary)]/50 rounded-lg cursor-pointer">
                             <div class="flex items-center h-5">
                                 <input
                                     type="checkbox"
-                                    :value="getRoleName(role)"
+                                    :value="role"
                                     v-model="form.roles"
                                     class="w-5 h-5 rounded border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--primary-600)] focus:ring-[var(--primary-500)]"
                                 />
                             </div>
                             <div class="ml-3 text-sm">
-                                <span class="font-medium text-[var(--text-primary)]">{{ getRoleName(role) }}</span>
+                                <span class="font-medium text-[var(--text-primary)]">{{ role }}</span>
                             </div>
                         </label>
                     </div>
@@ -71,10 +82,11 @@
 
                 <div>
                     <InputLabel for="status" value="Status" />
-                    <select
-                        id="status"
-                        v-model="form.status"
+                    <select 
+                        id="status" 
+                        v-model="form.status" 
                         class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 focus:border-blue-500 focus:ring-blue-500 dark:focus:border-blue-400 dark:focus:ring-blue-400"
+                        :class="{ 'border-red-500': form.errors.status }"
                         required
                     >
                         <option 
@@ -132,7 +144,7 @@ import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 
 const props = defineProps({
     auth: {
@@ -149,25 +161,20 @@ const props = defineProps({
     }
 });
 
-// Helper untuk mendapatkan nama role yang lebih robust
-const getRoleName = (role) => {
-    if (!role) return '';
-    if (typeof role === 'string') return role;
-    if (typeof role === 'object' && role !== null) {
-        return role.name || role.id || '';
+// Computed untuk memastikan roles berbentuk array string
+const userRoles = computed(() => {
+    const roles = props.user.roles || [];
+    
+    // Jika roles adalah array string, gunakan langsung
+    if (roles.length > 0 && typeof roles[0] === 'string') {
+        return roles;
     }
-    return '';
-};
-
-// Format roles untuk form dengan penanganan yang lebih baik
-const formattedRoles = computed(() => {
-    const userRoles = props.user.roles || [];
-    console.log('User roles sebelum format:', userRoles);
-    const formatted = userRoles
-        .map(role => getRoleName(role))
-        .filter(name => name !== '');
-    console.log('User roles setelah format:', formatted);
-    return formatted;
+    
+    // Jika roles adalah array objek, ambil properti name
+    return roles.map(role => {
+        if (typeof role === 'string') return role;
+        return role.name || ''; 
+    }).filter(Boolean);
 });
 
 // Status options dari database enum
@@ -183,10 +190,16 @@ const form = useForm({
     name: props.user.name || '',
     email: props.user.email || '',
     phone: props.user.phone || '',
-    roles: formattedRoles.value,
+    roles: userRoles.value,
     status: props.user.status || 'pending',
-    status_reason: props.user.status_reason || null,
-    previous_status: props.user.status || 'pending' // Tambahkan previous_status
+    status_reason: props.user.status_reason || '',
+    previous_status: props.user.status || 'pending'
+});
+
+onMounted(() => {
+    console.log('Form initialized with:', form);
+    console.log('Available roles:', props.roles);
+    console.log('User roles:', userRoles.value);
 });
 
 // Computed property untuk mengecek apakah status_reason diperlukan
@@ -216,67 +229,73 @@ const getStatusReasonPlaceholder = () => {
     return placeholders[form.status] || 'Masukkan alasan perubahan status...';
 };
 
-const submit = () => {
-    // Debug log untuk melihat data yang akan dikirim
-    console.log('Data yang akan dikirim:', {
+// Function untuk handle submit form
+const submitForm = () => {
+    // Debug log
+    console.log('Submitting form with data:', {
         name: form.name,
         email: form.email,
         phone: form.phone,
         roles: form.roles,
         status: form.status,
-        status_reason: form.status_reason,
-        previous_status: form.previous_status
+        status_reason: form.status_reason
     });
 
     // Validasi roles
-    if (!form.roles || form.roles.length === 0) {
+    if (!form.roles || !Array.isArray(form.roles) || form.roles.length === 0) {
         form.setError('roles', 'Minimal pilih satu role untuk user');
         return;
     }
 
-    // Validasi status sebelum submit
+    // Validasi status
     if (!form.status) {
         form.status = 'pending';
     }
 
-    // Validasi perubahan status
-    if (form.previous_status === 'pending' && form.status === 'active') {
-        form.setError('status', 'User baru tidak bisa langsung diaktifkan. Silakan ubah ke status lain terlebih dahulu.');
+    // Validasi perubahan data hanya jika status bukan inactive
+    const originalUser = props.user;
+    const hasDataChanges = 
+        form.name !== originalUser.name || 
+        form.email !== originalUser.email || 
+        form.phone !== originalUser.phone || 
+        !areRolesEqual(form.roles, userRoles.value);
+        
+    console.log('Data changes detected:', hasDataChanges);
+    console.log('Current status:', form.status);
+    
+    // Jika ada perubahan data tetapi status bukan inactive
+    if (hasDataChanges && form.status !== 'inactive') {
+        form.setError('status', 'User harus dinonaktifkan terlebih dahulu sebelum data dapat diubah.');
         return;
     }
 
-    // Persiapkan data yang akan dikirim
-    const formData = {
-        name: form.name,
-        email: form.email,
-        phone: form.phone,
-        roles: form.roles,
-        status: form.status,
-        status_reason: form.status === 'active' ? null : (form.status_reason || ''),
-        previous_status: form.previous_status
-    };
-
-    // Validasi status_reason jika status bukan active
-    if (form.status !== 'active' && !formData.status_reason) {
+    // Validasi status reason jika diperlukan
+    if (form.status !== 'active' && !form.status_reason) {
         form.setError('status_reason', 'Alasan perubahan status wajib diisi');
         return;
     }
-    
-    // Kirim data yang sudah diformat
-    form.put(route('admin.users.update', props.user.id), formData, {
-        preserveScroll: true,
+
+    // Kirim data ke server
+    form.put(route('admin.users.update', props.user.id), {
         onSuccess: () => {
-            console.log('User berhasil diperbarui:', formData);
-            // Update previous_status setelah berhasil
-            form.previous_status = form.status;
+            console.log('User berhasil diperbarui');
         },
         onError: (errors) => {
-            console.error('Detail error:', errors);
-            Object.keys(errors).forEach(key => {
-                console.error(`Error pada field ${key}:`, errors[key]);
-            });
+            console.error('Error updating user:', errors);
         }
     });
+};
+
+// Helper untuk membandingkan apakah dua array roles sama
+const areRolesEqual = (roles1, roles2) => {
+    if (!Array.isArray(roles1) || !Array.isArray(roles2)) return false;
+    if (roles1.length !== roles2.length) return false;
+    
+    // Urutkan dan bandingkan
+    const sorted1 = [...roles1].sort();
+    const sorted2 = [...roles2].sort();
+    
+    return sorted1.every((val, idx) => val === sorted2[idx]);
 };
 </script>
 

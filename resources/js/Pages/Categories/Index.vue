@@ -136,7 +136,7 @@
                     Apakah Anda yakin ingin menghapus kategori ini?
                 </p>
 
-                <div class="mt-6 flex justify-end">
+                <div class="mt-6 flex justify-end space-x-4">
                     <SecondaryButton 
                         @click="closeModal"
                         variant="outline"
