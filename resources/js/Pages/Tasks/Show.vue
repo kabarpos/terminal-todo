@@ -8,12 +8,14 @@
                     Detail Task
                 </h2>
                 <div class="flex items-center space-x-2">
-                    <Link
-                        :href="route('tasks.edit', task.id)"
-                        class="inline-flex items-center px-3 py-2 md:px-4 md:py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
-                    >
-                        Edit Task
-                    </Link>
+                    <PermissionGate permission="edit task">
+                        <Link
+                            :href="route('tasks.edit', task.id)"
+                            class="inline-flex items-center px-3 py-2 md:px-4 md:py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                        >
+                            Edit Task
+                        </Link>
+                    </PermissionGate>
                     <Link
                         :href="route('tasks.index')"
                         class="inline-flex items-center px-3 py-2 md:px-4 md:py-2 bg-gradient-to-r from-gray-600 to-gray-500 hover:from-gray-700 hover:to-gray-600 text-white text-sm font-medium rounded-lg transition-colors duration-200"
@@ -152,28 +154,30 @@
                                 </div>
 
                                 <!-- Add Comment Form -->
-                                <form @submit.prevent="submitComment" class="mt-6">
-                                    <div>
-                                        <TextArea
-                                            v-model="commentForm.content"
-                                            placeholder="Tambahkan komentar..."
-                                            class="mt-1 block w-full"
-                                            rows="3"
-                                            required
-                                        />
-                                        <InputError :message="commentForm.errors.content" class="mt-2" />
-                                    </div>
+                                <PermissionGate permission="comment task">
+                                    <form @submit.prevent="submitComment" class="mt-6">
+                                        <div>
+                                            <TextArea
+                                                v-model="commentForm.content"
+                                                placeholder="Tambahkan komentar..."
+                                                class="mt-1 block w-full"
+                                                rows="3"
+                                                required
+                                            />
+                                            <InputError :message="commentForm.errors.content" class="mt-2" />
+                                        </div>
 
-                                    <div class="mt-4 flex justify-end">
-                                        <PrimaryButton
-                                            :class="{ 'opacity-25': commentForm.processing }"
-                                            :disabled="commentForm.processing"
-                                            class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-colors duration-200"
-                                        >
-                                            {{ commentForm.processing ? 'Mengirim...' : 'Kirim Komentar' }}
-                                        </PrimaryButton>
-                                    </div>
-                                </form>
+                                        <div class="mt-4 flex justify-end">
+                                            <PrimaryButton
+                                                :class="{ 'opacity-25': commentForm.processing }"
+                                                :disabled="commentForm.processing"
+                                                class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-colors duration-200"
+                                            >
+                                                {{ commentForm.processing ? 'Mengirim...' : 'Kirim Komentar' }}
+                                            </PrimaryButton>
+                                        </div>
+                                    </form>
+                                </PermissionGate>
                             </div>
                         </div>
                     </div>
@@ -189,6 +193,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import TextArea from '@/Components/TextArea.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import PermissionGate from '@/Components/PermissionGate.vue';
 import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
 

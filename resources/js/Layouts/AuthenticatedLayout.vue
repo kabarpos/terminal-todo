@@ -29,7 +29,7 @@ const page = usePage();
 const auth = computed(() => page.props.auth);
 
 // Computed untuk user yang sudah terautentikasi
-const authenticatedUser = computed(() => auth.value?.user);
+const authenticatedUser = computed(() => auth.value.user);
 
 // Dark Mode State
 const isDark = ref(false);
@@ -124,6 +124,30 @@ watch(() => usePage().props.settings, (newSettings) => {
         }
     }
 }, { deep: true });
+
+// Fungsi pembantu untuk memeriksa permission
+const hasPermission = (permission) => {
+    if (!authenticatedUser.value || !authenticatedUser.value.permissions) {
+        return false;
+    }
+    
+    if (authenticatedUser.value.is_admin) {
+        return true;
+    }
+    
+    // Coba berbagai format permission (dengan spasi dan dengan tanda -)
+    const permissionWithDash = permission.replace(/\s+/g, '-');
+    const permissionWithSpace = permission.replace(/-/g, ' ');
+    
+    return authenticatedUser.value.permissions.some(p => 
+        p === permission || 
+        p === permissionWithDash || 
+        p === permissionWithSpace
+    );
+};
+
+// Expose hasPermission to template
+defineExpose({ hasPermission });
 </script>
 
 <template>

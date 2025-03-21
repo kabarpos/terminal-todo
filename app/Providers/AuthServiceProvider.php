@@ -27,7 +27,21 @@ class AuthServiceProvider extends ServiceProvider
 
         // Implicitly grant "Super Admin" role all permissions
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('Super Admin') ? true : null;
+            if ($user->hasRole('Super Admin')) {
+                \Log::info("User {$user->name} granted {$ability} via Super Admin role");
+                return true;
+            }
+            return null;
+        });
+
+        // Tambahkan logging untuk permission check
+        Gate::after(function ($user, $ability, $result, $arguments) {
+            if ($result) {
+                \Log::info("Permission check passed: User {$user->name} has {$ability}");
+            } else {
+                \Log::warning("Permission check failed: User {$user->name} doesn't have {$ability}");
+            }
+            return $result;
         });
     }
 } 

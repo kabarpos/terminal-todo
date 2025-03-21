@@ -84,11 +84,13 @@ class HandleInertiaRequests extends Middleware
                 'email' => $user->email,
                 'phone' => $user->phone,
                 'avatar_url' => $user->avatar_url,
-                'roles' => $user->roles->pluck('name'),
-                'permissions' => $user->getAllPermissions()->pluck('slug'),
+                'roles' => $user->roles->pluck('name')->toArray(),
+                'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
                 'status' => $user->status,
                 'email_verified_at' => $user->email_verified_at,
                 'last_login_at' => $user->last_login_at?->diffForHumans(),
+                'is_admin' => $user->hasRole('Super Admin'),
+                'is_content_manager' => $user->hasRole('Content Manager')
             ],
         ];
     }

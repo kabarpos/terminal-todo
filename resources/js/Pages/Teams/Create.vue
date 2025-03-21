@@ -13,17 +13,35 @@
                 <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-800 sm:rounded-lg">
                     <div class="p-6 bg-white dark:bg-gray-800">
                         <form @submit.prevent="submit" class="space-y-6">
-                            <div>
-                                <InputLabel for="name" value="Nama Tim" />
-                                <TextInput
-                                    id="name"
-                                    type="text"
-                                    class="block w-full mt-1"
-                                    v-model="form.name"
-                                    required
-                                    autofocus
-                                />
-                                <InputError class="mt-2" :message="form.errors.name" />
+                            <div class="flex flex-col md:flex-row md:gap-6">
+                                <div class="flex-1">
+                                    <InputLabel for="name" value="Nama Tim" />
+                                    <TextInput
+                                        id="name"
+                                        type="text"
+                                        class="block w-full mt-1"
+                                        v-model="form.name"
+                                        required
+                                        autofocus
+                                    />
+                                    <InputError class="mt-2" :message="form.errors.name" />
+                                </div>
+
+                                <div class="md:w-1/4 mt-4 md:mt-0">
+                                    <InputLabel for="color" value="Warna Tim" />
+                                    <div class="flex items-center space-x-3 mt-1">
+                                        <input
+                                            type="color"
+                                            id="color"
+                                            v-model="form.color"
+                                            class="w-10 h-10 p-1 rounded cursor-pointer"
+                                        />
+                                        <span class="text-sm text-gray-600 dark:text-gray-400">
+                                            {{ form.color }}
+                                        </span>
+                                    </div>
+                                    <InputError class="mt-2" :message="form.errors.color" />
+                                </div>
                             </div>
 
                             <div>
@@ -35,22 +53,6 @@
                                     rows="4"
                                 />
                                 <InputError class="mt-2" :message="form.errors.description" />
-                            </div>
-
-                            <div>
-                                <InputLabel for="color" value="Warna Tim" />
-                                <div class="flex items-center space-x-3 mt-1">
-                                    <input
-                                        type="color"
-                                        id="color"
-                                        v-model="form.color"
-                                        class="w-10 h-10 p-1 rounded cursor-pointer"
-                                    />
-                                    <span class="text-sm text-gray-600 dark:text-gray-400">
-                                        {{ form.color }}
-                                    </span>
-                                </div>
-                                <InputError class="mt-2" :message="form.errors.color" />
                             </div>
 
                             <div class="flex items-center justify-end mt-6">

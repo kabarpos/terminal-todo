@@ -8,9 +8,18 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\PermissionHelper;
 
 class RoleController extends Controller
 {
+    /**
+     * Constructor untuk mendaftarkan middleware
+     */
+    public function __construct()
+    {
+        $this->middleware([\App\Http\Middleware\PermissionNormalizer::class . ':manage-roles', 'permission:manage-roles']);
+    }
+
     public function index()
     {
         return Inertia::render('Roles/Index', [
@@ -49,17 +58,13 @@ class RoleController extends Controller
 
             DB::beginTransaction();
 
-            $role = Role::create([
-                'name' => $validated['name'],
-                'guard_name' => 'web'
-            ]);
-
             // Log untuk debugging
-            \Log::info('Creating role with permissions:', [
+            \Log::info('Creating new role with permissions:', [
                 'role_name' => $validated['name'],
                 'permissions' => $validated['permissions']
             ]);
 
+            $role = Role::create(['name' => $validated['name']]);
             $role->syncPermissions($validated['permissions']);
 
             DB::commit();
@@ -75,11 +80,8 @@ class RoleController extends Controller
             throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Error creating role:', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return back()->with('error', 'Terjadi kesalahan saat membuat role. ' . $e->getMessage());
+            \Log::error('Error creating role: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat membuat role');
         }
     }
 

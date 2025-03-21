@@ -38,7 +38,30 @@ const isContentManager = computed(() => {
 
 // Check permissions
 const hasPermission = (permission) => {
-    return props.user.permissions && props.user.permissions.includes(permission);
+    // Jika pengguna adalah Super Admin, izinkan semua
+    if (isAdmin.value) {
+        return true;
+    }
+    
+    // Jika tidak ada permission yang dibutuhkan, izinkan akses
+    if (!permission) {
+        return true;
+    }
+
+    // Jika user tidak memiliki permissions, tolak akses
+    if (!props.user.permissions || !Array.isArray(props.user.permissions)) {
+        return false;
+    }
+
+    // Coba berbagai format permission (dengan spasi dan dengan tanda -)
+    const permissionWithDash = permission.replace(/\s+/g, '-');
+    const permissionWithSpace = permission.replace(/-/g, ' ');
+    
+    return props.user.permissions.some(p => 
+        p === permission || 
+        p === permissionWithDash || 
+        p === permissionWithSpace
+    );
 };
 
 // Definisi seluruh menu aplikasi
@@ -49,73 +72,73 @@ const navigationConfig = {
             name: "Dashboard",
             href: route('dashboard'),
             icon: HomeIcon,
-            permission: "view-dashboard"
+            permission: "view dashboard"
         },
         {
             name: "Calendar",
             href: route('calendar.index'),
             icon: CalendarIcon,
-            permission: "view-calendar"
+            permission: "view calendar"
         },
         {
             name: "Tasks",
             href: route('tasks.index'),
             icon: ClipboardDocumentListIcon,
-            permission: "view-task"
+            permission: "view task"
         },
         {
             name: "Teams",
             href: route('teams.index'),
             icon: UserGroupIcon,
-            permission: "view-team"
+            permission: "view team"
         },
         {
             name: "Categories",
             href: route('categories.index'),
             icon: TagIcon,
-            permission: "view-category"
+            permission: "view category"
         },
         {
             name: "Platforms",
             href: route('platforms.index'),
             icon: GlobeAltIcon,
-            permission: "view-platform"
+            permission: "view platform"
         },
         {
             name: "Social Accounts",
             href: route('social-accounts.index'),
             icon: UsersIcon,
-            permission: "view-social-account"
+            permission: "view social account"
         },
         {
             name: "News Feed",
             href: route('news-feeds.index'),
             icon: NewspaperIcon,
-            permission: "view-newsfeed"
+            permission: "view newsfeed"
         },
         {
             name: "Reports",
             href: route('social-media-reports.index'),
             icon: ChartBarIcon,
-            permission: "view-social-media-report"
+            permission: "view social media report"
         },
         {
             name: "Media Library",
             href: route('media.index'),
             icon: PhotoIcon,
-            permission: "view-media"
+            permission: "view asset"
         },
         {
             name: "Input Metrik",
             href: route('metric-data.index'),
             icon: ChartBarIcon,
-            permission: "view-metric"
+            permission: "view metric data"
         },
         {
             name: "Analytics",
             href: route('social-analytics.index'),
             icon: ChartPieIcon,
-            permission: "view-analytics"
+            permission: "view analytics"
         }
     ],
 
@@ -125,36 +148,51 @@ const navigationConfig = {
             name: "User Management",
             href: route('admin.users.index'),
             icon: UserGroupIcon,
-            permission: 'view-users'
+            permission: 'view users'
         },
         {
             name: "Role Management",
             href: route('admin.roles.index'),
             icon: ShieldCheckIcon,
-            permission: 'view-roles'
+            permission: 'view roles'
         },
         {
             name: "Settings",
             href: route('admin.settings.index'),
             icon: Cog6ToothIcon,
-            permission: 'manage-settings'
+            permission: 'manage settings'
         }
     ]
 };
 
 // Mendapatkan menu berdasarkan role dan permission
 const getNavigationMenus = computed(() => {
+    // Filter menu berdasarkan permission - kita tidak perlu cek isAdmin.value 
+    // karena sudah ditangani di dalam fungsi hasPermission
+    const filteredUserMenu = navigationConfig.user.filter(item => 
+        hasPermission(item.permission)
+    );
+
+    const filteredAdminMenu = navigationConfig.admin.filter(item => 
+        hasPermission(item.permission)
+    );
+
     return {
-        user: navigationConfig.user,
-        admin: navigationConfig.admin
+        user: filteredUserMenu,
+        admin: filteredAdminMenu
     };
+});
+
+// Memeriksa apakah ada menu admin yang tersedia
+const hasAdminMenu = computed(() => {
+    return getNavigationMenus.value.admin.length > 0;
 });
 </script>
 
 <template>
     <nav class="space-y-6">
         <!-- User Menu Section -->
-        <div>
+        <div v-if="getNavigationMenus.user.length > 0">
             <div class="px-3 mb-2">
                 <p class="text-xs font-medium text-light-text/60 dark:text-dark-text/60 uppercase tracking-wider">
                     Menu
@@ -175,7 +213,7 @@ const getNavigationMenus = computed(() => {
         </div>
 
         <!-- Admin Menu Section -->
-        <div>
+        <div v-if="hasAdminMenu">
             <div class="px-3 mb-2">
                 <p class="text-xs font-medium text-light-text/60 dark:text-dark-text/60 uppercase tracking-wider">
                     Admin Area

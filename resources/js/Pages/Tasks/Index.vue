@@ -69,45 +69,125 @@
                                     {{ getTasksByStatus(status).length }}
                                 </span>
                             </h3>
-                            <draggable 
-                                :list="tasksByStatus[status]"
-                                :group="'tasks'"
-                                item-key="id"
-                                class="min-h-[200px] space-y-3"
-                                @change="(e) => handleChange(e, status)"
-                                :animation="150"
-                                ghost-class="sortable-ghost"
-                                drag-class="sortable-drag"
-                                :force-fallback="true"
-                                handle=".drag-handle"
-                                :delay="50"
-                                :delayOnTouchOnly="true"
-                                :touchStartThreshold="2"
-                                :fallbackClass="'sortable-fallback'"
-                                :fallbackOnBody="true"
-                                :scroll="true"
-                                :scrollSensitivity="100"
-                                :scrollSpeed="20"
-                                :dragoverBubble="true"
-                                :removeCloneOnHide="false"
-                                :emptyInsertThreshold="5"
-                            >
-                                <template #item="{ element: task }">
+                            <PermissionGate permission="manage task">
+                                <draggable 
+                                    :list="tasksByStatus[status]"
+                                    :group="'tasks'"
+                                    item-key="id"
+                                    class="min-h-[200px] space-y-3"
+                                    @change="(e) => handleChange(e, status)"
+                                    :animation="150"
+                                    ghost-class="sortable-ghost"
+                                    drag-class="sortable-drag"
+                                    :force-fallback="true"
+                                    handle=".drag-handle"
+                                    :delay="50"
+                                    :delayOnTouchOnly="true"
+                                    :touchStartThreshold="2"
+                                    :fallbackClass="'sortable-fallback'"
+                                    :fallbackOnBody="true"
+                                    :scroll="true"
+                                    :scrollSensitivity="100"
+                                    :scrollSpeed="20"
+                                    :dragoverBubble="true"
+                                    :removeCloneOnHide="false"
+                                    :emptyInsertThreshold="5"
+                                >
+                                    <template #item="{ element: task }">
+                                        <div 
+                                            v-if="matchesFilters(task)"
+                                            class="task-card draggable-item bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700"
+                                            :class="{
+                                                'animate-highlight': props.highlight === 'new' && task.status === form.status,
+                                                'opacity-50': updatingTaskId === task.id
+                                            }"
+                                        >
+                                            <div class="flex items-center justify-between mb-2">
+                                                <div class="flex items-center space-x-2">
+                                                    <div class="drag-handle cursor-grab active:cursor-grabbing p-1 -m-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9h8M8 15h8" />
+                                                        </svg>
+                                                    </div>
+                                                    <span class="px-2 py-1 text-xs font-semibold rounded-full"
+                                                        :class="{
+                                                            'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': task.priority === 'low',
+                                                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': task.priority === 'medium',
+                                                            'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200': task.priority === 'high',
+                                                            'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': task.priority === 'urgent'
+                                                        }"
+                                                    >
+                                                        {{ getPriorityLabel(task.priority) }}
+                                                    </span>
+                                                </div>
+                                                <div class="flex items-center space-x-2">
+                                                    <IconButton
+                                                        @click="() => $inertia.visit(route('tasks.edit', task.id))"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                    >
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                        </svg>
+                                                    </IconButton>
+                                                    <IconButton
+                                                        @click="confirmTaskDeletion(task)"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        class="hover:text-red-500"
+                                                    >
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </IconButton>
+                                                </div>
+                                            </div>
+                                            <div class="font-medium text-gray-900 dark:text-gray-100 mb-1">{{ task.title }}</div>
+                                            <div class="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">{{ task.description }}</div>
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex -space-x-2">
+                                                    <template v-for="assignee in task.assignees.slice(0, 3)" :key="assignee.id">
+                                                        <img
+                                                            v-if="assignee.avatar_url"
+                                                            :src="assignee.avatar_url"
+                                                            :alt="assignee.name"
+                                                            class="h-6 w-6 rounded-full ring-2 ring-white dark:ring-gray-800"
+                                                            :title="assignee.name"
+                                                        >
+                                                        <div
+                                                            v-else
+                                                            class="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-700 ring-2 ring-white dark:ring-gray-800 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
+                                                            :title="assignee.name"
+                                                        >
+                                                            {{ assignee.name.charAt(0) }}
+                                                        </div>
+                                                    </template>
+                                                    <div
+                                                        v-if="task.assignees.length > 3"
+                                                        class="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-700 ring-2 ring-white dark:ring-gray-800 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400"
+                                                    >
+                                                        +{{ task.assignees.length - 3 }}
+                                                    </div>
+                                                </div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                    {{ formatDate(task.due_date) }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </draggable>
+                            </PermissionGate>
+                            
+                            <template v-if="!($page.props.auth?.permissions?.includes('manage task') || $page.props.auth?.permissions?.includes('manage-task'))">
+                                <div class="min-h-[200px] space-y-3">
                                     <div 
+                                        v-for="task in getTasksByStatus(status)" 
+                                        :key="task.id"
                                         v-if="matchesFilters(task)"
-                                        class="task-card draggable-item bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700"
-                                        :class="{
-                                            'animate-highlight': props.highlight === 'new' && task.status === form.status,
-                                            'opacity-50': updatingTaskId === task.id
-                                        }"
+                                        class="task-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700"
                                     >
                                         <div class="flex items-center justify-between mb-2">
                                             <div class="flex items-center space-x-2">
-                                                <div class="drag-handle cursor-grab active:cursor-grabbing p-1 -m-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9h8M8 15h8" />
-                                                    </svg>
-                                                </div>
                                                 <span class="px-2 py-1 text-xs font-semibold rounded-full"
                                                     :class="{
                                                         'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': task.priority === 'low',
@@ -120,25 +200,29 @@
                                                 </span>
                                             </div>
                                             <div class="flex items-center space-x-2">
-                                                <IconButton
-                                                    @click="() => $inertia.visit(route('tasks.edit', task.id))"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                >
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                    </svg>
-                                                </IconButton>
-                                                <IconButton
-                                                    @click="confirmTaskDeletion(task)"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    class="hover:text-red-500"
-                                                >
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </IconButton>
+                                                <PermissionGate permission="edit task">
+                                                    <IconButton
+                                                        @click="() => $inertia.visit(route('tasks.edit', task.id))"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                    >
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                        </svg>
+                                                    </IconButton>
+                                                </PermissionGate>
+                                                <PermissionGate permission="delete task">
+                                                    <IconButton
+                                                        @click="confirmTaskDeletion(task)"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        class="hover:text-red-500"
+                                                    >
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                    </IconButton>
+                                                </PermissionGate>
                                             </div>
                                         </div>
                                         <div class="font-medium text-gray-900 dark:text-gray-100 mb-1">{{ task.title }}</div>
@@ -173,8 +257,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                </template>
-                            </draggable>
+                                </div>
+                            </template>
                         </div>
                     </template>
                 </div>

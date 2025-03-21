@@ -37,4 +37,9 @@ class Kernel extends ConsoleKernel
 
         require base_path('routes/console.php');
     }
+
+    protected $commands = [
+        // ... other commands ...
+        \App\Console\Commands\DebugPermissions::class,
+    ];
 } 

@@ -31,32 +31,32 @@ Route::get('/', function () {
 require __DIR__.'/auth.php';
 
 // Protected Routes
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::class])->group(function () {
     // Dashboard Routes
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->middleware('permission:view-dashboard')
-        ->name('dashboard');
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard/Index');
+    })->name('dashboard');
 
     // Tasks Routes
     Route::resource('tasks', TaskController::class)
-        ->middleware(['permission:view-task|manage-task']);
+        ->middleware([\App\Http\Middleware\PermissionNormalizer::class . ':view-task|manage-task', 'permission:view-task|manage-task']);
 
     Route::put('tasks/{task}/update-status', [TaskController::class, 'updateStatus'])
         ->name('tasks.update-status')
-        ->middleware('permission:manage-task');
+        ->middleware([\App\Http\Middleware\PermissionNormalizer::class . ':manage-task', 'permission:manage-task']);
     
     // Task Comments Routes
     Route::post('tasks/{task}/comments', [TaskCommentController::class, 'store'])
         ->name('tasks.comments.store')
-        ->middleware('permission:manage-task');
+        ->middleware([\App\Http\Middleware\PermissionNormalizer::class . ':manage-task', 'permission:manage-task']);
     
     Route::put('tasks/comments/{comment}', [TaskCommentController::class, 'update'])
         ->name('tasks.comments.update')
-        ->middleware('permission:manage-task');
+        ->middleware([\App\Http\Middleware\PermissionNormalizer::class . ':manage-task', 'permission:manage-task']);
     
     Route::delete('tasks/comments/{comment}', [TaskCommentController::class, 'destroy'])
         ->name('tasks.comments.destroy')
-        ->middleware('permission:manage-task');
+        ->middleware([\App\Http\Middleware\PermissionNormalizer::class . ':manage-task', 'permission:manage-task']);
 
     // Profile Routes (from Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

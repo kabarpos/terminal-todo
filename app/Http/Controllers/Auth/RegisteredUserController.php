@@ -14,6 +14,7 @@ use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\DB;
 
 class RegisteredUserController extends Controller
 {
@@ -43,24 +44,34 @@ class RegisteredUserController extends Controller
             'phone.max' => 'Nomor WhatsApp maksimal 13 digit',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'password' => Hash::make($request->password),
-            'status' => 'pending',
-            'status_reason' => 'Menunggu persetujuan admin',
-        ]);
+        DB::beginTransaction();
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'password' => Hash::make($request->password),
+                'status' => User::STATUS_PENDING,
+                'status_reason' => 'Menunggu persetujuan admin',
+            ]);
 
-        // Assign default 'user' role
-        $userRole = Role::where('name', 'user')->first();
-        if ($userRole) {
-            $user->assignRole($userRole);
+            // Assign default role for new users
+            $defaultRole = Role::where('name', 'Content Writer')->first();
+            if ($defaultRole) {
+                $user->assignRole($defaultRole);
+            }
+
+            event(new Registered($user));
+
+            DB::commit();
+
+            Auth::login($user);
+
+            return redirect(RouteServiceProvider::HOME);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error during registration: ' . $e->getMessage());
+            throw $e;
         }
-
-        event(new Registered($user));
-
-        return redirect()->route('login')
-            ->with('status', 'Registrasi berhasil! Silakan tunggu persetujuan admin untuk dapat login ke sistem.');
     }
 }
