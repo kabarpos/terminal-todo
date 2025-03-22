@@ -214,7 +214,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
 
     // Metric Data Routes
     Route::resource('metric-data', MetricDataController::class)
-        ->middleware(['auth', 'verified', 'permission:manage-metric-data']);
+        ->middleware(['auth', 'verified', 'permission:manage-metric-data|view-metric-data']);
         
     Route::get('metric-report', [MetricDataController::class, 'report'])
         ->name('metric-data.report')

@@ -1,7 +1,7 @@
 <template>
     <Head title="Input Data Metrik" />
 
-    <AuthenticatedLayout title="Input Data Metrik">
+    <AuthenticatedLayout :auth="auth" title="Input Data Metrik">
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
@@ -164,6 +164,10 @@ import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 const props = defineProps({
     accounts: {
         type: Array,
+        required: true
+    },
+    auth: {
+        type: Object,
         required: true
     }
 })

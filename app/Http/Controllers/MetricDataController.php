@@ -138,10 +138,25 @@ class MetricDataController extends Controller
 
     public function create()
     {
+        $user = auth()->user();
+        
         return inertia('MetricData/Create', [
             'accounts' => SocialAccount::active()->with('platform')->get(),
             'auth' => [
-                'user' => auth()->user()
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'avatar_url' => $user->avatar_url,
+                    'roles' => $user->roles->pluck('name')->toArray(),
+                    'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+                    'status' => $user->status,
+                    'email_verified_at' => $user->email_verified_at,
+                    'last_login_at' => $user->last_login_at?->diffForHumans(),
+                    'is_admin' => $user->hasRole('Super Admin'),
+                    'is_content_manager' => $user->hasRole('Content Manager')
+                ]
             ]
         ]);
     }
@@ -219,10 +234,25 @@ class MetricDataController extends Controller
             $query->withTrashed();
         }, 'account.platform'])->findOrFail($id);
 
+        $user = auth()->user();
+        
         return Inertia::render('MetricData/Show', [
             'metricData' => $metricData,
             'auth' => [
-                'user' => auth()->user()
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'avatar_url' => $user->avatar_url,
+                    'roles' => $user->roles->pluck('name')->toArray(),
+                    'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+                    'status' => $user->status,
+                    'email_verified_at' => $user->email_verified_at,
+                    'last_login_at' => $user->last_login_at?->diffForHumans(),
+                    'is_admin' => $user->hasRole('Super Admin'),
+                    'is_content_manager' => $user->hasRole('Content Manager')
+                ]
             ]
         ]);
     }
@@ -232,11 +262,26 @@ class MetricDataController extends Controller
         try {
             $metricData = MetricData::with(['account.platform'])->findOrFail($id);
 
+            $user = auth()->user();
+            
             return Inertia::render('MetricData/Edit', [
                 'metricData' => $metricData,
                 'accounts' => SocialAccount::active()->with('platform')->get(),
                 'auth' => [
-                    'user' => auth()->user()
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'phone' => $user->phone,
+                        'avatar_url' => $user->avatar_url,
+                        'roles' => $user->roles->pluck('name')->toArray(),
+                        'permissions' => $user->getAllPermissions()->pluck('name')->toArray(),
+                        'status' => $user->status,
+                        'email_verified_at' => $user->email_verified_at,
+                        'last_login_at' => $user->last_login_at?->diffForHumans(),
+                        'is_admin' => $user->hasRole('Super Admin'),
+                        'is_content_manager' => $user->hasRole('Content Manager')
+                    ]
                 ]
             ]);
         } catch (\Exception $e) {

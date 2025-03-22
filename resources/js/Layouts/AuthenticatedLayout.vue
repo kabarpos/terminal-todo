@@ -26,10 +26,37 @@ const props = defineProps({
 
 // Gunakan usePage untuk mendapatkan data auth
 const page = usePage();
-const auth = computed(() => page.props.auth);
+const auth = computed(() => {
+    console.log('Auth dari props:', props.auth);
+    console.log('Auth dari usePage:', page.props.auth);
+    
+    // Jika props.auth memiliki user yang valid, gunakan itu
+    if (props.auth?.user?.id) {
+        console.log('Using auth from props', props.auth);
+        return props.auth;
+    }
+    
+    // Fallback ke auth dari usePage
+    console.log('Using auth from usePage', page.props.auth);
+    return page.props.auth;
+});
 
 // Computed untuk user yang sudah terautentikasi
-const authenticatedUser = computed(() => auth.value.user);
+const authenticatedUser = computed(() => {
+    const user = auth.value?.user;
+    
+    // Log detailed info about the user for debugging
+    console.log('Authenticated User Details:', {
+        userExists: !!user,
+        userId: user?.id,
+        userName: user?.name,
+        roles: user?.roles,
+        permissions: user?.permissions?.length,
+        fullData: user
+    });
+    
+    return user;
+});
 
 // Dark Mode State
 const isDark = ref(false);
@@ -176,6 +203,11 @@ defineExpose({ hasPermission });
             <div class="flex flex-1 flex-col overflow-y-auto custom-scrollbar">
                 <nav class="flex-1 px-4 py-4">
                     <AppNavigation v-if="authenticatedUser" :user="authenticatedUser" />
+                    <!-- Fallback jika user tidak ditemukan -->
+                    <div v-else class="p-4 text-center text-red-500">
+                        <p>Navigation unavailable</p>
+                        <p class="text-xs mt-2">Check console for errors</p>
+                    </div>
                 </nav>
 
                 <!-- Bottom Section with User Profile -->

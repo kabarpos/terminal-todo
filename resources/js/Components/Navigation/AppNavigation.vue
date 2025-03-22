@@ -22,7 +22,9 @@ const props = defineProps({
     user: {
         type: Object,
         required: true,
+        default: () => ({}),
         validator(value) {
+            // Lebih lenient, hanya memastikan value adalah object
             return value && typeof value === 'object';
         }
     }
@@ -30,26 +32,37 @@ const props = defineProps({
 
 // Check roles
 const isAdmin = computed(() => {
-    return props.user.roles && props.user.roles.includes('Super Admin');
+    // Validasi bahwa roles ada dan memiliki metode includes
+    return props.user?.roles && Array.isArray(props.user.roles) && props.user.roles.includes('Super Admin');
 });
+
 const isContentManager = computed(() => {
-    return props.user.roles && props.user.roles.includes('Content Manager');
+    // Validasi bahwa roles ada dan memiliki metode includes
+    return props.user?.roles && Array.isArray(props.user.roles) && props.user.roles.includes('Content Manager');
 });
 
 // Check permissions
 const hasPermission = (permission) => {
+    // Logger untuk debugging permission
+    console.log('Checking permission:', permission, 'for user:', props.user?.name);
+    console.log('User roles:', props.user?.roles);
+    console.log('User permissions:', props.user?.permissions);
+    
     // Jika pengguna adalah Super Admin, izinkan semua
     if (isAdmin.value) {
+        console.log('User is Super Admin, granting permission');
         return true;
     }
     
     // Jika tidak ada permission yang dibutuhkan, izinkan akses
     if (!permission) {
+        console.log('No permission required, granting access');
         return true;
     }
 
     // Jika user tidak memiliki permissions, tolak akses
-    if (!props.user.permissions || !Array.isArray(props.user.permissions)) {
+    if (!props.user?.permissions || !Array.isArray(props.user.permissions)) {
+        console.log('User has no permissions array, denying access');
         return false;
     }
 
@@ -57,11 +70,14 @@ const hasPermission = (permission) => {
     const permissionWithDash = permission.replace(/\s+/g, '-');
     const permissionWithSpace = permission.replace(/-/g, ' ');
     
-    return props.user.permissions.some(p => 
+    const hasAccess = props.user.permissions.some(p => 
         p === permission || 
         p === permissionWithDash || 
         p === permissionWithSpace
     );
+    
+    console.log('Permission check result:', hasAccess);
+    return hasAccess;
 };
 
 // Definisi seluruh menu aplikasi
@@ -132,7 +148,7 @@ const navigationConfig = {
             name: "Input Metrik",
             href: route('metric-data.index'),
             icon: ChartBarIcon,
-            permission: "view metric data"
+            permission: "manage-metric-data"
         },
         {
             name: "Analytics",
