@@ -197,23 +197,28 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
     Route::put('social-accounts/{id}/toggle-status', [SocialAccountController::class, 'toggleStatus'])
         ->name('social-accounts.toggle-status');
 
+    // Metric Data Import/Export Routes - PENTING: rutenya diletakkan SEBELUM resource route
+    Route::get('metric-data/template', [MetricDataController::class, 'downloadTemplate'])
+        ->name('metric-data.template')
+        ->middleware(['auth', 'verified'])
+        ->withoutMiddleware(['verify_csrf_token']);
+        
+    Route::get('metric-data/export', [MetricDataController::class, 'export'])
+        ->name('metric-data.export')
+        ->middleware(['auth', 'verified'])
+        ->withoutMiddleware(['verify_csrf_token']);
+        
+    Route::post('metric-data/import', [MetricDataController::class, 'import'])
+        ->name('metric-data.import')
+        ->middleware(['auth', 'verified']);
+
     // Metric Data Routes
     Route::resource('metric-data', MetricDataController::class)
         ->middleware(['auth', 'verified', 'permission:manage-metric-data']);
+        
     Route::get('metric-report', [MetricDataController::class, 'report'])
         ->name('metric-data.report')
         ->middleware(['auth', 'verified', 'permission:view-metric-data']);
-
-    // Metric Data Import/Export Routes
-    Route::post('metric-data/import', [MetricDataController::class, 'import'])
-        ->name('metric-data.import')
-        ->middleware(['auth', 'verified', 'permission:manage-metric-data']);
-    Route::get('metric-data/export', [MetricDataController::class, 'export'])
-        ->name('metric-data.export')
-        ->middleware(['auth', 'verified', 'permission:export-metric-data']);
-    Route::get('metric-data/template', [MetricDataController::class, 'downloadTemplate'])
-        ->name('metric-data.template')
-        ->middleware(['auth', 'verified', 'permission:manage-metric-data']);
 
     // Analytics Dashboard
     Route::get('social-analytics', [SocialMediaAnalyticsController::class, 'index'])

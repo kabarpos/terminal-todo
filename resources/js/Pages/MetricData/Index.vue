@@ -64,13 +64,13 @@
                         <!-- Action Buttons -->
                         <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center">
                             <div class="col-span-2 sm:col-auto grid grid-cols-3 gap-2">
-                                <Link
-                                    :href="route('metric-data.template')"
+                                <button
+                                    @click="downloadTemplate"
                                     class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                                 >
                                     <DocumentArrowDownIcon class="w-5 h-5 sm:mr-1.5" />
                                     <span class="hidden sm:inline">Template</span>
-                                </Link>
+                                </button>
                                 
                                 <button
                                     @click="showImportModal = true"
@@ -80,13 +80,15 @@
                                     <span class="hidden sm:inline">Import</span>
                                 </button>
 
-                                <Link
-                                    :href="route('metric-data.export', filters)"
+                                <button
+                                    @click="exportData"
+                                    :disabled="exporting"
                                     class="inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                                 >
-                                    <ArrowDownTrayIcon class="w-5 h-5 sm:mr-1.5" />
-                                    <span class="hidden sm:inline">Export</span>
-                                </Link>
+                                    <SpinnerIcon v-if="exporting" class="w-5 h-5 sm:mr-1.5 animate-spin" />
+                                    <ArrowDownTrayIcon v-else class="w-5 h-5 sm:mr-1.5" />
+                                    <span class="hidden sm:inline">{{ exporting ? 'Mengekspor...' : 'Export' }}</span>
+                                </button>
                             </div>
 
                             <Link
@@ -312,6 +314,12 @@
                             class="block w-full mt-1 border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 focus:border-primary-500 focus:ring-primary-500"
                             required
                         />
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Unggah file Excel/CSV dengan format yang sesuai. 
+                            <a href="#" @click.prevent="downloadTemplate" class="text-blue-600 dark:text-blue-400 hover:underline">
+                                Download template
+                            </a>
+                        </p>
                     </div>
 
                     <div class="flex items-center justify-end mt-6">
@@ -413,6 +421,8 @@ const processing = ref(false)
 const form = useForm({})
 const showImportModal = ref(false)
 const importing = ref(false)
+const exporting = ref(false)
+const downloading = ref(false)
 const fileInput = ref(null)
 
 const confirmMetricDeletion = (metric) => {
@@ -489,31 +499,153 @@ const getPlatformClass = (platform) => {
 }
 
 const submitImport = async () => {
-    importing.value = true
-    const formData = new FormData()
-    formData.append('file', fileInput.value.files[0])
-
+    if (!fileInput.value.files.length) {
+        alert('Silakan pilih file terlebih dahulu');
+        return;
+    }
+    
+    importing.value = true;
+    const formData = new FormData();
+    formData.append('file', fileInput.value.files[0]);
+    
     try {
         const response = await axios.post(route('metric-data.import'), formData, {
             headers: {
-                'Content-Type': 'multipart/form-data'
+                'Content-Type': 'multipart/form-data',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             }
-        })
-
-        if (response.data.success) {
-            showImportModal.value = false
-            router.get(route('metric-data.index'), filters.value, {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true
-            })
-        } else {
-            // Handle error
-        }
+        });
+        
+        showImportModal.value = false;
+        alert(response.data.message || 'Data berhasil diimport');
+        router.reload();
     } catch (error) {
-        // Handle error
+        console.error('Error importing data:', error);
+        let errorMessage = 'Terjadi kesalahan saat mengimport data.';
+        
+        if (error.response && error.response.data) {
+            if (error.response.data.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.response.data.error) {
+                errorMessage = error.response.data.error;
+            } else if (error.response.data.errors) {
+                // Handle validation errors
+                const errors = error.response.data.errors;
+                errorMessage = Object.values(errors).flat().join('\n');
+            }
+        }
+        
+        alert(errorMessage);
     } finally {
-        importing.value = false
+        importing.value = false;
     }
+}
+
+const exportData = () => {
+    // Menampilkan status loading
+    exporting.value = true;
+    
+    // Siapkan parameter filter
+    const filters = cleanFilters();
+    
+    // Buat URL untuk export
+    let url = route('metric-data.export');
+    
+    // Tambahkan query parameters
+    const queryParams = new URLSearchParams();
+    
+    if (filters.account_id) {
+        queryParams.append('account_id', filters.account_id);
+    }
+    
+    if (filters.date_range) {
+        queryParams.append('date_range', filters.date_range);
+    }
+    
+    if (filters.start_date) {
+        queryParams.append('start_date', filters.start_date);
+    }
+    
+    if (filters.end_date) {
+        queryParams.append('end_date', filters.end_date);
+    }
+    
+    const queryString = queryParams.toString();
+    if (queryString) {
+        url = `${url}?${queryString}`;
+    }
+    
+    console.log('Exporting data from URL:', url);
+    
+    // Gunakan teknik frame terpisah untuk download agar tidak mengganggu aplikasi utama
+    const downloadFrame = document.createElement('iframe');
+    downloadFrame.style.display = 'none';
+    document.body.appendChild(downloadFrame);
+    
+    // Saat frame selesai loading, hilangkan status loading
+    downloadFrame.onload = () => {
+        setTimeout(() => {
+            exporting.value = false;
+            // Cek apakah ada error dengan melihat konten frame
+            try {
+                const frameContent = downloadFrame.contentDocument.body.textContent;
+                if (frameContent && frameContent.includes('error')) {
+                    // Tampilkan pesan error jika ada
+                    alert('Terjadi kesalahan saat export data: ' + frameContent);
+                }
+            } catch (e) {
+                // Jika tidak bisa mengakses konten frame, anggap berhasil
+                console.log('Export selesai');
+            }
+        }, 2000); // Tunggu 2 detik sebelum menghilangkan status loading
+    };
+    
+    // Jika terjadi error, hilangkan status loading
+    downloadFrame.onerror = () => {
+        exporting.value = false;
+        alert('Terjadi kesalahan saat export data');
+    };
+    
+    // Lakukan download
+    downloadFrame.src = url;
+}
+
+const cleanFilters = () => {
+    // Hilangkan filter kosong agar tidak mengganggu query
+    const cleanedFilters = {};
+    
+    if (filters.value.account_id) {
+        cleanedFilters.account_id = filters.value.account_id;
+    }
+    
+    cleanedFilters.date_range = filters.value.date_range;
+    
+    if (filters.value.date_range === 'custom') {
+        if (filters.value.start_date) {
+            cleanedFilters.start_date = filters.value.start_date;
+        }
+        if (filters.value.end_date) {
+            cleanedFilters.end_date = filters.value.end_date;
+        }
+    }
+    
+    console.log('Exporting with filters:', cleanedFilters);
+    return cleanedFilters;
+}
+
+const downloadTemplate = () => {
+    downloading.value = true;
+    
+    // Buat URL untuk download template
+    const url = route('metric-data.template');
+    console.log('Downloading template from URL:', url);
+    
+    // Gunakan window.location.href langsung untuk kompatibilitas maksimal
+    window.location.href = url;
+    
+    // Atur timeout untuk mengubah status downloading
+    setTimeout(() => {
+        downloading.value = false;
+    }, 1000);
 }
 </script> 

@@ -51,9 +51,9 @@
                                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     <tr v-for="report in reports" :key="report.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                         <td class="px-4 py-4">
-                                            <div class="text-sm text-gray-900 dark:text-gray-100 break-words">{{ report.title }}</div>
-                                            <div class="text-sm text-gray-500 dark:text-gray-400 break-words">
-                                                <a :href="report.url" target="_blank" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">{{ report.url }}</a>
+                                            <div class="text-sm text-gray-900 dark:text-gray-100 break-words max-w-xs">{{ report.title }}</div>
+                                            <div class="text-sm text-gray-500 dark:text-gray-400 max-w-xs">
+                                                <a :href="report.url" target="_blank" class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 break-all line-clamp-1 hover:line-clamp-none" :title="report.url">{{ report.url }}</a>
                                             </div>
                                         </td>
                                         <td class="px-4 py-4">

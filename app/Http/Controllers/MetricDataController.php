@@ -573,49 +573,145 @@ class MetricDataController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv'
+            'file' => 'required|file|mimes:xlsx,xls,csv'
         ]);
 
         try {
             Excel::import(new MetricDataImport, $request->file('file'));
-            return redirect()->back()->with('message', 'Data berhasil diimport');
-        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-            $failures = $e->failures();
-            $errors = collect($failures)->map(function ($failure) {
-                return "Baris {$failure->row()}: {$failure->errors()[0]}";
-            })->join('<br>');
             
-            return redirect()->back()->withErrors(['error' => "Gagal import data:<br>{$errors}"]);
+            if ($request->wantsJson()) {
+                return response()->json(['success' => true, 'message' => 'Data berhasil diimport']);
+            }
+            
+            return redirect()->route('metric-data.index')->with('message', 'Data berhasil diimport');
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Gagal import data: ' . $e->getMessage()]);
+            \Log::error('Error importing data: ' . $e->getMessage(), [
+                'exception' => $e,
+                'file' => $request->file('file') ? $request->file('file')->getClientOriginalName() : null
+            ]);
+            
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Gagal import data: ' . $e->getMessage()], 500);
+            }
+            
+            return redirect()->route('metric-data.index')->withErrors(['error' => 'Gagal import data: ' . $e->getMessage()]);
         }
     }
 
     public function export(Request $request)
     {
-        $request->validate([
-            'account_id' => 'nullable|exists:social_accounts,id',
-            'start_date' => 'required_with:end_date|date',
-            'end_date' => 'required_with:start_date|date|after_or_equal:start_date'
-        ]);
-
-        $fileName = 'metric-data-' . now()->format('Y-m-d') . '.xlsx';
-        
-        return Excel::download(
-            new MetricDataExport(
-                $request->account_id,
-                $request->start_date,
-                $request->end_date
-            ),
-            $fileName
-        );
+        try {
+            \Log::info('Export dimulai dengan parameter: ', [
+                'filters' => $request->all()
+            ]);
+            
+            // Tentukan filter tanggal jika tidak ada
+            $startDate = $request->input('start_date');
+            $endDate = $request->input('end_date');
+            $dateRange = $request->input('date_range', '30');
+            
+            if (empty($startDate) && empty($endDate) && $dateRange != 'custom') {
+                // Gunakan filter default jika tidak ada tanggal yang diberikan
+                $endDate = now()->format('Y-m-d');
+                $startDate = now()->subDays($dateRange)->format('Y-m-d');
+            }
+            
+            $fileName = 'data-metrik-' . now()->format('Y-m-d-His') . '.xlsx';
+            
+            \Log::info('Preparing Excel export', [
+                'account_id' => $request->input('account_id'),
+                'start_date' => $startDate, 
+                'end_date' => $endDate,
+                'date_range' => $dateRange,
+                'filename' => $fileName
+            ]);
+            
+            // Buat instance export class
+            $export = new \App\Exports\MetricDataExport(
+                $request->input('account_id'),
+                $startDate,
+                $endDate,
+                $dateRange
+            );
+            
+            // Gunakan cara standard Excel::download langsung
+            return Excel::download($export, $fileName);
+            
+            // Cara alternatif yang lama yang bermasalah:
+            /*
+            return response()->streamDownload(
+                function() use ($export, $fileName) {
+                    \Maatwebsite\Excel\Facades\Excel::store($export, $fileName, 'local');
+                    readfile(storage_path('app/' . $fileName));
+                    unlink(storage_path('app/' . $fileName)); // Hapus file setelah didownload
+                },
+                $fileName,
+                [
+                    'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+                    'Cache-Control' => 'max-age=0',
+                ]
+            );
+            */
+        } catch (\Exception $e) {
+            \Log::error('Error exporting data: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all()
+            ]);
+            
+            if ($request->wantsJson()) {
+                return response()->json(['error' => 'Gagal export data: ' . $e->getMessage()], 500);
+            }
+            
+            return redirect()->route('metric-data.index')
+                ->withErrors(['error' => 'Gagal export data: ' . $e->getMessage()]);
+        }
     }
 
     public function downloadTemplate()
     {
-        $fileName = 'template-import-metric-data.xlsx';
-        
-        return Excel::download(new MetricDataTemplateExport(), $fileName);
+        try {
+            $templatePath = storage_path('app/templates/template-import-metric-data.csv');
+            
+            \Log::info('Download template request', [
+                'template_path' => $templatePath,
+                'file_exists' => file_exists($templatePath),
+                'user' => auth()->user()->name ?? 'Unknown'
+            ]);
+            
+            // Jika template sudah ada, gunakan file yang ada
+            if (file_exists($templatePath)) {
+                // Baca langsung file dan kembalikan sebagai response
+                $content = file_get_contents($templatePath);
+                
+                return response($content)
+                    ->header('Content-Type', 'text/csv')
+                    ->header('Content-Disposition', 'attachment; filename=template-import-metric-data.csv')
+                    ->header('Content-Length', strlen($content))
+                    ->header('Pragma', 'no-cache')
+                    ->header('Cache-Control', 'must-revalidate, post-check=0, pre-check=0')
+                    ->header('Expires', '0');
+            }
+            
+            // Jika belum ada, gunakan cara lama (generate template)
+            \Log::warning('Template file not found, generating new one');
+            $fileName = 'template-import-metric-data.xlsx';
+            return Excel::download(new MetricDataTemplateExport(), $fileName);
+        } catch (\Exception $e) {
+            \Log::error('Error downloading template: ' . $e->getMessage(), [
+                'exception' => $e,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Redirect tidak akan bekerja untuk AJAX request, jadi kirim respons JSON jika client mengharapkannya
+            if (request()->wantsJson() || request()->ajax()) {
+                return response()->json(['error' => 'Gagal download template: ' . $e->getMessage()], 500);
+            }
+            
+            return redirect()->route('metric-data.index')
+                ->withErrors(['error' => 'Gagal download template: ' . $e->getMessage()]);
+        }
     }
 
     public function debugDelete($id)

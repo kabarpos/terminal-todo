@@ -1,7 +1,7 @@
 <template>
     <Head title="Input Data Metrik" />
 
-    <AuthenticatedLayout :auth="auth" title="Input Data Metrik">
+    <AuthenticatedLayout title="Input Data Metrik">
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
@@ -153,7 +153,7 @@
 </template>
 
 <script setup>
-import { Head, Link, useForm } from '@inertiajs/vue3'
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
@@ -164,10 +164,6 @@ import { ArrowLeftIcon } from '@heroicons/vue/24/outline'
 const props = defineProps({
     accounts: {
         type: Array,
-        required: true
-    },
-    auth: {
-        type: Object,
         required: true
     }
 })
