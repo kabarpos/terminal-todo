@@ -214,20 +214,20 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
 
     // Metric Data Routes
     Route::resource('metric-data', MetricDataController::class)
-        ->middleware(['auth', 'verified', 'permission:manage-metric-data|view-metric-data']);
+        ->middleware(['auth', 'verified', 'flexible_permission:manage-metric-data|view-metric-data']);
         
     Route::get('metric-report', [MetricDataController::class, 'report'])
         ->name('metric-data.report')
-        ->middleware(['auth', 'verified', 'permission:view-metric-data']);
+        ->middleware(['auth', 'verified', 'flexible_permission:view-metric-data']);
 
     // Analytics Dashboard
     Route::get('social-analytics', [SocialMediaAnalyticsController::class, 'index'])
         ->name('social-analytics.index')
-        ->middleware('permission:view-analytics');
+        ->middleware('flexible_permission:view-analytics');
 
     Route::get('/metric-data/{id}/debug', [MetricDataController::class, 'debugDelete'])->name('metric-data.debug');
 
     Route::delete('metric-data/{id}/force', [MetricDataController::class, 'forceDestroy'])
         ->name('metric-data.force-destroy')
-        ->middleware(['auth', 'verified', 'permission:manage-metric-data']);
+        ->middleware(['auth', 'verified', 'flexible_permission:manage-metric-data']);
 });

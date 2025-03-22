@@ -46,7 +46,7 @@ const hasPermission = (permission) => {
     // Logger untuk debugging permission
     console.log('Checking permission:', permission, 'for user:', props.user?.name);
     console.log('User roles:', props.user?.roles);
-    console.log('User permissions:', props.user?.permissions);
+    console.log('User permissions:', props.user?.permissions?.length);
     
     // Jika pengguna adalah Super Admin, izinkan semua
     if (isAdmin.value) {
@@ -66,18 +66,71 @@ const hasPermission = (permission) => {
         return false;
     }
 
-    // Coba berbagai format permission (dengan spasi dan dengan tanda -)
-    const permissionWithDash = permission.replace(/\s+/g, '-');
-    const permissionWithSpace = permission.replace(/-/g, ' ');
+    // Helper untuk menghasilkan semua kemungkinan format dari permission
+    const generatePermissionVariants = (perm) => {
+        let variants = new Set();
+        
+        // Simpan versi asli
+        variants.add(perm);
+        
+        // Versi dengan spasi dan tanpa spasi
+        const withoutSpaces = perm.replace(/\s+/g, '-');
+        const withSpaces = perm.replace(/-/g, ' ');
+        
+        variants.add(withoutSpaces);
+        variants.add(withSpaces);
+        
+        // Versi dengan huruf kecil
+        variants.add(perm.toLowerCase());
+        variants.add(withoutSpaces.toLowerCase());
+        variants.add(withSpaces.toLowerCase());
+        
+        // Jika permission memiliki spasi, coba balik kata-katanya dan buat format dengan tanda -
+        if (perm.includes(' ')) {
+            const parts = perm.split(' ');
+            if (parts.length === 2) {
+                const reversed = `${parts[1]}-${parts[0]}`;
+                variants.add(reversed);
+                variants.add(reversed.toLowerCase());
+            }
+        }
+        
+        // Jika permission memiliki tanda -, coba balik kata-katanya dan buat format dengan spasi
+        if (perm.includes('-')) {
+            const parts = perm.split('-');
+            if (parts.length === 2) {
+                const reversed = `${parts[1]} ${parts[0]}`;
+                variants.add(reversed);
+                variants.add(reversed.toLowerCase());
+            }
+        }
+        
+        return Array.from(variants);
+    };
     
-    const hasAccess = props.user.permissions.some(p => 
-        p === permission || 
-        p === permissionWithDash || 
-        p === permissionWithSpace
-    );
+    // Normalisasi permission yang diminta
+    const requestedVariants = generatePermissionVariants(permission);
     
-    console.log('Permission check result:', hasAccess);
-    return hasAccess;
+    // Periksa apakah user memiliki salah satu dari varian permission
+    for (const userPerm of props.user.permissions) {
+        const userPermVariants = generatePermissionVariants(userPerm);
+        
+        // Periksa apakah ada intersection antara requested variants dan user permission variants
+        const hasMatch = requestedVariants.some(reqVar => userPermVariants.includes(reqVar));
+        
+        if (hasMatch) {
+            console.log('Permission match found:', { 
+                requested: permission, 
+                matched: userPerm,
+                requestedVariants,
+                userPermVariants 
+            });
+            return true;
+        }
+    }
+    
+    console.log('No permission match found for:', permission);
+    return false;
 };
 
 // Definisi seluruh menu aplikasi
