@@ -8,7 +8,6 @@ use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
-use App\Helpers\PermissionHelper;
 
 class RoleController extends Controller
 {
@@ -17,7 +16,7 @@ class RoleController extends Controller
      */
     public function __construct()
     {
-        $this->middleware([\App\Http\Middleware\PermissionNormalizer::class . ':manage-roles', 'permission:manage-roles']);
+        $this->middleware('permission:manage-roles');
     }
 
     public function index()

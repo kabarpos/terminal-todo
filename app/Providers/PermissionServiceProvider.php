@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use App\Services\PermissionService;
-use App\Services\GuardService;
 use App\Services\PermissionCacheService;
 
 class PermissionServiceProvider extends ServiceProvider
@@ -13,7 +12,6 @@ class PermissionServiceProvider extends ServiceProvider
     {
         // Register services as singletons
         $this->app->singleton(PermissionService::class);
-        $this->app->singleton(GuardService::class);
         $this->app->singleton(PermissionCacheService::class);
     }
 
@@ -29,15 +27,6 @@ class PermissionServiceProvider extends ServiceProvider
                 $this->app->make(PermissionService::class)
                     ->generatePermissions();
             });
-        }
-
-        // Register default guard if needed
-        if ($this->app->environment('local')) {
-            $this->app->make(GuardService::class)
-                ->registerGuard('admin', [
-                    'driver' => 'session',
-                    'provider' => 'users',
-                ]);
         }
     }
 } 
