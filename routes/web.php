@@ -64,7 +64,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Content Management Routes
-    Route::middleware(['role:Super Admin|Content Manager'])->group(function () {
+    Route::middleware(['role:Super Admin|Content Manager|Manager'])->group(function () {
         Route::resource('categories', CategoryController::class)
             ->middleware('permission:manage-category');
         
@@ -85,7 +85,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
     });
 
     // Admin Routes
-    Route::middleware('role:Super Admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware('role:Super Admin|Manager')->prefix('admin')->name('admin.')->group(function () {
         // Users Management
         Route::resource('users', UserController::class)
             ->middleware('permission:manage-users');

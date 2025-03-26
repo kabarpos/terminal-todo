@@ -10,11 +10,20 @@ class TaskCommentPolicy
 {
     use HandlesAuthorization;
 
+    public function create(User $user)
+    {
+        return $user->hasPermissionTo('manage-task') || 
+            $user->hasRole('Super Admin') ||
+            $user->hasRole('Content Manager') ||
+            $user->hasRole('Manager');
+    }
+
     public function update(User $user, TaskComment $comment)
     {
         return $user->id === $comment->user_id || 
-               $user->hasRole('Super Admin') || 
-               $user->hasRole('Content Manager');
+            $user->hasRole('Super Admin') ||
+            $user->hasRole('Content Manager') ||
+            $user->hasRole('Manager');
     }
 
     public function delete(User $user, TaskComment $comment)
