@@ -1,118 +1,78 @@
 <?php
 
-// Script untuk memperbaiki permissions di aplikasi Laravel
-// Simpan file ini di root aplikasi, kemudian jalankan dengan: php fix_permissions.php
+// Script untuk memastikan semua permission menggunakan format dash
+require __DIR__ . '/vendor/autoload.php';
 
-require __DIR__.'/vendor/autoload.php';
-
-$app = require_once __DIR__.'/bootstrap/app.php';
+$app = require_once __DIR__ . '/bootstrap/app.php';
 $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 
-// Pastikan role 'Super Admin' ada
-$superAdminRole = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+echo "=== SCRIPT FIX PERMISSION ===\n\n";
 
-// Tambahkan permission baru yang diperlukan dengan format 'manage-social-media-report'
-$newPermissions = [
-    'manage-social-media-report',
-    'view-social-media-report',
-    'manage-task',
-    'view-task',
-    'manage-category',
-    'view-category',
-    'manage-team',
-    'view-team',
-    'manage-platform',
-    'view-platform',
-    'manage-newsfeed',
-    'view-newsfeed',
-    'manage-roles',
-    'view-roles',
-    'manage-users',
-    'view-users',
-    'manage-settings',
-    'view-dashboard',
-    'view-calendar',
-    'manage-calendar',
-    'view-analytics',
-    'export-analytics',
-    'view-asset',
-    'manage-asset',
-    'edit-task',
-    'delete-task',
-    'create-task',
-    'edit-social-media-report',
-    'delete-social-media-report',
-    'create-social-media-report'
-];
+try {
+    // 1. Perbaiki format permission dari spasi menjadi dash
+    $permissions = Permission::all();
+    $fixedCount = 0;
 
-// Tambahkan permissions jika belum ada
-foreach($newPermissions as $permName) {
-    try {
-        $perm = Permission::firstOrCreate([
-            'name' => $permName,
-            'guard_name' => 'web'
-        ]);
-        // Pastikan Super Admin memiliki permission ini
-        if(!$superAdminRole->hasPermissionTo($permName)) {
-            $superAdminRole->givePermissionTo($permName);
-            echo "Ditambahkan permission: {$permName} ke Super Admin\n";
+    echo "1. Memperbaiki format permission dari spasi menjadi dash...\n";
+    
+    foreach ($permissions as $permission) {
+        $oldName = $permission->name;
+        
+        // Cek apakah permission berisi spasi
+        if (strpos($oldName, ' ') !== false) {
+            // Ubah format spasi menjadi dash
+            $newName = str_replace(' ', '-', $oldName);
+            
+            echo "   Mengubah: {$oldName} -> {$newName}\n";
+            
+            // Update permission
+            $permission->name = $newName;
+            $permission->save();
+            $fixedCount++;
         }
-    } catch (\Exception $e) {
-        echo "Error menambahkan {$permName}: " . $e->getMessage() . "\n";
     }
-}
 
-// Cari user dengan email admin@example.com atau admin lain
-$adminEmails = ['admin@example.com', 'superadmin@example.com', 'admin@admin.com'];
-$userFound = false;
-
-foreach ($adminEmails as $email) {
-    $user = User::where('email', $email)->first();
-    if ($user) {
-        $user->assignRole('Super Admin');
-        echo "Berhasil memberikan role Super Admin ke user: {$user->email}\n";
-        $userFound = true;
-        break;
-    }
-}
-
-if (!$userFound) {
-    echo "Tidak ditemukan user admin. Mohon buat user admin terlebih dahulu.\n";
-}
-
-// Tambahkan juga izin dengan format 'view social media report' (dengan spasi)
-$spacePermissions = [
-    'view social media report',
-    'create social media report',
-    'edit social media report',
-    'delete social media report',
-    'manage social media report',
-    'view task',
-    'create task',
-    'edit task',
-    'delete task',
-    'manage task',
-    'view dashboard'
-];
-
-foreach($spacePermissions as $permName) {
-    try {
-        $perm = Permission::firstOrCreate([
-            'name' => $permName,
-            'guard_name' => 'web'
-        ]);
-        // Pastikan Super Admin memiliki permission ini
-        if(!$superAdminRole->hasPermissionTo($permName)) {
-            $superAdminRole->givePermissionTo($permName);
-            echo "Ditambahkan permission: {$permName} ke Super Admin\n";
+    echo "   Total {$fixedCount} permission telah diperbaiki formatnya.\n\n";
+    
+    // 2. Periksa keberadaan Super Admin role dan usernya
+    echo "2. Memeriksa role Super Admin...\n";
+    
+    $superAdminRole = Role::where('name', 'Super Admin')->first();
+    
+    if ($superAdminRole) {
+        echo "   Role Super Admin ditemukan dengan ID: {$superAdminRole->id}\n";
+        
+        // 3. Pastikan Super Admin memiliki semua permission
+        $allPermissions = Permission::all()->pluck('name')->toArray();
+        $superAdminRole->syncPermissions($allPermissions);
+        
+        echo "   Role Super Admin telah diberikan semua permission (" . count($allPermissions) . " permission)\n";
+        
+        // 4. Periksa user dengan role Super Admin
+        $superAdmins = User::role('Super Admin')->get();
+        
+        echo "   Ditemukan " . count($superAdmins) . " user dengan role Super Admin:\n";
+        
+        foreach ($superAdmins as $admin) {
+            echo "   - {$admin->name} ({$admin->email})\n";
         }
-    } catch (\Exception $e) {
-        echo "Error menambahkan {$permName}: " . $e->getMessage() . "\n";
+    } else {
+        echo "   ERROR: Role Super Admin tidak ditemukan!\n";
     }
-}
-
-echo "\nProses selesai! Semua permission sudah ditambahkan ke role Super Admin.\n"; 
+    
+    // 5. Reset cache permission
+    app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+    
+    echo "\n3. Cache permission telah direset.\n";
+    
+    echo "\n=== SCRIPT SELESAI ===\n";
+    echo "Silakan refresh aplikasi dan coba akses kembali.\n";
+    
+} catch (\Exception $e) {
+    echo "ERROR: " . $e->getMessage() . "\n";
+} 

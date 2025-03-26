@@ -61,16 +61,48 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware(['auth:sanctum'])->group(function () {
     // Route untuk Super Admin
     Route::middleware(['role:Super Admin'])->group(function () {
-        Route::apiResource('users', UserController::class);
-        Route::apiResource('roles', RoleController::class);
+        Route::apiResource('users', UserController::class)->names([
+            'index' => 'api.users.index',
+            'store' => 'api.users.store',
+            'show' => 'api.users.show',
+            'update' => 'api.users.update',
+            'destroy' => 'api.users.destroy',
+        ]);
+        
+        Route::apiResource('roles', RoleController::class)->names([
+            'index' => 'api.roles.index',
+            'store' => 'api.roles.store',
+            'show' => 'api.roles.show',
+            'update' => 'api.roles.update',
+            'destroy' => 'api.roles.destroy',
+        ]);
     });
 
     // Route untuk Content Manager dan Super Admin
     Route::middleware(['role:Super Admin|Content Manager'])->group(function () {
-        Route::apiResource('categories', CategoryController::class);
-        Route::apiResource('platforms', PlatformController::class);
+        Route::apiResource('categories', CategoryController::class)->names([
+            'index' => 'api.categories.index',
+            'store' => 'api.categories.store',
+            'show' => 'api.categories.show',
+            'update' => 'api.categories.update',
+            'destroy' => 'api.categories.destroy',
+        ]);
+        
+        Route::apiResource('platforms', PlatformController::class)->names([
+            'index' => 'api.platforms.index',
+            'store' => 'api.platforms.store',
+            'show' => 'api.platforms.show',
+            'update' => 'api.platforms.update',
+            'destroy' => 'api.platforms.destroy',
+        ]);
     });
 
     // Route untuk semua user yang terautentikasi
-    Route::apiResource('tasks', TaskController::class);
+    Route::apiResource('tasks', TaskController::class)->names([
+        'index' => 'api.tasks.index',
+        'store' => 'api.tasks.store',
+        'show' => 'api.tasks.show',
+        'update' => 'api.tasks.update',
+        'destroy' => 'api.tasks.destroy',
+    ]);
 }); 

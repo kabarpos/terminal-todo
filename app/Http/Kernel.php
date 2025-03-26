@@ -35,19 +35,14 @@ class Kernel extends HttpKernel
             \Illuminate\Session\Middleware\StartSession::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
-            \App\Http\Middleware\RefreshCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
-            \App\Http\Middleware\HandleAuthentication::class,
         ],
 
         'api' => [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\HandleAuthentication::class,
-            \App\Http\Middleware\RefreshCsrfToken::class,
         ],
     ];
 
@@ -72,10 +67,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
         'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
-        'permission_enhanced' => \App\Http\Middleware\PermissionMiddlewareEnhanced::class,
         'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
-        'user_status' => \App\Http\Middleware\UserStatus::class,
-        'handle_auth' => \App\Http\Middleware\HandleAuthentication::class,
-        'active' => \App\Http\Middleware\EnsureUserIsActive::class,
+        'permission_enhanced' => \App\Http\Middleware\PermissionMiddlewareEnhanced::class,
     ];
 } 

@@ -27,70 +27,70 @@ class RoleAndPermissionSeeder extends Seeder
             // Create permissions
             $permissions = [
                 // Dashboard
-                'view dashboard',
+                'view-dashboard',
                 
                 // Calendar
-                'view calendar',
-                'create calendar',
-                'edit calendar',
-                'delete calendar',
+                'view-calendar',
+                'create-calendar',
+                'edit-calendar',
+                'delete-calendar',
                 
                 // Tasks
-                'view task',
-                'create task',
-                'edit task',
-                'delete task',
+                'view-task',
+                'create-task',
+                'edit-task',
+                'delete-task',
                 
                 // Teams
-                'view team',
-                'create team',
-                'edit team',
-                'delete team',
+                'view-team',
+                'create-team',
+                'edit-team',
+                'delete-team',
                 
                 // Categories
-                'view category',
-                'create category',
-                'edit category',
-                'delete category',
+                'view-category',
+                'create-category',
+                'edit-category',
+                'delete-category',
                 
                 // Platforms
-                'view platform',
-                'create platform',
-                'edit platform',
-                'delete platform',
+                'view-platform',
+                'create-platform',
+                'edit-platform',
+                'delete-platform',
                 
                 // News Feed
-                'view newsfeed',
-                'create newsfeed',
-                'edit newsfeed',
-                'delete newsfeed',
+                'view-newsfeed',
+                'create-newsfeed',
+                'edit-newsfeed',
+                'delete-newsfeed',
                 
                 // Social Media Reports
-                'view social media report',
-                'create social media report',
-                'edit social media report',
-                'delete social media report',
+                'view-social-media-report',
+                'create-social-media-report',
+                'edit-social-media-report',
+                'delete-social-media-report',
                 
                 // Assets
-                'view asset',
-                'create asset',
-                'edit asset',
-                'delete asset',
+                'view-asset',
+                'create-asset',
+                'edit-asset',
+                'delete-asset',
                 
                 // Analytics
-                'view analytics',
-                'export analytics',
+                'view-analytics',
+                'export-analytics',
                 
                 // Admin permissions
-                'view users',
-                'create users',
-                'edit users',
-                'delete users',
-                'view roles',
-                'create roles',
-                'edit roles',
-                'delete roles',
-                'manage settings'
+                'view-users',
+                'create-users',
+                'edit-users',
+                'delete-users',
+                'view-roles',
+                'create-roles',
+                'edit-roles',
+                'delete-roles',
+                'manage-settings'
             ];
 
             // Create all permissions
@@ -107,48 +107,48 @@ class RoleAndPermissionSeeder extends Seeder
                 'content_manager' => [
                     'name' => 'Content Manager',
                     'permissions' => [
-                        'view dashboard',
-                        'view calendar', 'create calendar', 'edit calendar', 'delete calendar',
-                        'view task', 'create task', 'edit task', 'delete task',
-                        'view team', 'create team', 'edit team', 'delete team',
-                        'view category', 'create category', 'edit category', 'delete category',
-                        'view platform', 'create platform', 'edit platform', 'delete platform',
-                        'view newsfeed', 'create newsfeed', 'edit newsfeed', 'delete newsfeed',
-                        'view social media report', 'create social media report', 'edit social media report', 'delete social media report',
-                        'view asset', 'create asset', 'edit asset', 'delete asset',
-                        'view analytics'
+                        'view-dashboard',
+                        'view-calendar', 'create-calendar', 'edit-calendar', 'delete-calendar',
+                        'view-task', 'create-task', 'edit-task', 'delete-task',
+                        'view-team', 'create-team', 'edit-team', 'delete-team',
+                        'view-category', 'create-category', 'edit-category', 'delete-category',
+                        'view-platform', 'create-platform', 'edit-platform', 'delete-platform',
+                        'view-newsfeed', 'create-newsfeed', 'edit-newsfeed', 'delete-newsfeed',
+                        'view-social-media-report', 'create-social-media-report', 'edit-social-media-report', 'delete-social-media-report',
+                        'view-asset', 'create-asset', 'edit-asset', 'delete-asset',
+                        'view-analytics'
                     ]
                 ],
                 'content_writer' => [
                     'name' => 'Content Writer',
                     'permissions' => [
-                        'view task', 'edit task',
-                        'view calendar',
-                        'view asset', 'create asset'
+                        'view-task', 'edit-task',
+                        'view-calendar',
+                        'view-asset', 'create-asset'
                     ]
                 ],
                 'designer' => [
                     'name' => 'Designer',
                     'permissions' => [
-                        'view task', 'edit task',
-                        'view calendar',
-                        'view asset', 'create asset', 'edit asset'
+                        'view-task', 'edit-task',
+                        'view-calendar',
+                        'view-asset', 'create-asset', 'edit-asset'
                     ]
                 ],
                 'video_editor' => [
                     'name' => 'Video Editor',
                     'permissions' => [
-                        'view task', 'edit task',
-                        'view calendar',
-                        'view asset', 'create asset', 'edit asset'
+                        'view-task', 'edit-task',
+                        'view-calendar',
+                        'view-asset', 'create-asset', 'edit-asset'
                     ]
                 ],
                 'social_media' => [
                     'name' => 'Social Media',
                     'permissions' => [
-                        'view task', 'edit task',
-                        'view calendar', 'create calendar',
-                        'view asset', 'create asset'
+                        'view-task', 'edit-task',
+                        'view-calendar', 'create-calendar',
+                        'view-asset', 'create-asset'
                     ]
                 ]
             ];
