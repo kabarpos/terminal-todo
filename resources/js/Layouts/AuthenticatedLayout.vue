@@ -4,6 +4,7 @@ import { Link, router, usePage } from "@inertiajs/vue3";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 import AppNavigation from '@/Components/Navigation/AppNavigation.vue';
 import { Head } from "@inertiajs/vue3";
+import { usePermission } from '@/Composables/usePermission';
 
 const isSidebarOpen = ref(false);
 const isProfileMenuOpen = ref(false);
@@ -152,26 +153,7 @@ watch(() => usePage().props.settings, (newSettings) => {
     }
 }, { deep: true });
 
-// Fungsi pembantu untuk memeriksa permission
-const hasPermission = (permission) => {
-    if (!authenticatedUser.value || !authenticatedUser.value.permissions) {
-        return false;
-    }
-    
-    if (authenticatedUser.value.is_admin) {
-        return true;
-    }
-    
-    // Coba berbagai format permission (dengan spasi dan dengan tanda -)
-    const permissionWithDash = permission.replace(/\s+/g, '-');
-    const permissionWithSpace = permission.replace(/-/g, ' ');
-    
-    return authenticatedUser.value.permissions.some(p => 
-        p === permission || 
-        p === permissionWithDash || 
-        p === permissionWithSpace
-    );
-};
+const { hasPermission } = usePermission();
 
 // Expose hasPermission to template
 defineExpose({ hasPermission });

@@ -187,14 +187,18 @@ const formatPermissionLabel = (permission) => {
         permission = permission.replace('undefined ', '');
     }
     
-    let module, action;
-    if (permission.includes('.')) {
-        [module, action] = permission.split('.');
-    } else if (permission.includes(' ')) {
-        [action, module] = permission.split(' ');
-    } else {
-        return permission; // Return as is if no separator found
+    // Normalisasi format permission - bisa dengan dash atau spasi
+    let formattedPermission = permission;
+    if (permission.includes('-')) {
+        formattedPermission = permission.replace(/-/g, ' ');
     }
+    
+    // Split permission menjadi action dan resource
+    let parts = formattedPermission.split(' ');
+    if (parts.length < 2) return formattedPermission; // Return as is jika tidak bisa dipisah
+    
+    let action = parts[0];
+    let resource = parts.slice(1).join(' ');
     
     // Mapping untuk label yang lebih baik
     const actionLabels = {
@@ -202,35 +206,32 @@ const formatPermissionLabel = (permission) => {
         'create': 'Tambah',
         'edit': 'Edit',
         'delete': 'Hapus',
-        'assign': 'Tugaskan',
-        'change_task_status': 'Ubah Status Tugas',
-        'approve': 'Setujui',
-        'manage_team_members': 'Kelola Anggota Tim',
-        'create_calendar_events': 'Tambah Event Kalender',
-        'edit_calendar_events': 'Edit Event Kalender',
-        'delete_calendar_events': 'Hapus Event Kalender',
-        'upload': 'Unggah',
+        'manage': 'Kelola',
         'export': 'Ekspor',
-        'access_admin': 'Akses Admin',
-        'manage_settings': 'Kelola Pengaturan',
-        'manage_all': 'Kelola Semua'
+        'import': 'Impor',
+        'assign': 'Tugaskan',
+        'approve': 'Setujui'
     };
 
     const moduleLabels = {
         'users': 'Pengguna',
         'roles': 'Role',
         'tasks': 'Tugas',
-        'content': 'Konten',
         'teams': 'Tim',
         'calendar': 'Kalender',
-        'assets': 'Aset',
-        'reports': 'Laporan',
+        'category': 'Kategori',
+        'platform': 'Platform',
+        'newsfeed': 'Newsfeed',
+        'social media report': 'Laporan Media Sosial',
+        'asset': 'Aset',
+        'metric data': 'Data Metrik',
         'analytics': 'Analitik',
-        'admin': 'Admin'
+        'settings': 'Pengaturan',
+        'dashboard': 'Dashboard'
     };
     
     const actionLabel = actionLabels[action] || action;
-    const moduleLabel = moduleLabels[module] || module;
+    const moduleLabel = moduleLabels[resource] || resource;
     
     return `${actionLabel} ${moduleLabel}`;
 };

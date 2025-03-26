@@ -39,24 +39,24 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
 
     // Tasks Routes
     Route::resource('tasks', TaskController::class)
-        ->middleware('permission:view-task|manage-task');
+        ->middleware('permission_enhanced:view-task|manage-task');
 
     Route::put('tasks/{task}/update-status', [TaskController::class, 'updateStatus'])
         ->name('tasks.update-status')
-        ->middleware('permission:manage-task');
+        ->middleware('permission_enhanced:manage-task');
     
     // Task Comments Routes
     Route::post('tasks/{task}/comments', [TaskCommentController::class, 'store'])
         ->name('tasks.comments.store')
-        ->middleware('permission:manage-task');
+        ->middleware('permission_enhanced:manage-task');
     
     Route::put('tasks/comments/{comment}', [TaskCommentController::class, 'update'])
         ->name('tasks.comments.update')
-        ->middleware('permission:manage-task');
+        ->middleware('permission_enhanced:manage-task');
     
     Route::delete('tasks/comments/{comment}', [TaskCommentController::class, 'destroy'])
         ->name('tasks.comments.destroy')
-        ->middleware('permission:manage-task');
+        ->middleware('permission_enhanced:manage-task');
 
     // Profile Routes (from Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -66,100 +66,100 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
     // Content Management Routes
     Route::middleware(['role:Super Admin|Content Manager'])->group(function () {
         Route::resource('categories', CategoryController::class)
-            ->middleware('permission:manage-category');
+            ->middleware('permission_enhanced:manage-category');
         
         Route::resource('platforms', PlatformController::class)
-            ->middleware('permission:manage-platform');
+            ->middleware('permission_enhanced:manage-platform');
         
         Route::resource('calendar', EditorialCalendarController::class)
-            ->middleware('permission:manage-calendar');
+            ->middleware('permission_enhanced:manage-calendar');
 
         // Calendar Comments Routes
         Route::post('calendar/{calendar}/comments', [CalendarCommentController::class, 'store'])
             ->name('calendar.comments.store')
-            ->middleware('permission:manage-calendar');
+            ->middleware('permission_enhanced:manage-calendar');
         
         Route::delete('calendar/{calendar}/comments/{comment}', [CalendarCommentController::class, 'destroy'])
             ->name('calendar.comments.destroy')
-            ->middleware('permission:manage-calendar');
+            ->middleware('permission_enhanced:manage-calendar');
     });
 
     // Admin Routes
     Route::middleware('role:Super Admin')->prefix('admin')->name('admin.')->group(function () {
         // Users Management
         Route::resource('users', UserController::class)
-            ->middleware('permission:manage-users');
+            ->middleware('permission_enhanced:manage-users');
         
         Route::put('users/{user}/approve', [UserController::class, 'approve'])
             ->name('users.approve')
-            ->middleware('permission:manage-users');
+            ->middleware('permission_enhanced:manage-users');
         
         Route::put('users/{user}/reject', [UserController::class, 'reject'])
             ->name('users.reject')
-            ->middleware('permission:manage-users');
+            ->middleware('permission_enhanced:manage-users');
         
         Route::put('users/{user}/deactivate', [UserController::class, 'deactivate'])
             ->name('users.deactivate')
-            ->middleware('permission:manage-users');
+            ->middleware('permission_enhanced:manage-users');
         
         Route::put('users/{user}/ban', [UserController::class, 'ban'])
             ->name('users.ban')
-            ->middleware('permission:manage-users');
+            ->middleware('permission_enhanced:manage-users');
         
         // Roles Management
         Route::resource('roles', RoleController::class)
-            ->middleware('permission:manage-roles');
+            ->middleware('permission_enhanced:manage-roles');
         
         Route::get('/settings', [SettingsController::class, 'index'])
             ->name('settings.index')
-            ->middleware('permission:manage-settings');
+            ->middleware('permission_enhanced:manage-settings');
         
         Route::post('/settings', [SettingsController::class, 'update'])
             ->name('settings.update')
-            ->middleware('permission:manage-settings');
+            ->middleware('permission_enhanced:manage-settings');
     });
 
     // News Feed Routes
     Route::resource('news-feeds', NewsFeedController::class)
-        ->middleware('permission:view-newsfeed')
+        ->middleware('permission_enhanced:view-newsfeed')
         ->except(['store', 'update', 'destroy']);
     
     Route::resource('news-feeds', NewsFeedController::class)
-        ->middleware('permission:manage-newsfeed')
+        ->middleware('permission_enhanced:manage-newsfeed')
         ->only(['store', 'update', 'destroy']);
 
     Route::post('news-feeds/preview', [NewsFeedController::class, 'preview'])
         ->name('news-feeds.preview')
-        ->middleware('permission:manage-newsfeed');
+        ->middleware('permission_enhanced:manage-newsfeed');
     
     Route::post('/news-feeds/fetch-metadata', [NewsFeedController::class, 'fetchMetadata'])
         ->name('news-feeds.fetch-metadata')
-        ->middleware('permission:manage-newsfeed');
+        ->middleware('permission_enhanced:manage-newsfeed');
 
     // Team Routes
     Route::resource('teams', TeamController::class)
-        ->middleware('permission:view-team')
+        ->middleware('permission_enhanced:view-team')
         ->except(['store', 'update', 'destroy']);
     
     Route::resource('teams', TeamController::class)
-        ->middleware('permission:manage-team')
+        ->middleware('permission_enhanced:manage-team')
         ->only(['store', 'update', 'destroy']);
 
     Route::get('teams/{team}/available-users', [TeamController::class, 'getAvailableUsers'])
         ->name('teams.available-users')
-        ->middleware('permission:manage-team');
+        ->middleware('permission_enhanced:manage-team');
     
     Route::post('teams/{team}/members', [TeamController::class, 'addMember'])
         ->name('teams.members.add')
-        ->middleware('permission:manage-team');
+        ->middleware('permission_enhanced:manage-team');
     
     Route::delete('teams/{team}/members', [TeamController::class, 'removeMember'])
         ->name('teams.members.remove')
-        ->middleware('permission:manage-team');
+        ->middleware('permission_enhanced:manage-team');
     
     Route::put('teams/{team}/members', [TeamController::class, 'updateMemberRole'])
         ->name('teams.members.update-role')
-        ->middleware('permission:manage-team');
+        ->middleware('permission_enhanced:manage-team');
 
     // Media Routes
     Route::get('media', [MediaController::class, 'index'])->name('media.index');
@@ -173,15 +173,15 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
     // Analytics Routes
     Route::get('analytics', [AnalyticsController::class, 'index'])
         ->name('analytics.index')
-        ->middleware(['permission:view-analytics']);
+        ->middleware(['permission_enhanced:view-analytics']);
 
     // Social Media Reports Routes
-    Route::group(['middleware' => 'permission:view-social-media-report'], function () {
+    Route::group(['middleware' => 'permission_enhanced:view-social-media-report'], function () {
         Route::get('social-media-reports', [\App\Http\Controllers\SocialMediaReportController::class, 'index'])
             ->name('social-media-reports.index');
     });
     
-    Route::group(['middleware' => 'permission:manage-social-media-report'], function () {
+    Route::group(['middleware' => 'permission_enhanced:manage-social-media-report'], function () {
         Route::get('social-media-reports/create', [\App\Http\Controllers\SocialMediaReportController::class, 'create'])
             ->name('social-media-reports.create');
         Route::post('social-media-reports', [\App\Http\Controllers\SocialMediaReportController::class, 'store'])
@@ -197,7 +197,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
     // Export route
     Route::get('social-media-reports/export', [\App\Http\Controllers\SocialMediaReportController::class, 'export'])
         ->name('social-media-reports.export')
-        ->middleware(['permission:export-analytics']);
+        ->middleware(['permission_enhanced:export-analytics']);
 
     // Routes untuk Social Media Analytics
     Route::resource('social-platforms', SocialPlatformController::class);
@@ -224,20 +224,20 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
 
     // Metric Data Routes
     Route::resource('metric-data', MetricDataController::class)
-        ->middleware(['auth', 'verified', 'permission:manage-metric-data|view-metric-data']);
+        ->middleware(['auth', 'verified', 'permission_enhanced:manage-metric-data|view-metric-data']);
         
     Route::get('metric-report', [MetricDataController::class, 'report'])
         ->name('metric-data.report')
-        ->middleware(['auth', 'verified', 'permission:view-metric-data']);
+        ->middleware(['auth', 'verified', 'permission_enhanced:view-metric-data']);
 
     // Analytics Dashboard
     Route::get('social-analytics', [SocialMediaAnalyticsController::class, 'index'])
         ->name('social-analytics.index')
-        ->middleware('permission:view-analytics');
+        ->middleware('permission_enhanced:view-analytics');
 
     Route::get('/metric-data/{id}/debug', [MetricDataController::class, 'debugDelete'])->name('metric-data.debug');
 
     Route::delete('metric-data/{id}/force', [MetricDataController::class, 'forceDestroy'])
         ->name('metric-data.force-destroy')
-        ->middleware(['auth', 'verified', 'permission:manage-metric-data']);
+        ->middleware(['auth', 'verified', 'permission_enhanced:manage-metric-data']);
 });

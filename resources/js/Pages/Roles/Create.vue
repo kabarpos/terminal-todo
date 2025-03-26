@@ -188,8 +188,55 @@ const filteredPermissions = computed(() => {
 
 // Format label permission untuk tampilan yang lebih baik
 const formatPermissionLabel = (permission) => {
-    const action = permission.name.split(' ').slice(1).join(' ');
-    return action.charAt(0).toUpperCase() + action.slice(1);
+    if (!permission || !permission.name) return '';
+    
+    // Normalisasi format permission - bisa dengan dash atau spasi
+    let permName = permission.name;
+    let formattedPermission = permName;
+    
+    if (permName.includes('-')) {
+        formattedPermission = permName.replace(/-/g, ' ');
+    }
+    
+    // Split permission menjadi action dan resource
+    let parts = formattedPermission.split(' ');
+    if (parts.length < 2) return formattedPermission; // Return as is jika tidak bisa dipisah
+    
+    let action = parts[0];
+    let resource = parts.slice(1).join(' ');
+    
+    // Mapping untuk label yang lebih baik
+    const actionLabels = {
+        'view': 'Lihat',
+        'create': 'Tambah',
+        'edit': 'Edit',
+        'delete': 'Hapus',
+        'manage': 'Kelola',
+        'export': 'Ekspor',
+        'import': 'Impor'
+    };
+
+    const moduleLabels = {
+        'users': 'Pengguna',
+        'roles': 'Role',
+        'tasks': 'Tugas',
+        'teams': 'Tim',
+        'calendar': 'Kalender',
+        'category': 'Kategori',
+        'platform': 'Platform',
+        'newsfeed': 'Newsfeed',
+        'social media report': 'Laporan Media Sosial',
+        'asset': 'Aset',
+        'metric data': 'Data Metrik',
+        'analytics': 'Analitik',
+        'settings': 'Pengaturan',
+        'dashboard': 'Dashboard'
+    };
+    
+    const actionLabel = actionLabels[action] || action;
+    const moduleLabel = moduleLabels[resource] || resource;
+    
+    return `${actionLabel} ${moduleLabel}`;
 };
 
 // Format label group untuk tampilan yang lebih baik

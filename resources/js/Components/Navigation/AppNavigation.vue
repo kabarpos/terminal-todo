@@ -1,6 +1,7 @@
 <script setup>
-import { Link } from "@inertiajs/vue3";
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { usePermission } from '@/Composables/usePermission';
 import {
     ChartBarIcon,
     UserGroupIcon,
@@ -30,6 +31,9 @@ const props = defineProps({
     }
 });
 
+const page = usePage();
+const { hasPermission } = usePermission();
+
 // Check roles
 const isAdmin = computed(() => {
     // Validasi bahwa roles ada dan memiliki metode includes
@@ -40,98 +44,6 @@ const isContentManager = computed(() => {
     // Validasi bahwa roles ada dan memiliki metode includes
     return props.user?.roles && Array.isArray(props.user.roles) && props.user.roles.includes('Content Manager');
 });
-
-// Check permissions
-const hasPermission = (permission) => {
-    // Logger untuk debugging permission
-    console.log('Checking permission:', permission, 'for user:', props.user?.name);
-    console.log('User roles:', props.user?.roles);
-    console.log('User permissions:', props.user?.permissions?.length);
-    
-    // Jika pengguna adalah Super Admin, izinkan semua
-    if (isAdmin.value) {
-        console.log('User is Super Admin, granting permission');
-        return true;
-    }
-    
-    // Jika tidak ada permission yang dibutuhkan, izinkan akses
-    if (!permission) {
-        console.log('No permission required, granting access');
-        return true;
-    }
-
-    // Jika user tidak memiliki permissions, tolak akses
-    if (!props.user?.permissions || !Array.isArray(props.user.permissions)) {
-        console.log('User has no permissions array, denying access');
-        return false;
-    }
-
-    // Helper untuk menghasilkan semua kemungkinan format dari permission
-    const generatePermissionVariants = (perm) => {
-        let variants = new Set();
-        
-        // Simpan versi asli
-        variants.add(perm);
-        
-        // Versi dengan spasi dan tanpa spasi
-        const withoutSpaces = perm.replace(/\s+/g, '-');
-        const withSpaces = perm.replace(/-/g, ' ');
-        
-        variants.add(withoutSpaces);
-        variants.add(withSpaces);
-        
-        // Versi dengan huruf kecil
-        variants.add(perm.toLowerCase());
-        variants.add(withoutSpaces.toLowerCase());
-        variants.add(withSpaces.toLowerCase());
-        
-        // Jika permission memiliki spasi, coba balik kata-katanya dan buat format dengan tanda -
-        if (perm.includes(' ')) {
-            const parts = perm.split(' ');
-            if (parts.length === 2) {
-                const reversed = `${parts[1]}-${parts[0]}`;
-                variants.add(reversed);
-                variants.add(reversed.toLowerCase());
-            }
-        }
-        
-        // Jika permission memiliki tanda -, coba balik kata-katanya dan buat format dengan spasi
-        if (perm.includes('-')) {
-            const parts = perm.split('-');
-            if (parts.length === 2) {
-                const reversed = `${parts[1]} ${parts[0]}`;
-                variants.add(reversed);
-                variants.add(reversed.toLowerCase());
-            }
-        }
-        
-        return Array.from(variants);
-    };
-    
-    // Normalisasi permission yang diminta
-    const requestedVariants = generatePermissionVariants(permission);
-    
-    // Periksa apakah user memiliki salah satu dari varian permission
-    for (const userPerm of props.user.permissions) {
-        const userPermVariants = generatePermissionVariants(userPerm);
-        
-        // Periksa apakah ada intersection antara requested variants dan user permission variants
-        const hasMatch = requestedVariants.some(reqVar => userPermVariants.includes(reqVar));
-        
-        if (hasMatch) {
-            console.log('Permission match found:', { 
-                requested: permission, 
-                matched: userPerm,
-                requestedVariants,
-                userPermVariants 
-            });
-            return true;
-        }
-    }
-    
-    console.log('No permission match found for:', permission);
-    return false;
-};
 
 // Definisi seluruh menu aplikasi
 const navigationConfig = {
@@ -256,6 +168,83 @@ const getNavigationMenus = computed(() => {
 const hasAdminMenu = computed(() => {
     return getNavigationMenus.value.admin.length > 0;
 });
+
+const navigationItems = computed(() => [
+    {
+        name: 'Dashboard',
+        route: 'dashboard',
+        icon: 'fas fa-home',
+        permission: 'view-dashboard'
+    },
+    {
+        name: 'Tasks',
+        route: 'tasks.index',
+        icon: 'fas fa-tasks',
+        permission: 'view-task'
+    },
+    {
+        name: 'Calendar',
+        route: 'calendar.index',
+        icon: 'fas fa-calendar',
+        permission: 'view-calendar'
+    },
+    {
+        name: 'News Feed',
+        route: 'news-feeds.index',
+        icon: 'fas fa-newspaper',
+        permission: 'view-newsfeed'
+    },
+    {
+        name: 'Teams',
+        route: 'teams.index',
+        icon: 'fas fa-users',
+        permission: 'view-team'
+    },
+    {
+        name: 'Analytics',
+        route: 'analytics.index',
+        icon: 'fas fa-chart-line',
+        permission: 'view-analytics'
+    }
+]);
+
+const adminItems = computed(() => [
+    {
+        name: 'Users',
+        route: 'admin.users.index',
+        icon: 'fas fa-user',
+        permission: 'manage-users'
+    },
+    {
+        name: 'Roles',
+        route: 'admin.roles.index',
+        icon: 'fas fa-user-shield',
+        permission: 'manage-roles'
+    },
+    {
+        name: 'Settings',
+        route: 'admin.settings.index',
+        icon: 'fas fa-cog',
+        permission: 'manage-settings'
+    }
+]);
+
+const contentItems = computed(() => [
+    {
+        name: 'Categories',
+        route: 'categories.index',
+        icon: 'fas fa-folder',
+        permission: 'manage-category'
+    },
+    {
+        name: 'Platforms',
+        route: 'platforms.index',
+        icon: 'fas fa-share-alt',
+        permission: 'manage-platform'
+    }
+]);
+
+const currentRouteName = computed(() => page.component);
 </script>
 
 <template>
