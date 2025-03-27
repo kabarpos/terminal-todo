@@ -59,27 +59,59 @@ class RoleAndPermissionSeeder extends Seeder
                 'edit-platform',
                 'delete-platform',
                 
+                // Media
+                'view-media',
+                'create-media',
+                'edit-media',
+                'delete-media',
+                'manage-media',
+                
+                // Settings
+                'view-settings',
+                'edit-settings',
+                'manage-settings',
+                
                 // News Feed
                 'view-newsfeed',
                 'create-newsfeed',
                 'edit-newsfeed',
                 'delete-newsfeed',
+                'manage-newsfeed',
                 
                 // Social Media Reports
                 'view-social-media-report',
                 'create-social-media-report',
                 'edit-social-media-report',
                 'delete-social-media-report',
+                'manage-social-media-report',
                 
-                // Assets
-                'view-asset',
-                'create-asset',
-                'edit-asset',
-                'delete-asset',
+                // Social Platforms
+                'view-social-platform',
+                'create-social-platform',
+                'edit-social-platform',
+                'delete-social-platform',
+                'manage-social-platform',
+                
+                // Social Accounts
+                'view-social-account',
+                'create-social-account',
+                'edit-social-account',
+                'delete-social-account',
+                'manage-social-account',
+                
+                // Metric Data
+                'view-metric-data',
+                'create-metric-data',
+                'edit-metric-data',
+                'delete-metric-data',
+                'manage-metric-data',
                 
                 // Analytics
                 'view-analytics',
-                'export-analytics',
+                'create-analytics',
+                'edit-analytics',
+                'delete-analytics',
+                'manage-analytics',
                 
                 // Admin permissions
                 'view-users',
@@ -90,7 +122,6 @@ class RoleAndPermissionSeeder extends Seeder
                 'create-roles',
                 'edit-roles',
                 'delete-roles',
-                'manage-settings'
             ];
 
             // Create all permissions
@@ -113,10 +144,14 @@ class RoleAndPermissionSeeder extends Seeder
                         'view-team', 'create-team', 'edit-team', 'delete-team',
                         'view-category', 'create-category', 'edit-category', 'delete-category',
                         'view-platform', 'create-platform', 'edit-platform', 'delete-platform',
-                        'view-newsfeed', 'create-newsfeed', 'edit-newsfeed', 'delete-newsfeed',
-                        'view-social-media-report', 'create-social-media-report', 'edit-social-media-report', 'delete-social-media-report',
-                        'view-asset', 'create-asset', 'edit-asset', 'delete-asset',
-                        'view-analytics'
+                        'view-media', 'create-media', 'edit-media', 'delete-media', 'manage-media',
+                        'view-settings', 'edit-settings', 'manage-settings',
+                        'view-newsfeed', 'create-newsfeed', 'edit-newsfeed', 'delete-newsfeed', 'manage-newsfeed',
+                        'view-social-media-report', 'create-social-media-report', 'edit-social-media-report', 'delete-social-media-report', 'manage-social-media-report',
+                        'view-social-platform', 'create-social-platform', 'edit-social-platform', 'delete-social-platform', 'manage-social-platform',
+                        'view-social-account', 'create-social-account', 'edit-social-account', 'delete-social-account', 'manage-social-account',
+                        'view-metric-data', 'create-metric-data', 'edit-metric-data', 'delete-metric-data', 'manage-metric-data',
+                        'view-analytics', 'create-analytics', 'edit-analytics', 'delete-analytics', 'manage-analytics',
                     ]
                 ],
                 'content_writer' => [
@@ -124,7 +159,14 @@ class RoleAndPermissionSeeder extends Seeder
                     'permissions' => [
                         'view-task', 'edit-task',
                         'view-calendar',
-                        'view-asset', 'create-asset'
+                        'view-media', 'create-media', 'edit-media',
+                        'view-settings', 'edit-settings', 'manage-settings',
+                        'view-newsfeed', 'create-newsfeed', 'edit-newsfeed',
+                        'view-social-media-report', 'create-social-media-report', 'edit-social-media-report',
+                        'view-social-platform', 'create-social-platform', 'edit-social-platform',
+                        'view-social-account', 'create-social-account',
+                        'view-metric-data', 'create-metric-data',
+                        'view-analytics', 'create-analytics',
                     ]
                 ],
                 'designer' => [
@@ -132,7 +174,14 @@ class RoleAndPermissionSeeder extends Seeder
                     'permissions' => [
                         'view-task', 'edit-task',
                         'view-calendar',
-                        'view-asset', 'create-asset', 'edit-asset'
+                        'view-media', 'create-media', 'edit-media',
+                        'view-settings', 'edit-settings', 'manage-settings',
+                        'view-newsfeed', 'create-newsfeed', 'edit-newsfeed',
+                        'view-social-media-report', 'create-social-media-report', 'edit-social-media-report',
+                        'view-social-platform', 'create-social-platform', 'edit-social-platform',
+                        'view-social-account', 'create-social-account',
+                        'view-metric-data', 'create-metric-data',
+                        'view-analytics', 'create-analytics',
                     ]
                 ],
                 'video_editor' => [
@@ -140,7 +189,14 @@ class RoleAndPermissionSeeder extends Seeder
                     'permissions' => [
                         'view-task', 'edit-task',
                         'view-calendar',
-                        'view-asset', 'create-asset', 'edit-asset'
+                        'view-media', 'create-media', 'edit-media',
+                        'view-settings', 'edit-settings', 'manage-settings',
+                        'view-newsfeed', 'create-newsfeed', 'edit-newsfeed',
+                        'view-social-media-report', 'create-social-media-report', 'edit-social-media-report',
+                        'view-social-platform', 'create-social-platform', 'edit-social-platform',
+                        'view-social-account', 'create-social-account',
+                        'view-metric-data', 'create-metric-data',
+                        'view-analytics', 'create-analytics',
                     ]
                 ],
                 'social_media' => [
@@ -148,7 +204,14 @@ class RoleAndPermissionSeeder extends Seeder
                     'permissions' => [
                         'view-task', 'edit-task',
                         'view-calendar', 'create-calendar',
-                        'view-asset', 'create-asset'
+                        'view-media', 'create-media',
+                        'view-settings', 'edit-settings', 'manage-settings',
+                        'view-newsfeed', 'create-newsfeed', 'edit-newsfeed',
+                        'view-social-media-report', 'create-social-media-report', 'edit-social-media-report',
+                        'view-social-platform', 'create-social-platform',
+                        'view-social-account', 'create-social-account',
+                        'view-metric-data', 'create-metric-data',
+                        'view-analytics', 'create-analytics',
                     ]
                 ]
             ];

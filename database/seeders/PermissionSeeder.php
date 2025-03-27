@@ -90,16 +90,9 @@ class PermissionSeeder extends Seeder
             ],
             'settings' => [
                 'view-settings',
+                'edit-settings',
                 'manage-settings',
             ],
-            'asset' => [
-                'view-asset',
-                'create-asset',
-                'edit-asset',
-                'delete-asset',
-                'manage-asset',
-            ],
-            // Tambahan permission yang hilang
             'media' => [
                 'view-media',
                 'create-media',

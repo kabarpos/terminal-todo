@@ -67,11 +67,46 @@
                         </div>
                     </div>
 
-                    <!-- Simple Permission List -->
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                        <div class="p-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <template v-for="(permissions, group) in filteredPermissions" :key="group">
+                    <!-- Permission Groups -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <template v-for="(permissions, group) in groupedPermissions" :key="group">
+                            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                <!-- Group Header -->
+                                <div class="px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="text-sm font-medium text-[var(--text-primary)]">
+                                            {{ formatGroupLabel(group) }}
+                                        </h4>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-[var(--text-secondary)]">
+                                                {{ getSelectedCount(permissions) }}/{{ permissions.length }}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                @click="toggleGroupPermissions(permissions, !isGroupChecked(permissions))"
+                                                class="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                                            >
+                                                <svg 
+                                                    class="w-4 h-4" 
+                                                    :class="isGroupChecked(permissions) ? 'text-blue-500' : 'text-gray-400'"
+                                                    fill="none" 
+                                                    stroke="currentColor" 
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path 
+                                                        stroke-linecap="round" 
+                                                        stroke-linejoin="round" 
+                                                        stroke-width="2" 
+                                                        d="M5 13l4 4L19 7"
+                                                    />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Permission List -->
+                                <div class="p-4 space-y-2">
                                     <div v-for="permission in permissions" 
                                         :key="permission.id"
                                         class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200"
@@ -86,9 +121,9 @@
                                             {{ formatPermissionLabel(permission) }}
                                         </label>
                                     </div>
-                                </template>
+                                </div>
                             </div>
-                        </div>
+                        </template>
                     </div>
                 </div>
 
@@ -146,30 +181,157 @@ const form = useForm({
 const searchQuery = ref('');
 const expandedGroups = ref([]);
 
-// Filter permissions berdasarkan search query
-const filteredPermissions = computed(() => {
-    if (!searchQuery.value) return props.permissions;
+// Tambahkan computed property untuk mengelompokkan permission
+const groupedPermissions = computed(() => {
+    if (!searchQuery.value) {
+        // Kelompokkan permission berdasarkan fitur
+        const groups = {};
+        
+        Object.entries(props.permissions).forEach(([group, permissions]) => {
+            permissions.forEach(permission => {
+                const feature = getFeatureFromPermission(permission.name);
+                if (!groups[feature]) {
+                    groups[feature] = [];
+                }
+                groups[feature].push(permission);
+            });
+        });
+        
+        return groups;
+    }
 
+    // Jika ada pencarian, tampilkan hasil pencarian dengan pengelompokan yang sama
     const query = searchQuery.value.toLowerCase();
     const filtered = {};
 
     Object.entries(props.permissions).forEach(([group, permissions]) => {
-        const matchingPermissions = permissions.filter(permission => 
-            permission.name.toLowerCase().includes(query) || 
-            formatPermissionLabel(permission).toLowerCase().includes(query)
-        );
-
-        if (matchingPermissions.length > 0) {
-            filtered[group] = matchingPermissions;
-            // Auto-expand groups when searching
-            if (!expandedGroups.value.includes(group)) {
-                expandedGroups.value.push(group);
+        permissions.forEach(permission => {
+            if (
+                permission.name.toLowerCase().includes(query) || 
+                formatPermissionLabel(permission).toLowerCase().includes(query)
+            ) {
+                const feature = getFeatureFromPermission(permission.name);
+                if (!filtered[feature]) {
+                    filtered[feature] = [];
+                }
+                filtered[feature].push(permission);
             }
-        }
+        });
     });
 
     return filtered;
 });
+
+// Fungsi untuk mendapatkan nama fitur dari permission
+const getFeatureFromPermission = (permissionName) => {
+    // Cek khusus untuk social media report
+    if (permissionName.includes('social-media-report')) {
+        return 'Social Media Reports';
+    }
+    
+    // Ekstrak nama fitur dari permission
+    const parts = permissionName.split('-');
+    if (parts.length < 2) return 'Other';
+    
+    // Mapping fitur yang lebih lengkap
+    const featureMap = {
+        // Manajemen Konten
+        'task': 'Tasks',
+        'comment': 'Comments',
+        'post': 'Posts',
+        'content': 'Contents',
+        'article': 'Articles',
+        
+        // Media Library
+        'media': 'Media Library',
+        
+        // Manajemen Pengguna & Akses
+        'user': 'Users',
+        'role': 'Roles',
+        'permission': 'Permissions',
+        'team': 'Teams',
+        'member': 'Members',
+        'profile': 'Profiles',
+        'account': 'Accounts',
+        
+        // Pengaturan & Konfigurasi
+        'setting': 'Settings',
+        'config': 'Configurations',
+        'preference': 'Preferences',
+        'notification': 'Notifications',
+        
+        // Kategori & Platform
+        'category': 'Categories',
+        'platform': 'Platforms',
+        'channel': 'Channels',
+        
+        // Analytics & Reports
+        'report': 'Reports',
+        'analytic': 'Analytics',
+        'metric': 'Metrics',
+        'statistic': 'Statistics',
+        'dashboard': 'Dashboard',
+        'insight': 'Insights',
+        
+        // Social Media
+        'social': 'Social Media',
+        'newsfeed': 'Newsfeeds',
+        'feed': 'Feeds',
+        
+        // System & Tools
+        'system': 'System',
+        'tool': 'Tools',
+        'log': 'Logs',
+        'backup': 'Backups',
+        'import': 'Import/Export',
+        'export': 'Import/Export',
+        'api': 'API',
+        
+        // Calendar & Schedule
+        'calendar': 'Calendar',
+        'schedule': 'Schedules',
+        'event': 'Events',
+        
+        // Messages & Communication
+        'message': 'Messages',
+        'chat': 'Chat',
+        'notification': 'Notifications',
+        'announcement': 'Announcements'
+    };
+    
+    // Cari kata kunci fitur dalam permission dengan prioritas
+    // 1. Cek exact match untuk full permission name (e.g., "manage-tasks")
+    const fullMatch = Object.entries(featureMap).find(([key, value]) => 
+        permissionName.includes(`-${key}`) || permissionName.includes(`${key}-`)
+    );
+    if (fullMatch) return fullMatch[1];
+    
+    // 2. Cek setiap kata dalam permission name
+    for (const word of parts) {
+        const match = Object.entries(featureMap).find(([key]) => 
+            word.toLowerCase() === key.toLowerCase()
+        );
+        if (match) return match[1];
+    }
+    
+    // 3. Cek substring dalam permission name
+    for (const [key, value] of Object.entries(featureMap)) {
+        if (permissionName.toLowerCase().includes(key.toLowerCase())) {
+            return value;
+        }
+    }
+    
+    // Jika masih tidak ada yang cocok, coba ekstrak resource name
+    const resourceName = parts.slice(1).join('-');
+    if (resourceName) {
+        // Capitalize resource name
+        return resourceName.split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+    
+    return 'Other';
+};
 
 // Toggle accordion group
 const toggleGroup = (group) => {
@@ -251,8 +413,7 @@ const formatPermissionLabel = (permission) => {
         'social media report': 'Laporan Media Sosial',
         'social platform': 'Platform Sosial',
         'social account': 'Akun Sosial',
-        'media': 'Media',
-        'asset': 'Aset',
+        'media': 'Media Library',
         'metric data': 'Data Metrik',
         'analytics': 'Analitik',
         'settings': 'Pengaturan',
@@ -260,14 +421,31 @@ const formatPermissionLabel = (permission) => {
     };
     
     const actionLabel = actionLabels[action] || action;
-    const moduleLabel = moduleLabels[resource] || resource;
+    const moduleLabel = moduleLabels[resource.toLowerCase()] || resource;
     
     return `${actionLabel} ${moduleLabel}`;
 };
 
 // Format label group untuk tampilan yang lebih baik
 const formatGroupLabel = (group) => {
-    return group.charAt(0).toUpperCase() + group.slice(1);
+    const groupLabels = {
+        'Media Library': 'Media Library',
+        'Social Media Reports': 'Laporan Media Sosial',
+        'Tasks': 'Tugas',
+        'Users': 'Pengguna',
+        'Roles': 'Role',
+        'Teams': 'Tim',
+        'Categories': 'Kategori',
+        'Platforms': 'Platform',
+        'Settings': 'Pengaturan',
+        'Calendar': 'Kalender',
+        'Newsfeeds': 'Newsfeed',
+        'Analytics': 'Analitik',
+        'Reports': 'Laporan',
+        'Other': 'Lainnya'
+    };
+    
+    return groupLabels[group] || group;
 };
 
 // Perbaiki fungsi selectAllPermissions
