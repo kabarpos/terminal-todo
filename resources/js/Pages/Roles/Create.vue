@@ -1,7 +1,7 @@
 <template>
     <Head title="Create Role" />
 
-    <AuthenticatedLayout :auth="auth">
+    <AuthenticatedLayout :auth="auth" title="Tambah Role Baru">
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-lg md:text-xl font-semibold text-[var(--text-primary)] truncate">
