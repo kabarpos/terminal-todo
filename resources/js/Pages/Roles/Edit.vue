@@ -27,87 +27,66 @@
 
                 <!-- Permission Section -->
                 <div class="mt-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-medium text-[var(--text-primary)]">
-                            Permissions
-                        </h3>
-                        <div class="flex items-center gap-2">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-[var(--text-primary)]">
+                                Permissions
+                            </h3>
+                            <p class="mt-1 text-sm text-[var(--text-secondary)]">
+                                Pilih permission yang akan diberikan untuk role ini
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <TextInput
+                                v-model="searchQuery"
+                                type="search"
+                                placeholder="Cari permission..."
+                                class="w-full md:w-64"
+                            />
                             <button
                                 type="button"
                                 @click="selectAllPermissions"
-                                class="px-3 py-1 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/50 dark:hover:bg-blue-900/75"
+                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 rounded-md hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/50 dark:hover:bg-blue-900/75 transition-colors duration-200"
                             >
-                                Select All
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                </svg>
+                                Pilih Semua
                             </button>
                             <button
                                 type="button"
                                 @click="unselectAllPermissions"
-                                class="px-3 py-1 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-900/75"
+                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-700 bg-red-50 rounded-md hover:bg-red-100 dark:text-red-400 dark:bg-red-900/50 dark:hover:bg-red-900/75 transition-colors duration-200"
                             >
-                                Unselect All
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                </svg>
+                                Hapus Semua
                             </button>
                         </div>
                     </div>
-                    
-                    <!-- Search & Filter -->
-                    <div class="mb-4">
-                        <TextInput
-                            v-model="searchQuery"
-                            type="text"
-                            placeholder="Cari permission..."
-                            class="w-full md:w-64"
-                        />
-                    </div>
 
-                    <!-- Permission Accordion -->
-                    <div class="space-y-4">
-                        <div v-for="(permissions, group) in filteredPermissions" :key="group" 
-                            class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                            <div @click="toggleGroup(group)" 
-                                class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 px-6 py-3 cursor-pointer">
-                                <div class="flex items-center gap-3">
-                                    <Checkbox 
-                                        :id="`group-${group}`"
-                                        :checked="isGroupChecked(permissions)"
-                                        @update:checked="toggleGroupPermissions(permissions, $event)"
-                                        @click.stop 
-                                    />
-                                    <span class="font-medium text-[var(--text-primary)]">{{ formatGroupLabel(group) }}</span>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="text-xs text-[var(--text-secondary)]">
-                                        {{ getSelectedCount(permissions) }}/{{ permissions.length }} permissions
-                                    </span>
-                                    <svg :class="{'rotate-180': expandedGroups.includes(group)}" 
-                                        class="w-5 h-5 transition-transform duration-200 text-gray-500 dark:text-gray-400" 
-                                        xmlns="http://www.w3.org/2000/svg" 
-                                        viewBox="0 0 24 24" 
-                                        fill="none" 
-                                        stroke="currentColor" 
-                                        stroke-width="2" 
-                                        stroke-linecap="round" 
-                                        stroke-linejoin="round">
-                                        <polyline points="6 9 12 15 18 9"></polyline>
-                                    </svg>
-                                </div>
-                            </div>
-                            
-                            <div v-show="expandedGroups.includes(group)" class="px-6 py-4 bg-white dark:bg-gray-900">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Simple Permission List -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div class="p-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <template v-for="(permissions, group) in filteredPermissions" :key="group">
                                     <div v-for="permission in permissions" 
                                         :key="permission.id"
-                                        class="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded"
+                                        class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200"
                                     >
                                         <Checkbox
                                             v-model:checked="form.permissions"
                                             :value="permission.name"
                                             :id="`perm-${permission.id}`"
+                                            class="rounded-md"
                                         />
-                                        <label :for="`perm-${permission.id}`" class="text-sm text-[var(--text-primary)] cursor-pointer">
+                                        <label :for="`perm-${permission.id}`" class="text-sm text-[var(--text-primary)] cursor-pointer select-none">
                                             {{ formatPermissionLabel(permission) }}
                                         </label>
                                     </div>
-                                </div>
+                                </template>
                             </div>
                         </div>
                     </div>
