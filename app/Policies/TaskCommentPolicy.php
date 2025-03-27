@@ -14,16 +14,14 @@ class TaskCommentPolicy
     {
         return $user->hasPermissionTo('manage-task') || 
             $user->hasRole('Super Admin') ||
-            $user->hasRole('Content Manager') ||
-            $user->hasRole('Manager');
+            $user->hasRole('Content Manager');
     }
 
     public function update(User $user, TaskComment $comment)
     {
         return $user->id === $comment->user_id || 
             $user->hasRole('Super Admin') ||
-            $user->hasRole('Content Manager') ||
-            $user->hasRole('Manager');
+            $user->hasRole('Content Manager');
     }
 
     public function delete(User $user, TaskComment $comment)

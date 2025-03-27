@@ -85,7 +85,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
     });
 
     // Admin Routes
-    Route::middleware('role:Super Admin|Manager')->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware('role:Super Admin')->prefix('admin')->name('admin.')->group(function () {
         // Users Management
         Route::resource('users', UserController::class)
             ->middleware('permission:manage-users');
@@ -204,13 +204,25 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
         ->middleware('permission:manage-team');
 
     // Media Routes
-    Route::get('media', [MediaController::class, 'index'])->name('media.index');
-    Route::post('media', [MediaController::class, 'store'])->name('media.store');
-    Route::delete('media/{media}', [MediaController::class, 'destroy'])->name('media.destroy');
+    Route::get('media', [MediaController::class, 'index'])
+        ->name('media.index')
+        ->middleware('permission:view-media');
+    Route::post('media', [MediaController::class, 'store'])
+        ->name('media.store')
+        ->middleware('permission:manage-media');
+    Route::delete('media/{media}', [MediaController::class, 'destroy'])
+        ->name('media.destroy')
+        ->middleware('permission:manage-media');
     // Media Trash Routes
-    Route::get('media/trash', [MediaController::class, 'trash'])->name('media.trash');
-    Route::post('media/restore/{id}', [MediaController::class, 'restore'])->name('media.restore');
-    Route::delete('media/force-delete/{id}', [MediaController::class, 'forceDelete'])->name('media.force-delete');
+    Route::get('media/trash', [MediaController::class, 'trash'])
+        ->name('media.trash')
+        ->middleware('permission:manage-media');
+    Route::post('media/restore/{id}', [MediaController::class, 'restore'])
+        ->name('media.restore')
+        ->middleware('permission:manage-media');
+    Route::delete('media/force-delete/{id}', [MediaController::class, 'forceDelete'])
+        ->name('media.force-delete')
+        ->middleware('permission:manage-media');
 
     // Analytics Routes
     Route::get('analytics', [AnalyticsController::class, 'index'])
@@ -242,12 +254,15 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
         ->middleware(['permission:export-analytics']);
 
     // Routes untuk Social Media Analytics
-    Route::resource('social-platforms', SocialPlatformController::class);
+    Route::resource('social-platforms', SocialPlatformController::class)
+        ->middleware('permission:view-social-platform|manage-social-platform');
 
     // Account Routes
-    Route::resource('social-accounts', SocialAccountController::class);
+    Route::resource('social-accounts', SocialAccountController::class)
+        ->middleware('permission:view-social-account|manage-social-account');
     Route::put('social-accounts/{id}/toggle-status', [SocialAccountController::class, 'toggleStatus'])
-        ->name('social-accounts.toggle-status');
+        ->name('social-accounts.toggle-status')
+        ->middleware('permission:manage-social-account');
 
     // Metric Data Import/Export Routes - PENTING: rutenya diletakkan SEBELUM resource route
     Route::get('metric-data/template', [MetricDataController::class, 'downloadTemplate'])

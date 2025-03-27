@@ -38,7 +38,7 @@
                     <InputError :message="form.errors.name" class="mt-2" />
                 </div>
 
-                <!-- Permission Table -->
+                <!-- Permission Section -->
                 <div class="mt-6">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-medium text-[var(--text-primary)]">
@@ -72,46 +72,57 @@
                         />
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full">
-                            <thead>
-                                <tr class="border-b border-gray-200/50 dark:border-gray-700/25">
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                        Module
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
-                                        Permissions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="(permissions, group) in filteredPermissions" 
-                                    :key="group"
-                                    class="border-b border-gray-200/50 dark:border-gray-700/25 hover:bg-[var(--bg-secondary)]/50"
-                                >
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--text-primary)]">
-                                        {{ formatGroupLabel(group) }}
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex flex-wrap gap-3">
-                                            <div v-for="permission in permissions" 
-                                                :key="permission.id"
-                                                class="flex items-center gap-2"
-                                            >
-                                                <Checkbox
-                                                    v-model:checked="form.permissions"
-                                                    :value="permission.name"
-                                                    :name="permission.name"
-                                                />
-                                                <span class="text-sm text-[var(--text-primary)]">
-                                                    {{ formatPermissionLabel(permission) }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <!-- Permission Accordion -->
+                    <div class="space-y-4">
+                        <div v-for="(permissions, group) in filteredPermissions" :key="group" 
+                            class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                            <div @click="toggleGroup(group)" 
+                                class="flex items-center justify-between bg-gray-50 dark:bg-gray-800 px-6 py-3 cursor-pointer">
+                                <div class="flex items-center gap-3">
+                                    <Checkbox 
+                                        :id="`group-${group}`"
+                                        :checked="isGroupChecked(permissions)"
+                                        @update:checked="toggleGroupPermissions(permissions, $event)"
+                                        @click.stop 
+                                    />
+                                    <span class="font-medium text-[var(--text-primary)]">{{ formatGroupLabel(group) }}</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs text-[var(--text-secondary)]">
+                                        {{ getSelectedCount(permissions) }}/{{ permissions.length }} permissions
+                                    </span>
+                                    <svg :class="{'rotate-180': expandedGroups.includes(group)}" 
+                                        class="w-5 h-5 transition-transform duration-200 text-gray-500 dark:text-gray-400" 
+                                        xmlns="http://www.w3.org/2000/svg" 
+                                        viewBox="0 0 24 24" 
+                                        fill="none" 
+                                        stroke="currentColor" 
+                                        stroke-width="2" 
+                                        stroke-linecap="round" 
+                                        stroke-linejoin="round">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </div>
+                            </div>
+                            
+                            <div v-show="expandedGroups.includes(group)" class="px-6 py-4 bg-white dark:bg-gray-900">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div v-for="permission in permissions" 
+                                        :key="permission.id"
+                                        class="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded"
+                                    >
+                                        <Checkbox
+                                            v-model:checked="form.permissions"
+                                            :value="permission.name"
+                                            :id="`perm-${permission.id}`"
+                                        />
+                                        <label :for="`perm-${permission.id}`" class="text-sm text-[var(--text-primary)] cursor-pointer">
+                                            {{ formatPermissionLabel(permission) }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -146,7 +157,6 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Checkbox from '@/Components/Checkbox.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
 
 const props = defineProps({
     auth: {
@@ -165,6 +175,7 @@ const form = useForm({
 });
 
 const searchQuery = ref('');
+const expandedGroups = ref([]);
 
 // Filter permissions berdasarkan search query
 const filteredPermissions = computed(() => {
@@ -175,16 +186,59 @@ const filteredPermissions = computed(() => {
 
     Object.entries(props.permissions).forEach(([group, permissions]) => {
         const matchingPermissions = permissions.filter(permission => 
-            permission.name.toLowerCase().includes(query)
+            permission.name.toLowerCase().includes(query) || 
+            formatPermissionLabel(permission).toLowerCase().includes(query)
         );
 
         if (matchingPermissions.length > 0) {
             filtered[group] = matchingPermissions;
+            // Auto-expand groups when searching
+            if (!expandedGroups.value.includes(group)) {
+                expandedGroups.value.push(group);
+            }
         }
     });
 
     return filtered;
 });
+
+// Toggle accordion group
+const toggleGroup = (group) => {
+    const index = expandedGroups.value.indexOf(group);
+    if (index === -1) {
+        expandedGroups.value.push(group);
+    } else {
+        expandedGroups.value.splice(index, 1);
+    }
+};
+
+// Check if all permissions in a group are selected
+const isGroupChecked = (permissions) => {
+    if (!permissions.length) return false;
+    return permissions.every(permission => form.permissions.includes(permission.name));
+};
+
+// Get count of selected permissions in a group
+const getSelectedCount = (permissions) => {
+    return permissions.filter(permission => form.permissions.includes(permission.name)).length;
+};
+
+// Toggle all permissions in a group
+const toggleGroupPermissions = (permissions, checked) => {
+    const permissionNames = permissions.map(p => p.name);
+    
+    if (checked) {
+        // Add all permissions from this group
+        permissionNames.forEach(name => {
+            if (!form.permissions.includes(name)) {
+                form.permissions.push(name);
+            }
+        });
+    } else {
+        // Remove all permissions from this group
+        form.permissions = form.permissions.filter(name => !permissionNames.includes(name));
+    }
+};
 
 // Format label permission untuk tampilan yang lebih baik
 const formatPermissionLabel = (permission) => {
@@ -226,6 +280,9 @@ const formatPermissionLabel = (permission) => {
         'platform': 'Platform',
         'newsfeed': 'Newsfeed',
         'social media report': 'Laporan Media Sosial',
+        'social platform': 'Platform Sosial',
+        'social account': 'Akun Sosial',
+        'media': 'Media',
         'asset': 'Aset',
         'metric data': 'Data Metrik',
         'analytics': 'Analitik',
@@ -251,7 +308,6 @@ const selectAllPermissions = () => {
         .flat()
         .map(permission => permission.name);
     form.permissions = [...new Set(allPermissions)]; // Hapus duplikat jika ada
-    console.log('Selected all permissions:', form.permissions);
 };
 
 const unselectAllPermissions = () => {
@@ -270,18 +326,12 @@ const submit = () => {
         return;
     }
 
-    // Log untuk debugging
-    console.log('Submitting role with permissions:', form.permissions);
-
     form.post(route('admin.roles.store'), {
         preserveScroll: true,
         onSuccess: () => {
             form.reset();
             // Redirect ke halaman index setelah berhasil
             window.location = route('admin.roles.index');
-        },
-        onError: (errors) => {
-            console.error('Error creating role:', errors);
         }
     });
 };

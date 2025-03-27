@@ -60,7 +60,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // Route yang memerlukan autentikasi
 Route::middleware(['auth:sanctum'])->group(function () {
     // Route untuk Super Admin
-    Route::middleware(['role:Super Admin|Manager'])->group(function () {
+    Route::middleware(['role:Super Admin'])->group(function () {
         Route::apiResource('users', UserController::class)->names([
             'index' => 'api.users.index',
             'store' => 'api.users.store',

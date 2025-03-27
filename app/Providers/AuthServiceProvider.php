@@ -6,6 +6,7 @@ use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvid
 use Illuminate\Support\Facades\Gate;
 use App\Models\CalendarComment;
 use App\Policies\CalendarCommentPolicy;
+use App\Models\User;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -26,8 +27,7 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         // Register permission normalization
-        Gate::before(function ($user, $ability) {
-            // Super Admin bypass semua permission
+        Gate::before(function (User $user, string $ability) {
             if ($user->hasRole('Super Admin')) {
                 \Log::info("User {$user->name} granted {$ability} via Super Admin role");
                 return true;

@@ -45,7 +45,7 @@ class HandleInertiaRequests extends Middleware
                     'status' => $request->user()->status,
                     'email_verified_at' => $request->user()->email_verified_at,
                     'last_login_at' => $request->user()->last_login_at?->diffForHumans(),
-                    'is_admin' => $request->user()->hasRole('Super Admin') || $request->user()->hasRole('Manager'),
+                    'is_admin' => $request->user()->hasRole('Super Admin'),
                     'is_content_manager' => $request->user()->hasRole('Content Manager'),
                     'profile_photo_url' => $request->user()->profile_photo_url,
                     'created_at' => $request->user()->created_at,
@@ -91,7 +91,7 @@ class HandleInertiaRequests extends Middleware
                 'status' => $user->status,
                 'email_verified_at' => $user->email_verified_at,
                 'last_login_at' => $user->last_login_at?->diffForHumans(),
-                'is_admin' => $user->hasRole('Super Admin') || $user->hasRole('Manager'),
+                'is_admin' => $user->hasRole('Super Admin'),
                 'is_content_manager' => $user->hasRole('Content Manager')
             ],
         ];

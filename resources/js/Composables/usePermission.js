@@ -1,45 +1,58 @@
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
+// Composable untuk mengelola permission
 export function usePermission() {
-    const page = usePage();
-
+    // Helper untuk mengecek apakah user memiliki permission tertentu
     const hasPermission = (permission) => {
-        const user = page.props.auth.user;
+        if (!permission) return false;
         
-        // Super Admin bypass all permissions
-        if (user.roles.includes('Super Admin')) {
-            return true;
-        }
-
-        // Normalize permission format
-        const normalizePermission = (perm) => {
-            return perm.toLowerCase().replace(/\s+/g, '-');
-        };
-
+        const userPermissions = usePage().props.auth?.user?.permissions || [];
         const normalizedRequestedPerm = normalizePermission(permission);
-        const userPermissions = user.permissions || [];
-
-        // Check exact match first
-        if (userPermissions.includes(normalizedRequestedPerm)) {
+        
+        // Jika user adalah Super Admin, berikan semua akses
+        const userRoles = usePage().props.auth?.user?.roles || [];
+        if (userRoles.includes('Super Admin')) {
             return true;
         }
-
-        // Check if user has 'manage-' permission when checking for 'view-'
+        
+        // Normalisasi dan cek exact match
+        const normalizedUserPermissions = userPermissions.map(p => normalizePermission(p));
+        if (normalizedUserPermissions.includes(normalizedRequestedPerm)) {
+            return true;
+        }
+        
+        // Untuk permission 'view-', cek juga apakah user memiliki 'manage-' setara
         if (normalizedRequestedPerm.startsWith('view-')) {
             const managePermission = normalizedRequestedPerm.replace('view-', 'manage-');
-            return userPermissions.includes(managePermission);
+            return normalizedUserPermissions.includes(managePermission);
         }
-
+        
         return false;
     };
-
-    const userPermissions = computed(() => {
-        return page.props.auth.user?.permissions || [];
-    });
-
+    
+    // Helper untuk menormalisasi format permission (dash atau spasi)
+    const normalizePermission = (perm) => {
+        if (!perm) return '';
+        
+        // Ubah ke lowercase dan normalisasi format dengan dash
+        let normalized = perm.toLowerCase();
+        
+        // Ubah spasi ke dash jika ada
+        normalized = normalized.replace(/\s+/g, '-');
+        
+        // Pastikan tidak ada dash berlebih
+        normalized = normalized.replace(/--+/g, '-');
+        
+        // Hapus dash di awal atau akhir
+        normalized = normalized.replace(/^-+|-+$/g, '');
+        
+        return normalized;
+    };
+    
+    // Mengembalikan fungsi-fungsi yang diperlukan
     return {
         hasPermission,
-        userPermissions
+        normalizePermission
     };
 } 
