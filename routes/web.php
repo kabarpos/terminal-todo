@@ -41,7 +41,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
     Route::resource('tasks', TaskController::class)
         ->middleware('permission:view-task|manage-task');
 
-    Route::put('tasks/{task}/update-status', [TaskController::class, 'updateStatus'])
+    Route::put('tasks/{id}/update-status', [TaskController::class, 'updateStatus'])
         ->name('tasks.update-status')
         ->middleware('permission:manage-task');
     

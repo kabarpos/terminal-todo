@@ -2,62 +2,68 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Task;
 use App\Models\User;
 use App\Models\Category;
 use App\Models\Platform;
 use App\Models\Team;
+use App\Services\TaskService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class TaskController extends Controller
 {
+    protected $taskService;
+
+    public function __construct(TaskService $taskService)
+    {
+        $this->taskService = $taskService;
+    }
+
     public function index(Request $request)
     {
-        $tasks = Task::with(['category', 'platform', 'team', 'assignees', 'creator'])
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(fn ($task) => [
-                'id' => $task->id,
-                'title' => $task->title,
-                'description' => $task->description,
-                'category' => [
-                    'id' => $task->category->id,
-                    'name' => $task->category->name,
-                    'color' => $task->category->color
-                ],
-                'platform' => $task->platform ? [
-                    'id' => $task->platform->id,
-                    'name' => $task->platform->name,
-                    'icon' => $task->platform->icon
-                ] : null,
-                'team' => $task->team ? [
-                    'id' => $task->team->id,
-                    'name' => $task->team->name
-                ] : null,
-                'priority' => $task->priority,
-                'status' => $task->status,
-                'start_date' => $task->start_date?->format('Y-m-d\TH:i'),
-                'due_date' => $task->due_date?->format('Y-m-d\TH:i'),
-                'completed_at' => $task->completed_at?->format('Y-m-d\TH:i'),
-                'assignees' => $task->assignees->map(fn ($user) => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'avatar_url' => $user->avatar_url
-                ]),
-                'creator' => [
-                    'id' => $task->creator->id,
-                    'name' => $task->creator->name
-                ],
-                'created_at' => $task->created_at->format('d M Y H:i')
-            ]);
+        $tasks = $this->taskService->getAllTasks();
+        
+        $formattedTasks = $tasks->map(fn ($task) => [
+            'id' => $task->id,
+            'title' => $task->title,
+            'description' => $task->description,
+            'category' => [
+                'id' => $task->category->id,
+                'name' => $task->category->name,
+                'color' => $task->category->color
+            ],
+            'platform' => $task->platform ? [
+                'id' => $task->platform->id,
+                'name' => $task->platform->name,
+                'icon' => $task->platform->icon
+            ] : null,
+            'team' => $task->team ? [
+                'id' => $task->team->id,
+                'name' => $task->team->name
+            ] : null,
+            'priority' => $task->priority,
+            'status' => $task->status,
+            'start_date' => $task->start_date?->format('Y-m-d\TH:i'),
+            'due_date' => $task->due_date?->format('Y-m-d\TH:i'),
+            'completed_at' => $task->completed_at?->format('Y-m-d\TH:i'),
+            'assignees' => $task->assignees->map(fn ($user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'avatar_url' => $user->avatar_url
+            ]),
+            'creator' => [
+                'id' => $task->creator->id,
+                'name' => $task->creator->name
+            ],
+            'created_at' => $task->created_at->format('d M Y H:i')
+        ]);
 
         // Debug statement
-        \Log::info('Tasks data:', ['tasks' => $tasks->toArray()]);
+        \Log::info('Tasks data:', ['tasks' => $formattedTasks->toArray()]);
 
         return Inertia::render('Tasks/Index', [
-            'tasks' => $tasks,
+            'tasks' => $formattedTasks,
             'categories' => Category::where('type', 'task')->where('is_active', true)->get(),
             'highlight' => $request->query('highlight')
         ]);
@@ -89,7 +95,7 @@ class TaskController extends Controller
             'assignees.*' => 'exists:users,id'
         ]);
 
-        $task = Task::create([
+        $taskData = [
             'title' => $request->title,
             'description' => $request->description,
             'category_id' => $request->category_id,
@@ -99,18 +105,19 @@ class TaskController extends Controller
             'status' => $request->status,
             'start_date' => $request->start_date,
             'due_date' => $request->due_date,
-            'created_by' => Auth::id()
-        ]);
+            'created_by' => Auth::id(),
+            'assignees' => $request->assignees
+        ];
 
-        $task->assignees()->attach($request->assignees);
+        $this->taskService->createTask($taskData);
 
         return redirect()->route('tasks.index')
             ->with('message', 'Task berhasil dibuat');
     }
 
-    public function show(Task $task)
+    public function show($id)
     {
-        $task->load(['category', 'platform', 'team', 'assignees', 'creator', 'comments.user']);
+        $task = $this->taskService->getTaskById($id, ['category', 'platform', 'team', 'assignees', 'creator', 'comments.user']);
 
         return Inertia::render('Tasks/Show', [
             'task' => [
@@ -161,9 +168,9 @@ class TaskController extends Controller
         ]);
     }
 
-    public function edit(Task $task)
+    public function edit($id)
     {
-        $task->load(['category', 'platform', 'team', 'assignees']);
+        $task = $this->taskService->getTaskById($id, ['category', 'platform', 'team', 'assignees']);
 
         return Inertia::render('Tasks/Edit', [
             'task' => [
@@ -189,7 +196,7 @@ class TaskController extends Controller
         ]);
     }
 
-    public function update(Request $request, Task $task)
+    public function update(Request $request, $id)
     {
         $request->validate([
             'title' => 'required|string|max:255',
@@ -205,7 +212,7 @@ class TaskController extends Controller
             'assignees.*' => 'exists:users,id'
         ]);
 
-        $task->update([
+        $taskData = [
             'title' => $request->title,
             'description' => $request->description,
             'category_id' => $request->category_id,
@@ -215,18 +222,19 @@ class TaskController extends Controller
             'status' => $request->status,
             'start_date' => $request->start_date,
             'due_date' => $request->due_date,
-            'completed_at' => $request->status === 'completed' ? now() : null
-        ]);
+            'completed_at' => $request->status === 'completed' ? now() : null,
+            'assignees' => $request->assignees
+        ];
 
-        $task->assignees()->sync($request->assignees);
+        $this->taskService->updateTask($id, $taskData);
 
         return redirect()->route('tasks.index')
             ->with('message', 'Task berhasil diperbarui');
     }
 
-    public function destroy(Task $task)
+    public function destroy($id)
     {
-        $task->delete();
+        $this->taskService->deleteTask($id);
 
         return redirect()->route('tasks.index')
             ->with('message', 'Task berhasil dihapus');
@@ -235,18 +243,20 @@ class TaskController extends Controller
     /**
      * Update the status of the specified task.
      */
-    public function updateStatus(Request $request, Task $task)
+    public function updateStatus(Request $request, $id)
     {
         $request->validate([
             'status' => ['required', 'string', 'in:draft,in_progress,completed,cancelled'],
         ]);
 
-        $task->update([
+        $taskData = [
             'status' => $request->status,
             'completed_at' => $request->status === 'completed' ? now() : null
-        ]);
+        ];
 
-        $task->load(['category', 'platform', 'assignees', 'creator']);
+        $task = $this->taskService->updateTask($id, $taskData);
+        // Refresh with relations untuk response
+        $task = $this->taskService->getTaskById($id, ['category', 'platform', 'assignees', 'creator']);
 
         return response()->json([
             'success' => true,
