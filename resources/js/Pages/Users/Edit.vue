@@ -69,7 +69,8 @@
                                     type="checkbox"
                                     :value="role"
                                     v-model="form.roles"
-                                    class="w-5 h-5 rounded border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--primary-600)] focus:ring-[var(--primary-500)]"
+                                    class="w-5 h-5 rounded border-[var(--border-primary)] bg-[var(--bg-secondary)] text-[var(--primary-600)] focus:ring-[var(--primary-500)] dark:bg-gray-700 dark:border-gray-600 dark:checked:bg-blue-500 dark:checked:border-blue-500 dark:focus:ring-blue-400"
+                                    style="accent-color: var(--primary-600);"
                                 />
                             </div>
                             <div class="ml-3 text-sm">
