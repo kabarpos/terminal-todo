@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Storage;
 
 class SettingsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:manage-settings');
+    }
+
     public function index()
     {
         // Ambil settings yang dikelompokkan untuk form

@@ -8,13 +8,21 @@ export function usePermission() {
         if (!permission) return false;
         
         const userPermissions = usePage().props.auth?.user?.permissions || [];
-        const normalizedRequestedPerm = normalizePermission(permission);
         
-        // Jika user adalah Super Admin, berikan semua akses
+        // Jika user adalah Admin, berikan semua akses
         const userRoles = usePage().props.auth?.user?.roles || [];
-        if (userRoles.includes('Super Admin')) {
+        if (userRoles.includes('Admin')) {
             return true;
         }
+        
+        // Handle multiple permissions dengan separator pipe (|)
+        if (typeof permission === 'string' && permission.includes('|')) {
+            // Jika format permission-nya "a|b|c", cukup memiliki salah satunya
+            const permissions = permission.split('|');
+            return permissions.some(p => hasPermission(p));
+        }
+        
+        const normalizedRequestedPerm = normalizePermission(permission);
         
         // Normalisasi dan cek exact match
         const normalizedUserPermissions = userPermissions.map(p => normalizePermission(p));

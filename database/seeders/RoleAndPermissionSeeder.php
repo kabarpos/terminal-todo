@@ -46,6 +46,7 @@ class RoleAndPermissionSeeder extends Seeder
                 'create-team',
                 'edit-team',
                 'delete-team',
+                'manage-team',
                 
                 // Categories
                 'view-category',
@@ -58,6 +59,7 @@ class RoleAndPermissionSeeder extends Seeder
                 'create-platform',
                 'edit-platform',
                 'delete-platform',
+                'manage-platform',
                 
                 // Media
                 'view-media',
@@ -85,13 +87,6 @@ class RoleAndPermissionSeeder extends Seeder
                 'delete-social-media-report',
                 'manage-social-media-report',
                 
-                // Social Platforms
-                'view-social-platform',
-                'create-social-platform',
-                'edit-social-platform',
-                'delete-social-platform',
-                'manage-social-platform',
-                
                 // Social Accounts
                 'view-social-account',
                 'create-social-account',
@@ -105,6 +100,8 @@ class RoleAndPermissionSeeder extends Seeder
                 'edit-metric-data',
                 'delete-metric-data',
                 'manage-metric-data',
+                'import-metric-data',
+                'export-metric-data',
                 
                 // Analytics
                 'view-analytics',
@@ -112,16 +109,19 @@ class RoleAndPermissionSeeder extends Seeder
                 'edit-analytics',
                 'delete-analytics',
                 'manage-analytics',
+                'export-analytics',
                 
                 // Admin permissions
                 'view-users',
                 'create-users',
                 'edit-users',
                 'delete-users',
+                'manage-users',
                 'view-roles',
                 'create-roles',
                 'edit-roles',
                 'delete-roles',
+                'manage-roles',
             ];
 
             // Create all permissions
@@ -142,11 +142,11 @@ class RoleAndPermissionSeeder extends Seeder
                         'view-calendar',
                         'view-task', 'create-task', 'edit-task',
                         'view-team',
+                        'view-platform',
                         'view-media', 'create-media',
                         'view-settings',
                         'view-newsfeed',
                         'view-social-media-report',
-                        'view-social-platform',
                         'view-social-account',
                         'view-metric-data',
                         'view-analytics',

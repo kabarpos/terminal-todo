@@ -271,15 +271,15 @@ const deleteAccount = () => {
 
 const getPlatformIcon = (platform) => {
     const icons = {
-        instagram: 'fab fa-instagram',
-        facebook: 'fab fa-facebook',
-        twitter: 'fab fa-twitter',
-        tiktok: 'fab fa-tiktok',
-        youtube: 'fab fa-youtube',
-        linkedin: 'fab fa-linkedin',
-        pinterest: 'fab fa-pinterest',
+        instagram: 'fa-brands fa-instagram',
+        facebook: 'fa-brands fa-facebook-f',
+        twitter: 'fa-brands fa-twitter',
+        tiktok: 'fa-brands fa-tiktok',
+        youtube: 'fa-brands fa-youtube',
+        linkedin: 'fa-brands fa-linkedin-in',
+        pinterest: 'fa-brands fa-pinterest-p',
         // Tambahkan platform lain sesuai kebutuhan
-        default: 'fab fa-globe' // Icon default jika platform tidak ditemukan
+        default: 'fa-brands fa-globe' // Icon default jika platform tidak ditemukan
     }
     return icons[platform] || icons.default
 }

@@ -15,10 +15,10 @@ use App\Http\Controllers\NewsFeedController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\MediaController;
-use App\Http\Controllers\SocialPlatformController;
 use App\Http\Controllers\SocialAccountController;
 use App\Http\Controllers\MetricDataController;
 use App\Http\Controllers\SocialMediaAnalyticsController;
+use App\Http\Controllers\SocialMediaReportController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -64,15 +64,15 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Content Management Routes
-    Route::middleware(['role:Super Admin|Content Manager|Manager'])->group(function () {
+    Route::middleware(['auth'])->group(function () {
         Route::resource('categories', CategoryController::class)
-            ->middleware('permission:manage-category');
+            ->middleware('permission:view-category|manage-category');
         
         Route::resource('platforms', PlatformController::class)
-            ->middleware('permission:manage-platform');
+            ->middleware('permission:view-platform|manage-platform');
         
         Route::resource('calendar', EditorialCalendarController::class)
-            ->middleware('permission:manage-calendar');
+            ->middleware('permission:view-calendar|manage-calendar');
 
         // Calendar Comments Routes
         Route::post('calendar/{calendar}/comments', [CalendarCommentController::class, 'store'])
@@ -88,7 +88,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
     Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
         // Users Management
         Route::resource('users', UserController::class)
-            ->middleware('permission:manage-users');
+            ->middleware('permission:view-users|manage-users');
         
         Route::put('users/{user}/approve', [UserController::class, 'approve'])
             ->name('users.approve')
@@ -108,11 +108,11 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
         
         // Roles Management
         Route::resource('roles', RoleController::class)
-            ->middleware('permission:manage-roles');
+            ->middleware('permission:view-roles|manage-roles');
         
         Route::get('/settings', [SettingsController::class, 'index'])
             ->name('settings.index')
-            ->middleware('permission:manage-settings');
+            ->middleware('permission:view-settings|manage-settings');
         
         Route::post('/settings', [SettingsController::class, 'update'])
             ->name('settings.update')
@@ -230,40 +230,16 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
         ->middleware(['permission:view-analytics']);
 
     // Social Media Reports Routes
-    Route::group(['middleware' => 'permission:view-social-media-report'], function () {
-        Route::get('social-media-reports', [\App\Http\Controllers\SocialMediaReportController::class, 'index'])
-            ->name('social-media-reports.index');
-    });
+    Route::resource('social-media-reports', SocialMediaReportController::class)
+        ->middleware('permission:view-social-media-report|manage-social-media-report');
     
-    Route::group(['middleware' => 'permission:manage-social-media-report'], function () {
-        Route::get('social-media-reports/create', [\App\Http\Controllers\SocialMediaReportController::class, 'create'])
-            ->name('social-media-reports.create');
-        Route::post('social-media-reports', [\App\Http\Controllers\SocialMediaReportController::class, 'store'])
-            ->name('social-media-reports.store');
-        Route::get('social-media-reports/{social_media_report}/edit', [\App\Http\Controllers\SocialMediaReportController::class, 'edit'])
-            ->name('social-media-reports.edit');
-        Route::put('social-media-reports/{social_media_report}', [\App\Http\Controllers\SocialMediaReportController::class, 'update'])
-            ->name('social-media-reports.update');
-        Route::delete('social-media-reports/{social_media_report}', [\App\Http\Controllers\SocialMediaReportController::class, 'destroy'])
-            ->name('social-media-reports.destroy');
-    });
-    
-    // Export route
-    Route::get('social-media-reports/export', [\App\Http\Controllers\SocialMediaReportController::class, 'export'])
-        ->name('social-media-reports.export')
-        ->middleware(['permission:export-analytics']);
-
-    // Routes untuk Social Media Analytics
-    Route::resource('social-platforms', SocialPlatformController::class)
-        ->middleware('permission:view-social-platform|manage-social-platform');
-
-    // Account Routes
+    // Social Accounts Routes
     Route::resource('social-accounts', SocialAccountController::class)
         ->middleware('permission:view-social-account|manage-social-account');
     Route::put('social-accounts/{id}/toggle-status', [SocialAccountController::class, 'toggleStatus'])
         ->name('social-accounts.toggle-status')
         ->middleware('permission:manage-social-account');
-
+    
     // Metric Data Import/Export Routes - PENTING: rutenya diletakkan SEBELUM resource route
     Route::get('metric-data/template', [MetricDataController::class, 'downloadTemplate'])
         ->name('metric-data.template')

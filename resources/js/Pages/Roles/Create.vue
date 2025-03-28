@@ -234,9 +234,41 @@ const groupedPermissions = computed(() => {
 
 // Fungsi untuk mendapatkan nama fitur dari permission
 const getFeatureFromPermission = (permissionName) => {
+    // Mapping khusus untuk menu di sidebar
+    const sidebarMapping = {
+        'dashboard': 'Dashboard',
+        'calendar': 'Calendar',
+        'task': 'Tasks',
+        'team': 'Teams',
+        'category': 'Categories',
+        'platform': 'Platforms',
+        'social-platform': 'Social Platforms',
+        'social-account': 'Social Accounts',
+        'newsfeed': 'News Feed',
+        'social-media-report': 'Reports',
+        'media': 'Media Library',
+        'metric-data': 'Input Metrik',
+        'analytic': 'Analytics',
+        'user': 'User Management',
+        'role': 'Role Management',
+        'setting': 'Settings'
+    };
+    
+    // Cek apakah permission name cocok dengan salah satu menu sidebar
+    for (const [key, value] of Object.entries(sidebarMapping)) {
+        if (permissionName.includes(key)) {
+            return value;
+        }
+    }
+    
     // Cek khusus untuk social media report
     if (permissionName.includes('social-media-report')) {
-        return 'Social Media Reports';
+        return 'Reports';
+    }
+    
+    // Cek khusus untuk metric-data
+    if (permissionName.includes('metric-data')) {
+        return 'Input Metrik';
     }
     
     // Ekstrak nama fitur dari permission
@@ -256,13 +288,13 @@ const getFeatureFromPermission = (permissionName) => {
         'media': 'Media Library',
         
         // Manajemen Pengguna & Akses
-        'user': 'Users',
-        'role': 'Roles',
+        'user': 'User Management',
+        'role': 'Role Management',
         'permission': 'Permissions',
         'team': 'Teams',
         'member': 'Members',
         'profile': 'Profiles',
-        'account': 'Accounts',
+        'account': 'Social Accounts',
         
         // Pengaturan & Konfigurasi
         'setting': 'Settings',
@@ -278,35 +310,30 @@ const getFeatureFromPermission = (permissionName) => {
         // Analytics & Reports
         'report': 'Reports',
         'analytic': 'Analytics',
-        'metric': 'Metrics',
-        'statistic': 'Statistics',
+        'metric': 'Input Metrik',
+        'statistic': 'Reports',
         'dashboard': 'Dashboard',
-        'insight': 'Insights',
+        'insight': 'Analytics',
+        'export': 'Reports',
         
         // Social Media
-        'social': 'Social Media',
-        'newsfeed': 'Newsfeeds',
-        'feed': 'Feeds',
+        'social': 'Social Platforms',
+        'newsfeed': 'News Feed',
+        'feed': 'News Feed',
         
         // System & Tools
         'system': 'System',
         'tool': 'Tools',
         'log': 'Logs',
         'backup': 'Backups',
-        'import': 'Import/Export',
-        'export': 'Import/Export',
+        'import': 'Input Metrik',
+        'export': 'Reports',
         'api': 'API',
         
         // Calendar & Schedule
         'calendar': 'Calendar',
-        'schedule': 'Schedules',
-        'event': 'Events',
-        
-        // Messages & Communication
-        'message': 'Messages',
-        'chat': 'Chat',
-        'notification': 'Notifications',
-        'announcement': 'Announcements'
+        'schedule': 'Calendar',
+        'event': 'Calendar',
     };
     
     // Cari kata kunci fitur dalam permission dengan prioritas
@@ -412,22 +439,32 @@ const formatPermissionLabel = (permission) => {
     };
 
     const moduleLabels = {
-        'users': 'Pengguna',
-        'roles': 'Role',
-        'tasks': 'Tugas',
-        'teams': 'Tim',
+        'dashboard': 'Dashboard',
         'calendar': 'Kalender',
+        'task': 'Tugas',
+        'team': 'Tim',
         'category': 'Kategori',
         'platform': 'Platform',
-        'newsfeed': 'Newsfeed',
-        'social media report': 'Laporan Media Sosial',
         'social platform': 'Platform Sosial',
         'social account': 'Akun Sosial',
+        'newsfeed': 'News Feed',
+        'social media report': 'Laporan Media Sosial',
         'media': 'Media Library',
         'metric data': 'Data Metrik',
+        'metric': 'Metrik',
         'analytics': 'Analitik',
+        'users': 'Pengguna',
+        'user': 'Pengguna',
+        'roles': 'Role',
+        'role': 'Role',
         'settings': 'Pengaturan',
-        'dashboard': 'Dashboard'
+        'setting': 'Pengaturan',
+        'news feed': 'News Feed',
+        'reports': 'Laporan',
+        'report': 'Laporan',
+        'social platforms': 'Platform Sosial',
+        'social accounts': 'Akun Sosial',
+        'input metrik': 'Input Metrik'
     };
 
     const actionLabel = actionLabels[action] || action;
@@ -439,19 +476,22 @@ const formatPermissionLabel = (permission) => {
 // Format label group untuk tampilan yang lebih baik
 const formatGroupLabel = (group) => {
     const groupLabels = {
-        'Media Library': 'Media Library',
-        'Social Media Reports': 'Laporan Media Sosial',
+        'Dashboard': 'Dashboard',
+        'Calendar': 'Kalender',
         'Tasks': 'Tugas',
-        'Users': 'Pengguna',
-        'Roles': 'Role',
         'Teams': 'Tim',
         'Categories': 'Kategori',
         'Platforms': 'Platform',
-        'Settings': 'Pengaturan',
-        'Calendar': 'Kalender',
-        'Newsfeeds': 'Newsfeed',
-        'Analytics': 'Analitik',
+        'Social Platforms': 'Platform Sosial',
+        'Social Accounts': 'Akun Sosial',
+        'News Feed': 'News Feed',
         'Reports': 'Laporan',
+        'Media Library': 'Media Library',
+        'Input Metrik': 'Input Metrik',
+        'Analytics': 'Analitik',
+        'User Management': 'Manajemen User',
+        'Role Management': 'Manajemen Role',
+        'Settings': 'Pengaturan',
         'Other': 'Lainnya'
     };
     

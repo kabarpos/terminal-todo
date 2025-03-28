@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SocialAccount;
-use App\Models\SocialPlatform;
+use App\Models\Platform;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -30,7 +30,7 @@ class SocialAccountController extends Controller
 
         return Inertia::render('SocialAccounts/Index', [
             'accounts' => $query->paginate(10),
-            'platforms' => SocialPlatform::active()->get(),
+            'platforms' => Platform::where('is_active', true)->get(),
             'filters' => $request->only(['search', 'platform_id', 'status'])
         ]);
     }
@@ -38,14 +38,14 @@ class SocialAccountController extends Controller
     public function create()
     {
         return Inertia::render('SocialAccounts/Create', [
-            'platforms' => SocialPlatform::active()->get()
+            'platforms' => Platform::where('is_active', true)->get()
         ]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'platform_id' => 'required|exists:social_platforms,id',
+            'platform_id' => 'required|exists:platforms,id',
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255',
             'url' => 'required|url|max:255',
@@ -63,14 +63,14 @@ class SocialAccountController extends Controller
     {
         return Inertia::render('SocialAccounts/Edit', [
             'account' => $socialAccount,
-            'platforms' => SocialPlatform::active()->get()
+            'platforms' => Platform::where('is_active', true)->get()
         ]);
     }
 
     public function update(Request $request, SocialAccount $socialAccount)
     {
         $validated = $request->validate([
-            'platform_id' => 'required|exists:social_platforms,id',
+            'platform_id' => 'required|exists:platforms,id',
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255',
             'url' => 'required|url|max:255',

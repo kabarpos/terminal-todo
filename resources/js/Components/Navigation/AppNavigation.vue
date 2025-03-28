@@ -86,12 +86,6 @@ const navigationConfig = {
             permission: "view-platform"
         },
         {
-            name: "Social Platforms",
-            href: route('social-platforms.index'),
-            icon: ShareIcon,
-            permission: "view-social-platform"
-        },
-        {
             name: "Social Accounts",
             href: route('social-accounts.index'),
             icon: UsersIcon,
@@ -104,7 +98,7 @@ const navigationConfig = {
             permission: "view-newsfeed"
         },
         {
-            name: "Reports",
+            name: "Posting Reports",
             href: route('social-media-reports.index'),
             icon: ChartBarIcon,
             permission: "view-social-media-report"
@@ -211,12 +205,6 @@ const navigationItems = computed(() => [
         route: 'media.index',
         icon: 'fas fa-photo-video',
         permission: 'view-media'
-    },
-    {
-        name: 'Social Platforms',
-        route: 'social-platforms.index',
-        icon: 'fas fa-share-alt',
-        permission: 'view-social-platform'
     },
     {
         name: 'Social Accounts',

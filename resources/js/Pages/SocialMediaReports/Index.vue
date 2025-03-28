@@ -1,12 +1,12 @@
 <template>
-    <Head title="Social Media Reports" />
+    <Head title="Posting Reports" />
 
-    <AuthenticatedLayout :auth="auth" title="Social Media Reports Management">
+    <AuthenticatedLayout :auth="auth" title="Posting Reports">
         <template #header>
             <div class="w-full">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg md:text-xl font-semibold text-[var(--text-primary)] truncate">
-                        Account Reports
+                        Posting Reports
                     </h2>
                     
                     <div class="flex items-center gap-2">

@@ -11,6 +11,11 @@ use App\Events\UserStatusChanged;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:manage-users');
+    }
+
     public function index()
     {
         return Inertia::render('Users/Index', [

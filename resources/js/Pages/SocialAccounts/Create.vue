@@ -14,17 +14,23 @@
                     <form @submit.prevent="submit" class="p-6 space-y-6">
                         <div>
                             <InputLabel for="platform_id" value="Platform" />
-                            <select
-                                id="platform_id"
-                                v-model="form.platform_id"
-                                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                                required
-                            >
-                                <option value="">Pilih Platform</option>
-                                <option v-for="platform in platforms" :key="platform.id" :value="platform.id">
-                                    {{ platform.name }}
-                                </option>
-                            </select>
+                            <div class="mt-1 relative">
+                                <div v-if="form.platform_id" class="absolute left-3 top-2">
+                                    <i :class="[getPlatformIcon(getPlatformNameById(form.platform_id)?.toLowerCase()), 'text-xl']"></i>
+                                </div>
+                                <select
+                                    id="platform_id"
+                                    v-model="form.platform_id"
+                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+                                    :class="{ 'pl-10': form.platform_id }"
+                                    required
+                                >
+                                    <option value="">Pilih Platform</option>
+                                    <option v-for="platform in platforms" :key="platform.id" :value="platform.id">
+                                        {{ platform.name }}
+                                    </option>
+                                </select>
+                            </div>
                             <InputError :message="form.errors.platform_id" class="mt-2" />
                         </div>
 
@@ -116,6 +122,7 @@ import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputError from '@/Components/InputError.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
     platforms: {
@@ -135,5 +142,44 @@ const form = useForm({
 
 const submit = () => {
     form.post(route('social-accounts.store'))
+}
+
+// Fungsi untuk mendapatkan nama platform dari ID
+const getPlatformNameById = (id) => {
+    if (!id) return '';
+    const platform = props.platforms.find(p => p.id === id);
+    return platform ? platform.name : '';
+}
+
+// Fungsi untuk mendapatkan ikon platform
+const getPlatformIcon = (platform) => {
+    const icons = {
+        instagram: 'fa-brands fa-instagram',
+        facebook: 'fa-brands fa-facebook-f',
+        twitter: 'fa-brands fa-twitter',
+        tiktok: 'fa-brands fa-tiktok',
+        youtube: 'fa-brands fa-youtube',
+        linkedin: 'fa-brands fa-linkedin-in',
+        pinterest: 'fa-brands fa-pinterest-p',
+        // Tambahkan platform lain sesuai kebutuhan
+        default: 'fa-brands fa-globe' // Icon default jika platform tidak ditemukan
+    }
+    return icons[platform] || icons.default
+}
+
+// Fungsi untuk mendapatkan class warna platform
+const getPlatformClass = (platform) => {
+    const classes = {
+        instagram: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white',
+        facebook: 'bg-blue-600 text-white',
+        twitter: 'bg-blue-400 text-white',
+        tiktok: 'bg-black text-white',
+        youtube: 'bg-red-600 text-white',
+        linkedin: 'bg-blue-700 text-white',
+        pinterest: 'bg-red-700 text-white',
+        // Tambahkan platform lain sesuai kebutuhan
+        default: 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+    }
+    return classes[platform] || classes.default
 }
 </script> 

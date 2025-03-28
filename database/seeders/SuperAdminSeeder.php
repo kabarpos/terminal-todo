@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SuperAdminSeeder extends Seeder
 {
@@ -36,6 +37,10 @@ class SuperAdminSeeder extends Seeder
             // Get all permissions
             $permissions = Permission::all();
 
+            if ($permissions->isEmpty()) {
+                Log::warning('No permissions found when running SuperAdminSeeder. Make sure to run RoleAndPermissionSeeder first.');
+            }
+
             // Assign all permissions to Admin role
             $adminRole->syncPermissions($permissions);
 
@@ -43,12 +48,12 @@ class SuperAdminSeeder extends Seeder
             $admin->syncRoles([$adminRole]);
 
             // Log success
-            \Log::info('Admin user updated successfully with all permissions');
+            Log::info('Admin user updated successfully with all permissions');
             
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
-            \Log::error('Error updating Admin user: ' . $e->getMessage());
+            Log::error('Error updating Admin user: ' . $e->getMessage());
             throw $e;
         }
     }

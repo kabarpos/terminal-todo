@@ -28,7 +28,7 @@ class Metric extends Model
     // Relasi dengan platform
     public function platform()
     {
-        return $this->belongsTo(SocialPlatform::class, 'platform_id');
+        return $this->belongsTo(Platform::class, 'platform_id');
     }
 
     // Relasi dengan metric data

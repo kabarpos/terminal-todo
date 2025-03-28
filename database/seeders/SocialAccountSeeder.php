@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\SocialAccount;
-use App\Models\SocialPlatform;
+use App\Models\Platform;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -11,7 +11,7 @@ class SocialAccountSeeder extends Seeder
 {
     public function run(): void
     {
-        $platforms = SocialPlatform::all();
+        $platforms = Platform::all();
 
         foreach ($platforms as $platform) {
             // Cek apakah sudah ada akun untuk platform ini

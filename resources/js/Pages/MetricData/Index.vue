@@ -472,14 +472,14 @@ const formatDate = (date) => {
 
 const getPlatformIcon = (platform) => {
     const icons = {
-        instagram: 'fab fa-instagram',
-        facebook: 'fab fa-facebook',
-        twitter: 'fab fa-twitter',
-        tiktok: 'fab fa-tiktok',
-        youtube: 'fab fa-youtube',
-        linkedin: 'fab fa-linkedin',
-        pinterest: 'fab fa-pinterest',
-        default: 'fab fa-globe'
+        instagram: 'fa-brands fa-instagram',
+        facebook: 'fa-brands fa-facebook-f',
+        twitter: 'fa-brands fa-twitter',
+        tiktok: 'fa-brands fa-tiktok',
+        youtube: 'fa-brands fa-youtube',
+        linkedin: 'fa-brands fa-linkedin-in',
+        pinterest: 'fa-brands fa-pinterest-p',
+        default: 'fa-brands fa-globe'
     }
     return icons[platform] || icons.default
 }
