@@ -85,7 +85,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
     });
 
     // Admin Routes
-    Route::middleware('role:Super Admin|Manager')->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
         // Users Management
         Route::resource('users', UserController::class)
             ->middleware('permission:manage-users');

@@ -131,87 +131,25 @@ class RoleAndPermissionSeeder extends Seeder
 
             // Create roles and assign permissions
             $roles = [
-                'super_admin' => [
-                    'name' => 'Super Admin',
+                'admin' => [
+                    'name' => 'Admin',
                     'permissions' => $permissions // All permissions
                 ],
-                'content_manager' => [
-                    'name' => 'Content Manager',
+                'user' => [
+                    'name' => 'User',
                     'permissions' => [
                         'view-dashboard',
-                        'view-calendar', 'create-calendar', 'edit-calendar', 'delete-calendar',
-                        'view-task', 'create-task', 'edit-task', 'delete-task',
-                        'view-team', 'create-team', 'edit-team', 'delete-team',
-                        'view-category', 'create-category', 'edit-category', 'delete-category',
-                        'view-platform', 'create-platform', 'edit-platform', 'delete-platform',
-                        'view-media', 'create-media', 'edit-media', 'delete-media', 'manage-media',
-                        'view-settings', 'edit-settings', 'manage-settings',
-                        'view-newsfeed', 'create-newsfeed', 'edit-newsfeed', 'delete-newsfeed', 'manage-newsfeed',
-                        'view-social-media-report', 'create-social-media-report', 'edit-social-media-report', 'delete-social-media-report', 'manage-social-media-report',
-                        'view-social-platform', 'create-social-platform', 'edit-social-platform', 'delete-social-platform', 'manage-social-platform',
-                        'view-social-account', 'create-social-account', 'edit-social-account', 'delete-social-account', 'manage-social-account',
-                        'view-metric-data', 'create-metric-data', 'edit-metric-data', 'delete-metric-data', 'manage-metric-data',
-                        'view-analytics', 'create-analytics', 'edit-analytics', 'delete-analytics', 'manage-analytics',
-                    ]
-                ],
-                'content_writer' => [
-                    'name' => 'Content Writer',
-                    'permissions' => [
-                        'view-task', 'edit-task',
                         'view-calendar',
-                        'view-media', 'create-media', 'edit-media',
-                        'view-settings', 'edit-settings', 'manage-settings',
-                        'view-newsfeed', 'create-newsfeed', 'edit-newsfeed',
-                        'view-social-media-report', 'create-social-media-report', 'edit-social-media-report',
-                        'view-social-platform', 'create-social-platform', 'edit-social-platform',
-                        'view-social-account', 'create-social-account',
-                        'view-metric-data', 'create-metric-data',
-                        'view-analytics', 'create-analytics',
-                    ]
-                ],
-                'designer' => [
-                    'name' => 'Designer',
-                    'permissions' => [
-                        'view-task', 'edit-task',
-                        'view-calendar',
-                        'view-media', 'create-media', 'edit-media',
-                        'view-settings', 'edit-settings', 'manage-settings',
-                        'view-newsfeed', 'create-newsfeed', 'edit-newsfeed',
-                        'view-social-media-report', 'create-social-media-report', 'edit-social-media-report',
-                        'view-social-platform', 'create-social-platform', 'edit-social-platform',
-                        'view-social-account', 'create-social-account',
-                        'view-metric-data', 'create-metric-data',
-                        'view-analytics', 'create-analytics',
-                    ]
-                ],
-                'video_editor' => [
-                    'name' => 'Video Editor',
-                    'permissions' => [
-                        'view-task', 'edit-task',
-                        'view-calendar',
-                        'view-media', 'create-media', 'edit-media',
-                        'view-settings', 'edit-settings', 'manage-settings',
-                        'view-newsfeed', 'create-newsfeed', 'edit-newsfeed',
-                        'view-social-media-report', 'create-social-media-report', 'edit-social-media-report',
-                        'view-social-platform', 'create-social-platform', 'edit-social-platform',
-                        'view-social-account', 'create-social-account',
-                        'view-metric-data', 'create-metric-data',
-                        'view-analytics', 'create-analytics',
-                    ]
-                ],
-                'social_media' => [
-                    'name' => 'Social Media',
-                    'permissions' => [
-                        'view-task', 'edit-task',
-                        'view-calendar', 'create-calendar',
+                        'view-task', 'create-task', 'edit-task',
+                        'view-team',
                         'view-media', 'create-media',
-                        'view-settings', 'edit-settings', 'manage-settings',
-                        'view-newsfeed', 'create-newsfeed', 'edit-newsfeed',
-                        'view-social-media-report', 'create-social-media-report', 'edit-social-media-report',
-                        'view-social-platform', 'create-social-platform',
-                        'view-social-account', 'create-social-account',
-                        'view-metric-data', 'create-metric-data',
-                        'view-analytics', 'create-analytics',
+                        'view-settings',
+                        'view-newsfeed',
+                        'view-social-media-report',
+                        'view-social-platform',
+                        'view-social-account',
+                        'view-metric-data',
+                        'view-analytics',
                     ]
                 ]
             ];

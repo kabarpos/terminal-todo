@@ -15,11 +15,11 @@ class SuperAdminSeeder extends Seeder
     {
         DB::beginTransaction();
         try {
-            // Cari atau buat super admin user
-            $superAdmin = User::firstOrCreate(
+            // Cari atau buat admin user
+            $admin = User::firstOrCreate(
                 ['email' => 'admin@example.com'],
                 [
-                    'name' => 'Super Admin',
+                    'name' => 'Admin',
                     'password' => Hash::make('password'),
                     'email_verified_at' => now(),
                     'status' => 'active',
@@ -27,28 +27,28 @@ class SuperAdminSeeder extends Seeder
                 ]
             );
 
-            // Get or create the Super Admin role
-            $superAdminRole = Role::firstOrCreate([
-                'name' => 'Super Admin',
+            // Get or create the Admin role
+            $adminRole = Role::firstOrCreate([
+                'name' => 'Admin',
                 'guard_name' => 'web'
             ]);
 
             // Get all permissions
             $permissions = Permission::all();
 
-            // Assign all permissions to Super Admin role
-            $superAdminRole->syncPermissions($permissions);
+            // Assign all permissions to Admin role
+            $adminRole->syncPermissions($permissions);
 
-            // Assign role to super admin
-            $superAdmin->syncRoles([$superAdminRole]);
+            // Assign role to admin
+            $admin->syncRoles([$adminRole]);
 
             // Log success
-            \Log::info('Super Admin updated successfully with all permissions');
+            \Log::info('Admin user updated successfully with all permissions');
             
             DB::commit();
         } catch (\Exception $e) {
             DB::rollback();
-            \Log::error('Error updating Super Admin: ' . $e->getMessage());
+            \Log::error('Error updating Admin user: ' . $e->getMessage());
             throw $e;
         }
     }
