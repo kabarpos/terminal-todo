@@ -19,7 +19,7 @@
                     </svg>
                     <span class="font-medium">Perhatian:</span>
                 </div>
-                <p class="ml-7">Untuk mengubah data user, Anda harus menonaktifkan user terlebih dahulu (ubah status menjadi 'Inactive').</p>
+                <p class="ml-7">Untuk mengubah data user, Anda harus menonaktifkan user terlebih dahulu (ubah status menjadi 'Nonaktif').</p>
             </div>
 
             <form @submit.prevent="submitForm" class="space-y-6">
