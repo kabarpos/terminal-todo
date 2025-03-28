@@ -28,12 +28,34 @@ class RouteServiceProvider extends ServiceProvider
             return \App\Models\MetricData::withTrashed()->findOrFail($value);
         });
 
+        // API rate limiting - lebih ketat untuk production
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
+        // Auth rate limiting - mencegah brute force
         RateLimiter::for('auth', function (Request $request) {
             return Limit::perMinute(5)->by($request->ip());
+        });
+
+        // Task creation rate limiting
+        RateLimiter::for('tasks', function (Request $request) {
+            return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
+        });
+        
+        // Comment creation rate limiting
+        RateLimiter::for('comments', function (Request $request) {
+            return Limit::perMinute(20)->by($request->user()?->id ?: $request->ip());
+        });
+        
+        // Media upload rate limiting
+        RateLimiter::for('uploads', function (Request $request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+        });
+        
+        // Dashboard access rate limiting
+        RateLimiter::for('dashboard', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
 
         $this->routes(function () {

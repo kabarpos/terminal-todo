@@ -35,24 +35,24 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
     // Dashboard Routes
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard/Index');
-    })->name('dashboard');
+    })->middleware('throttle:dashboard')->name('dashboard');
 
     // Tasks Routes
     Route::resource('tasks', TaskController::class)
-        ->middleware('permission:view-task|manage-task');
+        ->middleware(['permission:view-task|manage-task', 'throttle:tasks']);
 
     Route::put('tasks/{id}/update-status', [TaskController::class, 'updateStatus'])
         ->name('tasks.update-status')
-        ->middleware('permission:manage-task');
+        ->middleware(['permission:manage-task', 'throttle:tasks']);
     
     // Task Comments Routes
     Route::post('tasks/{task}/comments', [TaskCommentController::class, 'store'])
         ->name('tasks.comments.store')
-        ->middleware('permission:manage-task');
+        ->middleware(['permission:manage-task', 'throttle:comments']);
     
     Route::put('tasks/comments/{comment}', [TaskCommentController::class, 'update'])
         ->name('tasks.comments.update')
-        ->middleware('permission:manage-task');
+        ->middleware(['permission:manage-task', 'throttle:comments']);
     
     Route::delete('tasks/comments/{comment}', [TaskCommentController::class, 'destroy'])
         ->name('tasks.comments.destroy')
@@ -77,7 +77,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
         // Calendar Comments Routes
         Route::post('calendar/{calendar}/comments', [CalendarCommentController::class, 'store'])
             ->name('calendar.comments.store')
-            ->middleware('permission:manage-calendar');
+            ->middleware(['permission:manage-calendar', 'throttle:comments']);
         
         Route::delete('calendar/{calendar}/comments/{comment}', [CalendarCommentController::class, 'destroy'])
             ->name('calendar.comments.destroy')
@@ -135,7 +135,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
         
     Route::post('news-feeds', [NewsFeedController::class, 'store'])
         ->name('news-feeds.store')
-        ->middleware('permission:manage-newsfeed');
+        ->middleware(['permission:manage-newsfeed', 'throttle:tasks']);
         
     Route::get('news-feeds/{news_feed}/edit', [NewsFeedController::class, 'edit'])
         ->name('news-feeds.edit')
@@ -143,7 +143,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
         
     Route::put('news-feeds/{news_feed}', [NewsFeedController::class, 'update'])
         ->name('news-feeds.update')
-        ->middleware('permission:manage-newsfeed');
+        ->middleware(['permission:manage-newsfeed', 'throttle:tasks']);
         
     Route::delete('news-feeds/{news_feed}', [NewsFeedController::class, 'destroy'])
         ->name('news-feeds.destroy')
@@ -151,11 +151,11 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
 
     Route::post('news-feeds/preview', [NewsFeedController::class, 'preview'])
         ->name('news-feeds.preview')
-        ->middleware('permission:manage-newsfeed');
+        ->middleware(['permission:manage-newsfeed', 'throttle:tasks']);
     
     Route::post('/news-feeds/fetch-metadata', [NewsFeedController::class, 'fetchMetadata'])
         ->name('news-feeds.fetch-metadata')
-        ->middleware('permission:manage-newsfeed');
+        ->middleware(['permission:manage-newsfeed', 'throttle:tasks']);
 
     // Team Routes
     Route::get('teams', [TeamController::class, 'index'])
@@ -209,7 +209,7 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
         ->middleware('permission:view-media');
     Route::post('media', [MediaController::class, 'store'])
         ->name('media.store')
-        ->middleware('permission:manage-media');
+        ->middleware(['permission:manage-media', 'throttle:uploads']);
     Route::delete('media/{media}', [MediaController::class, 'destroy'])
         ->name('media.destroy')
         ->middleware('permission:manage-media');

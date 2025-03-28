@@ -64,3 +64,222 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+# Terminal Todo
+
+Aplikasi manajemen tugas untuk tim dengan fokus pada editorial calendar dan social media management.
+
+## Production Deployment Guide
+
+### Persyaratan Server
+- PHP 8.2+
+- MySQL 8.0+
+- Redis 6.0+
+- Node.js 16+ dan NPM
+- Composer 2+
+- Webserver (Nginx direkomendasikan)
+- SSL Certificate
+
+### Langkah Deployment
+
+1. **Siapkan Environment**
+   ```bash
+   # Clone repository
+   git clone [repository_url] /path/to/app
+   cd /path/to/app
+   
+   # Install dependensi
+   composer install --no-dev --optimize-autoloader
+   npm install
+   npm run build
+   
+   # Setup environment
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+2. **Konfigurasi Environment**
+   Edit file `.env` dan sesuaikan:
+   ```
+   APP_ENV=production
+   APP_DEBUG=false
+   APP_URL=https://yourdomain.com
+   
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=your_database
+   DB_USERNAME=your_username
+   DB_PASSWORD=your_secure_password
+   
+   CACHE_DRIVER=redis
+   QUEUE_CONNECTION=redis
+   SESSION_DRIVER=redis
+   
+   REDIS_HOST=127.0.0.1
+   REDIS_PASSWORD=null
+   REDIS_PORT=6379
+   ```
+
+3. **Setup Database**
+   ```bash
+   php artisan migrate --force
+   php artisan db:seed --force # Jika diperlukan
+   ```
+
+4. **Optimasi**
+   ```bash
+   # Cache routes dan config
+   php artisan route:cache
+   php artisan config:cache
+   php artisan view:cache
+   
+   # Set permission
+   chmod -R 775 storage bootstrap/cache
+   chown -R www-data:www-data storage bootstrap/cache
+   ```
+
+5. **Setup Queue Worker**
+   Buat sistem service untuk menjalankan queue worker:
+   ```bash
+   # /etc/systemd/system/laravel-queue.service
+   [Unit]
+   Description=Laravel Queue Worker
+   After=network.target
+
+   [Service]
+   User=www-data
+   Group=www-data
+   Restart=always
+   ExecStart=/usr/bin/php /path/to/app/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+   ```bash
+   # Aktifkan service
+   sudo systemctl enable laravel-queue
+   sudo systemctl start laravel-queue
+   ```
+
+6. **Setup Scheduler**
+   Tambahkan cron job:
+   ```
+   * * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1
+   ```
+
+7. **Konfigurasi Nginx**
+   ```nginx
+   server {
+       listen 80;
+       server_name yourdomain.com;
+       return 301 https://$host$request_uri;
+   }
+
+   server {
+       listen 443 ssl;
+       server_name yourdomain.com;
+       
+       ssl_certificate /path/to/fullchain.pem;
+       ssl_certificate_key /path/to/privkey.pem;
+       
+       root /path/to/app/public;
+       index index.php;
+       
+       # Gzip Compression
+       gzip on;
+       gzip_types text/plain text/css application/json application/javascript text/xml application/xml text/javascript;
+       
+       location / {
+           try_files $uri $uri/ /index.php?$query_string;
+       }
+       
+       # Cache static assets
+       location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+           expires max;
+           add_header Cache-Control "public, max-age=31536000";
+       }
+       
+       location ~ \.php$ {
+           fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+           fastcgi_index index.php;
+           fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+           include fastcgi_params;
+       }
+       
+       location ~ /\.(?!well-known).* {
+           deny all;
+       }
+   }
+   ```
+
+8. **Monitoring Setup**
+   - Gunakan supervisor untuk memastikan queue worker tetap berjalan
+   - Setup monitoring untuk server (New Relic, Datadog, atau solusi lain)
+   - Setup backup otomatis untuk database
+
+9. **Security Checks**
+   - Pastikan semua direktori memiliki permission yang benar
+   - Periksa firewall settings
+   - Gunakan Laravel Security Checker untuk memeriksa vulnerabilities
+
+10. **Post-Deployment**
+    - Clear cache
+    ```bash
+    php artisan cache:clear
+    php artisan optimize
+    ```
+    
+    - Test aplikasi di environment production
+    - Setup monitoring dan alerts
+
+### Maintenance
+
+- **Updates**
+  ```bash
+  # Turn on maintenance mode
+  php artisan down
+  
+  # Pull the latest changes
+  git pull
+  
+  # Update dependencies
+  composer install --no-dev --optimize-autoloader
+  npm install
+  npm run build
+  
+  # Run migrations
+  php artisan migrate --force
+  
+  # Clear caches
+  php artisan optimize:clear
+  php artisan optimize
+  
+  # Turn off maintenance mode
+  php artisan up
+  ```
+
+- **Backups**
+  Setup backup otomatis menggunakan package seperti spatie/laravel-backup.
+
+### Performance Monitoring
+
+Untuk monitoring performa aplikasi, gunakan tool seperti:
+- New Relic
+- Datadog
+- Laravel Telescope (hanya untuk development/staging)
+
+### Security Best Practices
+
+- Update dependencies secara rutin
+- Aktifkan CSRF protection di semua form
+- Gunakan sistem permissions untuk kontrol akses
+- Gunakan prepared statements untuk query database
+- Validasi semua input user
+- Protect against XSS dan CSRF attacks dengan middleware
+- Log semua aktivitas keamanan
+
+## License
+
+The Terminal Todo is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

@@ -42,6 +42,10 @@ use App\Observers\UserMetaObserver;
 use App\Observers\UserObserver;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Log;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -90,6 +94,28 @@ class AppServiceProvider extends ServiceProvider
             if (class_exists($model) && class_exists($observer)) {
                 $model::observe($observer);
             }
+        }
+        
+        // Monitor queue jobs in production untuk logging dan monitoring
+        if (app()->environment('production')) {
+            Queue::before(function (JobProcessing $event) {
+                Log::channel('queue')->info('Processing job', [
+                    'id' => $event->job->getJobId(),
+                    'name' => $event->job->resolveName(),
+                    'queue' => $event->job->getQueue(),
+                    'attempts' => $event->job->attempts(),
+                    'payload' => json_decode($event->job->getRawBody(), true),
+                ]);
+            });
+            
+            Queue::after(function (JobProcessed $event) {
+                Log::channel('queue')->info('Job processed', [
+                    'id' => $event->job->getJobId(),
+                    'name' => $event->job->resolveName(),
+                    'queue' => $event->job->getQueue(),
+                    'time' => $event->job->timeoutAt(),
+                ]);
+            });
         }
     }
 }

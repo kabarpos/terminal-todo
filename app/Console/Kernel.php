@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -15,15 +16,33 @@ class Kernel extends ConsoleKernel
      * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
      * @return void
      */
-    protected function schedule(Schedule $schedule)
+    protected function schedule(Schedule $schedule): void
     {
-        // Jalankan pengambilan data metrik setiap hari jam 00:00
-        $schedule->command('metrics:fetch')
-            ->dailyAt('00:00')
-            ->appendOutputTo(storage_path('logs/metrics-fetch.log'));
-
-        // Membersihkan media yang di-softdelete lebih dari 30 hari
-        $schedule->command('media:clean 30')->daily()->at('01:00');
+        // Membersihkan log setiap minggu
+        $schedule->command('log:clear')
+            ->weekly()
+            ->appendOutputTo(storage_path('logs/scheduler.log'));
+        
+        // Membersihkan cache Redis setiap hari
+        $schedule->command('cache:prune-stale-tags')
+            ->daily()
+            ->onOneServer()
+            ->environments(['production', 'staging'])
+            ->appendOutputTo(storage_path('logs/scheduler.log'));
+        
+        // Retry failed jobs setiap jam
+        $schedule->command('queue:retry all')
+            ->hourly()
+            ->onOneServer()
+            ->environments(['production', 'staging'])
+            ->appendOutputTo(storage_path('logs/scheduler.log'));
+        
+        // Hapus media yang tidak terpakai setiap minggu
+        $schedule->command('media:prune')
+            ->weekly()
+            ->onOneServer()
+            ->environments(['production', 'staging'])
+            ->appendOutputTo(storage_path('logs/scheduler.log'));
     }
 
     /**
@@ -31,7 +50,7 @@ class Kernel extends ConsoleKernel
      *
      * @return void
      */
-    protected function commands()
+    protected function commands(): void
     {
         $this->load(__DIR__.'/Commands');
 
