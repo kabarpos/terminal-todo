@@ -41,9 +41,9 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\EnsureUserIsActive::
     Route::resource('tasks', TaskController::class)
         ->middleware(['permission:view-task|manage-task', 'throttle:tasks']);
 
-    Route::put('tasks/{id}/update-status', [TaskController::class, 'updateStatus'])
+    Route::patch('tasks/{id}/update-status', [TaskController::class, 'updateStatus'])
         ->name('tasks.update-status')
-        ->middleware(['permission:manage-task', 'throttle:tasks']);
+        ->middleware(['permission:view-task|edit-task|manage-task', 'throttle:tasks']);
     
     // Task Comments Routes
     Route::post('tasks/{task}/comments', [TaskCommentController::class, 'store'])
